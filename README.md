@@ -1,44 +1,27 @@
-# App Template
+# T&A
 
-A static, local-first SVG icon library and reusable application foundation. Open `index.html` directly, or serve this folder for clipboard, installation, and offline support:
+Tristan's and Adam's Running Note for Bets, Golf, and Other Shenanigans
 
-```sh
-python3 -m http.server 8000
-```
+A local-first app with a blank main workspace, one plain-text Notes editor, search, Settings, appearance controls, backups, recovery, and offline support. No build step or runtime dependencies.
 
-No build step, runtime packages, backend, or sign-in is required. Node is used only for development tests and optional catalog compilation.
+Serve this folder with `python3 -m http.server 8000` and open http://localhost:8000. Stop the server when finished. Run automated checks with Node.js 18 or later using `node --test tests/*.test.mjs`.
 
-The app includes searchable SVGs, five native SF Symbol weights, metadata editing, a single Notes modal, appearance settings, Help, release notes, Roadmap, JSON backup/recovery, and optional GitHub Sync. The current version and history appear in Settings → What's New.
+## GitHub Sync
 
-## Develop and release
+The fixed target is `themadat/data-t-a`, branch `main`, file `data/t-a.json`. Initialize that file with `{}` if it does not exist. Only Notes are uploaded; preferences remain on each device.
 
-Edit `assets/js/config.js` to configure identity, features, cloud target, and help. For a release, change its sole `VERSION` value and add release notes at the front of `releases`. The newest entry uses `VERSION`; keep previous entries pinned to their historical numbers. Versions use `major.minor.patch.build`.
+Create a fine-grained GitHub token limited to `data-t-a`, with Contents read/write permission. Enter it directly in Settings → Data Sync, choose device or tab storage, then Test and Save. Do this separately in each browser. Never commit the token or paste it into chat. Verify an upload and download before relying on Sync.
 
-Asset URLs, visible version labels, build IDs, and offline cache names follow automatically. No routine version edits are needed elsewhere. Run:
+The repository and live Sync round trip have not yet been verified: the current CLI account received HTTP 404 for the data repository.
 
-```sh
-node --test tests/*.test.mjs
-git diff --check
-```
+## Development
 
-Host the repository as static files over HTTPS. GitHub Pages uses **Settings → Pages → GitHub Actions** and the checked-in workflow. Its stable name is Deploy App Template; the run title uses the versioned commit subject. Do not enable a second branch-based deployment.
+Identity, feature configuration, Sync target, and release history live in `assets/js/config.js`. Keep its VERSION as the sole current version literal. Editable app artwork is `assets/icons/t-a.svg`; derived light/dark install and splash assets live alongside it.
 
-## Use as a new-app template
+- [Architecture](docs/ARCHITECTURE.md)
+- [Shared UI](docs/COMPONENTS.md)
+- [Customization](docs/CUSTOMIZATION.md)
+- [Verification](docs/TESTING.md)
+- [Git setup](docs/GIT-SETUP.md)
 
-Copy into a new repository, supply the app name and square icon, and request `reset`. It keeps the shell and infrastructure, removes the icon-library product, and starts the new app at `0.0.1.1`. Follow [Reset](docs/RESET.md); do not reset this canonical checkout accidentally.
-
-## Optional GitHub Sync
-
-The app's repository and sync target are separate config values. Settings → Data Sync links both, keeps the target read-only, and accepts a fine-grained token. Save and successful Test retain it according to the device/tab choice.
-
-Create a unique app JSON file in [app-data/data](https://github.com/themadat/app-data/tree/main/data). Create the token in [GitHub settings](https://github.com/settings/personal-access-tokens), selecting only `app-data` with **Contents: Read and write**. Tokens stay outside app data, backups, and diagnostics. SSH for terminal Git is configured separately on each computer.
-
-## Documentation
-
-- [Architecture](docs/ARCHITECTURE.md): runtime, persistence, cloud contract, offline updates.
-- [Icons](docs/ICONS.md): sources, weights, compilation, metadata.
-- [Customization](docs/CUSTOMIZATION.md): identity, features, release process.
-- [Components](docs/COMPONENTS.md): shared UI conventions.
-- [Testing](docs/TESTING.md): automated checks and focused manual coverage.
-- [Git setup](docs/GIT-SETUP.md): personal/work laptop SSH.
-- [Agent instructions](AGENTS.md): workflows and commit handoff.
+Source repository: https://github.com/themadat/t-a

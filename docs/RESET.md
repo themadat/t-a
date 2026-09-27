@@ -8,7 +8,7 @@ Create a new repository from the template, configure terminal SSH using [Git set
 
 - Confirmed app name, one-sentence description, source repository URL.
 - Square SVG/PNG app icon; separate light/dark variants if desired.
-- Sync enabled/disabled; when enabled, owner themadat, repository app-data, branch main, unique path data/NEW-APP-SLUG.json.
+- Sync enabled/disabled; when enabled, confirm the owner and data repository, branch main, and a unique path data/NEW-APP-SLUG.json. T&A uses themadat/data-t-a with data/t-a.json.
 
 Do not include a token in the request.
 
@@ -35,8 +35,8 @@ Remove generated catalog parts/assembler, compiler/overrides and custom product 
 ## Provision sync
 
 If enabled:
-1. Create data/APP-SLUG.json on main in [app-data/data](https://github.com/themadat/app-data/tree/main/data), initially `{}`. Set the config target to that exact file.
-2. Create a token in [fine-grained token settings](https://github.com/settings/personal-access-tokens): resource owner themadat, only app-data, **Contents: Read and write**, maintainable expiration. Permission covers the selected repository, not only this JSON path.
+1. Create data/APP-SLUG.json on main in the confirmed data repository, initially `{}`. Set the config target to that exact file.
+2. Create a token in [fine-grained token settings](https://github.com/settings/personal-access-tokens): the confirmed resource owner, only the confirmed data repository, **Contents: Read and write**, maintainable expiration. Permission covers the selected repository, not only this JSON path.
 3. Enter the token in Settings → Data Sync, choose device/tab storage, Test and Save. Configure each browser separately. Never put it in source, data JSON, backups, diagnostics, logs, or chat.
 4. Verify the file, displayed target, successful Test, and first upload/download round trip before marking sync provisioning complete. Report any external setup still pending.
 

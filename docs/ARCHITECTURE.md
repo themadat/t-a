@@ -15,9 +15,8 @@ The toolbar Update control saves local changes before checking/installing and re
 All runtime modules attach to `window.LocalApp`.
 - `config.js`: identity, flags, help, releases, Roadmap, fixed sync target.
 - `icons.js`: shared interface SVGs, including cloud state symbols.
-- Catalog parts + assembler: committed artwork; see [Icons](ICONS.md).
 - `core/utils.js`: sanitization, URLs, dates, hashing, search utilities.
-- `core/state.js`: defaults, migrations, normalization, backup/cloud formats.
+- `core/state.js`: defaults, normalization, backup/cloud formats.
 - `core/storage.js`: local autosave, separate credentials, recovery.
 - `core/components.js`: dialogs, menus, toasts, focus.
 - `core/portability.js`: validated JSON import/export.
@@ -26,15 +25,15 @@ All runtime modules attach to `window.LocalApp`.
 
 ## Persistence
 
-Local state/full backups use schema v4. Notes use stable `app-notes` in the legacy documents collection; editing is plain text escaped into the legacy html field. Migration preserves earlier note content and titles. Legacy records remain readable without restoring a Records UI.
+Local state/full backups use schema v4. Notes use stable `app-notes` in a single-item documents collection; editing is plain text escaped into the internal html field. Old template records and catalog state are not part of T&A.
 
-Startup migrates/normalizes current or legacy state and can recover from a snapshot. Imports validate before replacing. Preserve storage keys across normal releases. New state shapes require migration tests. Preferences, UI, category collapse, rail width, and name-only search stay device-local. Reset Preferences preserves content; Erase All requires confirmation.
+Startup normalizes T&A state and can recover from a snapshot. Imports validate before replacing. Preserve storage keys across normal releases. New state shapes require migration tests. Preferences and UI stay device-local. Reset Preferences preserves content; Erase All requires confirmation.
 
 ## Cloud contract
 
-The `local-first-app-data` v1 envelope declares schema v5 (older builds reject it safely). Its data allowlist is Notes, pending icon metadata overrides, and nonempty legacy records. Empty fields are omitted; absence clears that content when downloaded. Built-in SVGs, preferences/UI, timestamps, mutation IDs, and credentials are excluded. Full backups transfer preferences.
+The `local-first-app-data` v1 envelope declares schema v5 (older builds reject it safely). Its data allowlist is Notes only. Empty fields are omitted; absence clears that content when downloaded. Built-in SVGs, preferences/UI, timestamps, mutation IDs, and credentials are excluded. Full backups transfer preferences.
 
-`syncPayload`, `syncHash`, `prepareSync`, and `applySync` centralize this contract. Hashes use `data-v1:`. Baked overrides are pruned during normalization. Downloads keep local settings/credentials. Legacy full-state cloud files remain readable and compact on explicit Sync Now; background checks do not write.
+`syncPayload`, `syncHash`, `prepareSync`, and `applySync` centralize this contract. Hashes use `data-v1:`. Downloads keep local settings/credentials. T&A full-state cloud files remain readable and compact on explicit Sync Now; background checks do not write.
 
 Target owner/repo/branch/path always come from config. Tokens use separate local/session storage and never enter state, backups, diagnostics, or sync JSON. Save and successful Test keep a masked value and visible storage label; background renders preserve dirty fields.
 

@@ -2,7 +2,7 @@
 
 // Registration supplies config.identity.buildId; no release literal lives here.
 const ASSET_VERSION = new URL(self.location.href).searchParams.get("v") || "development";
-const CACHE_NAME = "app-template-shell-" + ASSET_VERSION;
+const CACHE_NAME = "t-a-shell-" + ASSET_VERSION;
 const versioned = function (path) { return path + "?v=" + ASSET_VERSION; };
 const SHELL = [
   "./",
@@ -13,11 +13,6 @@ const SHELL = [
   versioned("./manifest-dark.webmanifest"),
   versioned("./assets/css/app.css"),
   versioned("./assets/js/icons.js"),
-  versioned("./assets/js/icon-library-part-1.js"),
-  versioned("./assets/js/icon-library-part-2.js"),
-  versioned("./assets/js/icon-library-part-3.js"),
-  versioned("./assets/js/icon-library-part-4.js"),
-  versioned("./assets/js/icon-library.js"),
   versioned("./assets/js/core/utils.js"),
   versioned("./assets/js/core/state.js"),
   versioned("./assets/js/core/storage.js"),
@@ -47,7 +42,7 @@ self.addEventListener("install", function (event) {
 
 self.addEventListener("activate", function (event) {
   event.waitUntil(Promise.all([
-    caches.keys().then(function (keys) { return Promise.all(keys.filter(function (key) { return (key.startsWith("app-template-shell-") || key.startsWith("local-workspace-shell-")) && key !== CACHE_NAME; }).map(function (key) { return caches.delete(key); })); }),
+    caches.keys().then(function (keys) { return Promise.all(keys.filter(function (key) { return key.startsWith("t-a-shell-") && key !== CACHE_NAME; }).map(function (key) { return caches.delete(key); })); }),
     self.clients.claim()
   ]));
 });

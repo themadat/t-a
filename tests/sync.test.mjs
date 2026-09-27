@@ -23,10 +23,6 @@ function harness({ token = 'test-token', online = true } = {}) {
     if (file === 'core/utils.js') {
       window.LocalApp.utils = { ...window.LocalApp.utils, sanitizeRichHtml: String, richTextToPlainText: text => String(text)
         .replace(/<br\s*\/?>/gi, '\n').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&') };
-      window.LocalApp.iconLibrary = {
-        categories: [{ id: 'interface' }], sourceRepositories: [],
-        icons: [{ id: 'icon-a', retiredIds: ['retired-icon-a'], label: 'Original', kind: 'sf-symbol', categories: ['interface'], source: '' }]
-      };
     }
   }
   const App = window.LocalApp;
@@ -52,7 +48,7 @@ function harness({ token = 'test-token', online = true } = {}) {
   h.file = () => response(200, { type: 'file', sha: 'remote-sha', content: Buffer.from(JSON.stringify(h.legacy ? h.remote : App.stateModel.syncPayload(h.remote))).toString('base64') });
   h.respond = h.file;
   h.setBaseline = () => Object.assign(state.modules.cloudSync, {
-    baselineTarget: 'themadat/app-data/main/data/app-template.json', baselineHash: App.stateModel.syncHash(state), baselineSha: 'base-sha'
+    baselineTarget: 'themadat/data-t-a/main/data/t-a.json', baselineHash: App.stateModel.syncHash(state), baselineSha: 'base-sha'
   });
   return h;
 }
@@ -256,17 +252,16 @@ test('first upload still requires a choice; a synchronized copy needs no write',
 });
 
 
-test('empty templates sync only an empty content envelope, independent of device, UI, or save metadata', () => {
+test('empty notes sync only an empty content envelope, independent of device, UI, or save metadata', () => {
   const h = harness(), model = h.App.stateModel;
   const original = JSON.stringify(model.syncPayload(h.state));
   assert.deepEqual(JSON.parse(original), { syncFormat: 'local-first-app-data', syncVersion: 1, schemaVersion: 5, data: {} });
   assert.ok(Buffer.byteLength(JSON.stringify(model.syncPayload(h.state), null, 2)) < 120);
   h.App.storage.mutate(state => {
     state.preferences.appearance.mode = 'dark'; state.ui.search = 'cloud'; state.ui.supportTab = 'dataSync';
-    state.ui.seenReleaseVersion = 'next-build'; state.modules.iconLibrary.weight = 'light';
-    state.modules.iconLibrary.sidebarWidth = 280; state.modules.roadmap.search = 'filter';
+    state.ui.seenReleaseVersion = 'next-build'; state.modules.roadmap.search = 'local filter';
     state.workspace.title = 'This computer'; state.workspace.documents[0].updatedAt = '2000-01-01T00:00:00.000Z';
-    state.meta.createdAt = '2000-01-01T00:00:00.000Z'; state.meta.tombstones.records = [{ id: 'old', deletedAt: state.meta.createdAt }];
+    state.meta.createdAt = '2000-01-01T00:00:00.000Z';
   });
   assert.equal(h.state.ui.supportTab, 'dataSync');
   assert.equal(JSON.stringify(model.syncPayload(h.state)), original);
@@ -278,12 +273,12 @@ test('empty templates sync only an empty content envelope, independent of device
 
 test('download and subsequent release dismissal, Settings, filter, and theme changes stay up to date', async () => {
   const h = harness(); h.setBaseline(); changeNotes(h.remote, 'cloud content');
-  h.App.storage.mutate(state => { state.preferences.appearance.mode = 'dark'; state.ui.search = 'local search'; state.modules.iconLibrary.weight = 'light'; });
+  h.App.storage.mutate(state => { state.preferences.appearance.mode = 'dark'; state.ui.search = 'local search'; state.modules.roadmap.search = 'local filter'; });
   await h.sync.syncNow();
   assert.equal(h.state.workspace.documents[0].html, 'cloud content');
   assert.equal(h.state.preferences.appearance.mode, 'dark');
   assert.equal(h.state.ui.search, 'local search');
-  assert.equal(h.state.modules.iconLibrary.weight, 'light');
+  assert.equal(h.state.modules.roadmap.search, 'local filter');
   h.App.storage.mutate(state => { state.ui.seenReleaseVersion = '0.0.1.67'; state.ui.supportTab = 'help'; state.modules.roadmap.search = 'done'; });
   assert.equal(h.sync.getInfo().state, 'upToDate');
   await h.sync.syncNow();
@@ -296,7 +291,7 @@ test('download and subsequent release dismissal, Settings, filter, and theme cha
 
 test('legacy whole-state files migrate without false conflicts and compact on explicit Sync Now', async () => {
   const h = harness(); h.legacy = true;
-  h.state.modules.cloudSync.baselineTarget = 'themadat/app-data/main/data/app-template.json';
+  h.state.modules.cloudSync.baselineTarget = 'themadat/data-t-a/main/data/t-a.json';
   h.state.modules.cloudSync.baselineHash = 'old-whole-state-hash';
   h.remote.preferences.appearance.mode = 'dark'; h.remote.ui.search = 'another computer';
   h.respond = (url, options) => options.method === 'PUT' ? response(200, { content: { sha: 'compact-sha' } }) : h.file();
@@ -319,22 +314,19 @@ test('unchanged legacy SHA migrates the baseline even when local content changed
   assert.equal(h.sync.getInfo().change, 'local');
 });
 
-test('legacy restore retains actual content and local preferences; empty cloud clears notes and edits', async () => {
+test('legacy restore retains actual content and local preferences; empty cloud clears notes', async () => {
   const h = harness(); h.legacy = true; h.confirmation = true;
   changeNotes(h.remote, 'old notes'); h.remote.preferences.appearance.mode = 'dark';
-  h.remote.modules.iconLibrary.overrides = [{ iconId: 'icon-a', label: 'Renamed', categories: ['interface'] }];
   await h.sync.restoreFromCloud();
   assert.equal(h.state.workspace.documents[0].html, 'old notes');
-  assert.equal(h.state.modules.iconLibrary.overrides[0].label, 'Renamed');
   assert.equal(h.state.preferences.appearance.mode, 'system');
   h.legacy = false; h.remote = h.App.stateModel.createDefaultState();
   await h.sync.restoreFromCloud();
   assert.equal(h.state.workspace.documents[0].html, '');
-  assert.equal(h.state.modules.iconLibrary.overrides.length, 0);
   assert.equal(h.sync.getInfo().state, 'upToDate');
 });
 
-test('multiline Unicode and literal HTML round trip as content; resetting icon edits is a real change', async () => {
+test('multiline Unicode and literal HTML round trip as content; clearing Notes is a real change', async () => {
   const h = harness(); const model = h.App.stateModel;
   const notes = 'Cloud ☁️\n<literal> & "text"';
   changeNotes(h.state, h.App.utils.escapeHtml(notes).replace(/\n/g, '<br>'));
@@ -342,29 +334,20 @@ test('multiline Unicode and literal HTML round trip as content; resetting icon e
   assert.equal(payload.data.notes, notes);
   assert.equal(model.syncHash(model.prepareSync(payload).state), model.syncHash(h.state));
   h.remote = structuredClone(h.state); await h.sync.check(true);
-  h.App.storage.mutate(state => { state.modules.iconLibrary.overrides = [{ iconId: 'icon-a', label: 'Renamed', categories: ['interface'] }]; });
+  h.App.storage.mutate(state => changeNotes(state, 'changed note'));
   assert.equal(h.sync.getInfo().state, 'pending');
   h.remote = structuredClone(h.state); await h.sync.check(true);
-  h.App.storage.mutate(state => { state.modules.iconLibrary.overrides = []; });
+  h.App.storage.mutate(state => changeNotes(state, ''));
   assert.equal(h.sync.getInfo().state, 'pending');
 });
 
-test('baked icon overrides normalize away on both sides, including after a reload', async () => {
-  const h = harness(); h.legacy = true;
-  h.remote.modules.iconLibrary.overrides = [{ iconId: 'icon-a', label: 'Original', categories: ['interface'], kind: 'sf-symbol' }];
-  await h.sync.check(true);
-  assert.equal(h.sync.getInfo().state, 'upToDate');
-  assert.equal(h.App.stateModel.syncPayload(h.remote).data.iconOverrides, undefined);
-});
 
 test('merges combine disjoint content while preserving device settings; differing items require a choice', async () => {
   const h = harness(), model = h.App.stateModel;
   changeNotes(h.state, 'local notes'); h.state.preferences.appearance.mode = 'dark';
-  h.remote.modules.iconLibrary.overrides = [{ iconId: 'icon-a', label: 'Cloud label', categories: ['interface'] }];
   assert.equal(model.canMerge(h.state, h.remote), true);
   const merged = model.merge(h.state, h.remote);
   assert.equal(merged.workspace.documents[0].html, 'local notes');
-  assert.equal(merged.modules.iconLibrary.overrides[0].label, 'Cloud label');
   assert.equal(merged.preferences.appearance.mode, 'dark');
   changeNotes(h.remote, 'different notes');
   assert.equal(model.canMerge(h.state, h.remote), false);
@@ -374,24 +357,7 @@ test('merges combine disjoint content while preserving device settings; differin
   assert.throws(() => model.merge(h.state, h.remote), /Notes differ/);
 });
 
-test('merge refuses to replace data or upload when recovery cannot be saved', async () => {
-  const h = harness(); h.choice = 'merge'; h.recoveryWorks = false;
-  changeNotes(h.state, 'keep locally');
-  h.remote.modules.iconLibrary.overrides = [{ iconId: 'icon-a', label: 'Cloud label', categories: ['interface'] }];
-  await h.sync.syncNow();
-  assert.equal(h.replacements.length, 0);
-  assert.ok(h.requests.every(request => request.options.method !== 'PUT'));
-  assert.equal(h.sync.getInfo().state, 'failed');
-});
 
-test('nonempty legacy records survive compact round trips without save timestamps or empty scaffolding', () => {
-  const h = harness(), model = h.App.stateModel;
-  h.state.workspace.records = [{ id: 'record-1', title: 'Keep me', summary: 'actual data' }];
-  const payload = model.syncPayload(h.state);
-  assert.equal(payload.data.records[0].title, 'Keep me');
-  assert.equal(payload.data.records[0].updatedAt, undefined);
-  assert.equal(model.syncHash(model.prepareSync(payload).state), model.syncHash(h.state));
-});
 
 test('invalid or future cloud data is rejected without replacing or uploading content', async () => {
   for (const transform of [p => ({ ...p, syncVersion: 2 }), p => ({ ...p, data: { notes: [] } }), p => ({ ...p, data: { unknown: 'content' } }), p => ({ ...p, data: { iconOverrides: [{}] } }), () => null]) {
@@ -406,52 +372,9 @@ test('invalid or future cloud data is rejected without replacing or uploading co
 });
 
 
-test('Sync Now removes baked overrides from an already compact cloud file without marking content pending', async () => {
-  const h = harness();
-  const payload = JSON.parse(JSON.stringify(h.App.stateModel.syncPayload(h.state)));
-  payload.data.iconOverrides = [{ iconId: 'icon-a', label: 'Original', kind: 'sf-symbol', categories: ['interface'], source: '' }];
-  h.respond = (url, options) => options.method === 'PUT'
-    ? response(200, { content: { sha: 'clean-sha' } })
-    : response(200, { type: 'file', sha: 'remote-sha', content: Buffer.from(JSON.stringify(payload)).toString('base64') });
-  await h.sync.check(true);
-  assert.equal(h.sync.getInfo().state, 'upToDate');
-  assert.ok(h.requests.every(r => r.options.method !== 'PUT'));
-  await h.sync.syncNow();
-  const write = h.requests.find(r => r.options.method === 'PUT');
-  assert.ok(write);
-  const written = JSON.parse(Buffer.from(JSON.parse(write.options.body).content, 'base64').toString());
-  assert.deepEqual(written.data, {});
-  assert.equal(h.sync.getInfo().state, 'upToDate');
-});
 
 
-test('retired icon edits migrate through sync payloads and canonical edits take precedence', () => {
-  const h = harness();
-  const alias = { iconId: 'retired-icon-a', label: 'Alias edit', categories: ['interface'] };
-  const canonical = { iconId: 'icon-a', label: 'Canonical edit', categories: ['interface'] };
-  h.state.modules.iconLibrary.overrides = [alias];
-  assert.equal(h.App.stateModel.syncPayload(h.state).data.iconOverrides[0].iconId, 'icon-a');
-  assert.equal(h.App.stateModel.syncPayload(h.state).data.iconOverrides[0].label, 'Alias edit');
-  for (const overrides of [[alias, canonical], [canonical, alias]]) {
-    h.state.modules.iconLibrary.overrides = overrides;
-    const normalized = h.App.stateModel.normalize(h.state).modules.iconLibrary.overrides;
-    assert.equal(normalized.length, 1);
-    assert.equal(normalized[0].label, 'Canonical edit');
-  }
-});
 
-test('name-only search survives local normalization without entering the sync payload', () => {
-  const h = harness();
-  const originalPayload = JSON.stringify(h.App.stateModel.syncPayload(h.state));
-  h.state.ui.search = 'Hide Play';
-  h.state.ui.searchNameOnly = true;
-  const normalized = h.App.stateModel.normalize(h.state);
-  assert.equal(normalized.ui.searchNameOnly, true);
-  assert.equal(normalized.ui.search, 'Hide Play');
-  assert.equal(JSON.stringify(h.App.stateModel.syncPayload(normalized)), originalPayload);
-  h.state.ui.searchNameOnly = 'true';
-  assert.equal(h.App.stateModel.normalize(h.state).ui.searchNameOnly, false);
-});
 
 test('banner duration defaults and bounds are local preferences excluded from cloud content', () => {
   const h = harness();
@@ -462,5 +385,26 @@ test('banner duration defaults and bounds are local preferences excluded from cl
     const normalized = h.App.stateModel.normalize(h.state);
     assert.equal(normalized.preferences.controls.whatsNewDismissSeconds, expected);
     assert.equal(JSON.stringify(h.App.stateModel.syncPayload(normalized)), payload);
+  }
+});
+
+test('T&A backups preserve Notes, reset preferences safely, and cannot redirect Sync', () => {
+  const h = harness(), model = h.App.stateModel;
+  changeNotes(h.state, 'Keep this note');
+  h.state.preferences.appearance.mode = 'dark';
+  const backup = JSON.parse(JSON.stringify(model.exportEnvelope(h.state)));
+  backup.state.modules.cloudSync.repo = 'other-repository';
+  const restored = model.prepare(backup).state;
+  assert.equal(restored.workspace.documents[0].html, 'Keep this note');
+  assert.equal(restored.preferences.appearance.mode, 'dark');
+  assert.equal(restored.modules.cloudSync.repo, 'data-t-a');
+  assert.equal(restored.modules.cloudSync.path, 'data/t-a.json');
+  const reset = model.resetPreferences(restored);
+  assert.equal(reset.workspace.documents[0].html, 'Keep this note');
+  assert.equal(reset.preferences.appearance.mode, 'system');
+  assert.equal(reset.modules.iconLibrary, undefined);
+  assert.equal(reset.workspace.records, undefined);
+  for (const invalid of [null, [], { unexpected: true }, { schemaVersion: 99, workspace: { documents: [] } }]) {
+    assert.throws(() => model.prepare(invalid));
   }
 });

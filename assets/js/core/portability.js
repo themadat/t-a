@@ -9,12 +9,9 @@
   let pendingImport = null;
 
   function summaryFor(state, migrations) {
-    const categories = new Set(state.workspace.records.map(function (record) { return record.category; }));
     return {
       workspaceTitle: state.workspace.title,
-      records: state.workspace.records.length,
       documents: state.workspace.documents.length,
-      categories: categories.size,
       schemaVersion: state.schemaVersion,
       appVersion: state.meta.appVersion,
       updatedAt: state.meta.updatedAt,

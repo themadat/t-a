@@ -1,4 +1,4 @@
-# App Template — Agent Instructions
+# T&A — Agent Instructions
 
 Static, local-first HTML/CSS/JavaScript; no runtime dependencies or required build step.
 
@@ -9,7 +9,7 @@ Run `git status --short`, then read `context/LLM_HANDOFF.md` and `context/WISHES
 ## Working rules
 
 - Search with `rg`; keep changes scoped. Read task-specific docs only as needed.
-- Preserve the icon library unless explicitly resetting a copy. The reusable foundation is the top bar, search, Notes, vertical Settings/Roadmap, local recovery, optional GitHub Sync, and offline support. Do not reintroduce Records or a rich-text/multi-note workspace.
+- The reusable foundation is the top bar, search, Notes, vertical Settings/Roadmap, local recovery, optional GitHub Sync, and offline support. Do not reintroduce Records or a rich-text/multi-note workspace.
 - Identity, configuration, release history, and the sole `VERSION` literal live in `assets/js/config.js`. Use `major.minor.patch.build`: increment build for app changes; reset build to 1 for a requested major/minor/patch change. Update the newest release entry in this file; its version uses `VERSION`. Freeze the previous release's version as a literal when adding another entry. No version edits in HTML, manifests, worker, workflow, or docs. Documentation-only changes do not bump the app.
 - Use semantic, labelled controls, visible focus, escaped text, safe URLs, and shared SVG controls.
 - Verify proportionally using `docs/TESTING.md`. Stop preview servers before finishing.

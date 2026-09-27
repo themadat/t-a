@@ -158,7 +158,7 @@
   function recoveryInfo() {
     const recovery = readRecovery();
     if (!recovery) return null;
-    return { createdAt: recovery.createdAt, reason: recovery.reason, records: recovery.state.workspace.records.length, documents: recovery.state.workspace.documents.length };
+    return { createdAt: recovery.createdAt, reason: recovery.reason, documents: recovery.state.workspace.documents.length };
   }
 
   function clearAll() {

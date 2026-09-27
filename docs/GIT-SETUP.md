@@ -6,10 +6,10 @@ Replace the all-caps placeholders before running a command. On a managed work la
 
 ## Use the same repository URL on both computers
 
-Keep this repository’s saved remote canonical:
+This checkout currently uses `https://github.com/themadat/t-a.git`. Keep it computer-independent. If choosing SSH for a new clone, use:
 
 ```text
-git@github.com:themadat/app-template.git
+git@github.com:themadat/t-a.git
 ```
 
 The repository should not store an SSH alias, an absolute private-key path, or a computer-specific `core.sshCommand`. Each computer selects its own credentials outside the repository. A commit’s `user.name` and `user.email` identify its author; they do not select the GitHub account used for authentication.
@@ -48,7 +48,7 @@ git remote get-url origin
 git push --dry-run origin main
 ```
 
-On the work computer, the first command should retain `git@github.com:themadat/app-template.git`; the second can resolve to `git@gh-personal:themadat/app-template.git`. The ordinary `git pull` and `git push origin main` commands then work on either computer without editing the remote when switching devices.
+On the work computer, the first command should retain `git@github.com:themadat/t-a.git`; the second can resolve to `git@gh-personal:themadat/t-a.git`. The ordinary `git pull` and `git push origin main` commands then work on either computer without editing the remote when switching devices.
 
 If a combined commit-and-push command reports a successful commit followed by `Permission ... denied to ...`, the commit is already saved locally. Fix authentication and retry the push; do not recreate or reset that commit.
 

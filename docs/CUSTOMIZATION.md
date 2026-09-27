@@ -18,6 +18,6 @@ Do not edit versions in HTML, manifests, workflow names, or documentation. The w
 
 Use square SVG artwork for editable app/favicon variants; export 192/512px install icons, 512px maskable icons (important content within central 80%), 180px touch icons, and matching splash assets. Keep light/dark variants and referenced paths aligned.
 
-For catalog changes use [Icons](ICONS.md). When removing a module, remove its inert script declaration and service-worker cache entry as well as UI/events. Keep backward-compatible state for existing apps. A new-app reset can discard template-only compatibility.
+When removing a module, remove its inert script declaration and service-worker cache entry as well as UI/events. Keep backward-compatible state for existing apps. A new-app reset can discard template-only compatibility.
 
 GitHub Sync's target is read-only in the UI and reapplied during normalization. Set it in config; follow the file/token checklist in [Reset](RESET.md#provision-sync). Never include credentials in source or shared JSON.
