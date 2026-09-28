@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test as nodeTest } from 'node:test';
 const test = (name, fn) => nodeTest(name, { timeout: 5000 }, fn);
 import vm from 'node:vm';
+import { webcrypto } from 'node:crypto';
 
 function harness({ token = 'test-token', online = true } = {}) {
   const events = [], requests = [], toasts = [], replacements = [];
@@ -12,7 +13,7 @@ function harness({ token = 'test-token', online = true } = {}) {
     dispatchEvent(event) { events.push(event); listeners.get(event.type)?.(event); },
     setInterval() {}, setTimeout() {}
   };
-  const context = vm.createContext({ window, navigator: { onLine: online }, document: { addEventListener() {} },
+  const context = vm.createContext({ window, navigator: { onLine: online }, document: { addEventListener() {}, querySelector() { return null; } }, crypto: webcrypto,
     CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options?.detail; } },
     TextEncoder, TextDecoder, Uint8Array, AbortController, structuredClone, atob, btoa, URL, console,
     fetch: async (url, options) => { requests.push({ url, options }); return h.respond(url, options); }
@@ -463,4 +464,60 @@ test('turning Auto Sync off while reading prevents the pending write', async () 
   const pending = deferred(); h.respond = () => pending.promise;
   const syncing = h.sync.autoSync(); h.state.modules.cloudSync.autoSync = false; pending.resolve(h.file()); await syncing;
   assert.equal(h.requests.filter(r => r.options.method === 'PUT').length, 0);
+});
+
+function identity(h) {
+  h.App.storage.saveNow = () => true;
+  vm.runInContext(readFileSync(new URL('../assets/js/core/identity.js', import.meta.url), 'utf8'), h.context);
+  return h.App.identity;
+}
+test('owner labels both tokens once; a fresh friend connects without choosing a name or merge', async () => {
+  const owner = harness(), names = identity(owner);
+  addMoney(owner, 'Shared history');
+  await names.associate('adam-secret-example', 'tristan-secret-example', true);
+  assert.equal(names.person(), 'Adam');
+  assert.equal(owner.token, 'adam-secret-example');
+  const encoded = JSON.stringify(owner.App.stateModel.exportEnvelope(owner.state));
+  assert.ok(!encoded.includes('adam-secret-example')); assert.ok(!encoded.includes('tristan-secret-example'));
+  const server = sharedServer(owner.App.stateModel.syncPayload(owner.state));
+  const friend = harness({ token: '' }), friendNames = identity(friend); friend.respond = server.respond;
+  assert.equal(await friendNames.connect({ token:'tristan-secret-example', rememberToken:true }), 'Tristan');
+  assert.equal(friendNames.person(), 'Tristan'); assert.equal(friend.choices.length,0);
+  assert.equal(friend.state.workspace.moneyEntries[0].description, 'Shared history');
+  assert.equal(friend.state.modules.cloudSync.autoSync,true);
+  const secondDevice = harness({ token: '' }); secondDevice.respond=server.respond;
+  assert.equal(await identity(secondDevice).connect({token:'tristan-secret-example'}),'Tristan');
+});
+test('unlabelled and duplicate tokens cannot impersonate the remembered name', async () => {
+  const h=harness(), names=identity(h); h.state.preferences.person='Tristan';
+  assert.equal(names.person(),'');
+  await assert.rejects(names.associate('same','same',true),/different/);
+  await names.associate('adam-example','tristan-example',true);
+  const before=h.token;
+  h.remote=structuredClone(h.state);
+  await assert.rejects(names.connect({token:'unassigned-example'}),/no shared name/);
+  assert.equal(h.token,before); assert.equal(names.person(),'Adam');
+  await h.sync.forget(); assert.equal(names.person(),'');
+});
+test('token label roundtrips, old data migration, and conflicting rotations retain review', async () => {
+  const h=harness(), names=identity(h), m=h.App.stateModel;
+  await names.associate('adam-example','tristan-example',true);
+  const base=structuredClone(h.state), payload=m.syncPayload(base);
+  assert.equal(m.prepareSync(payload).state.workspace.tokenLabels.Tristan,base.workspace.tokenLabels.Tristan);
+  const local=structuredClone(base), remote=structuredClone(base);
+  local.workspace.tokenLabels.Tristan=await names.fingerprint('replacement-one');
+  remote.workspace.tokenLabels.Tristan=await names.fingerprint('replacement-two');
+  assert.equal(m.mergeResult(local,remote,{},payload.data).conflicts[0].key,'tokenLabels');
+  const legacy={syncFormat:'local-first-app-data',syncVersion:2,schemaVersion:6,data:{}};
+  assert.equal(Object.keys(m.prepareSync(legacy).state.workspace.tokenLabels).length,0);
+  const bad=structuredClone(payload); bad.data.tokenLabels.Adam='raw-secret';
+  assert.throws(()=>m.prepareSync(bad),/fingerprints/);
+});
+test('restored token resolves offline and reassigned token loses its old identity', async()=>{
+  const h=harness(), names=identity(h);
+  await names.associate('adam-example','tristan-example',true);
+  const restored=identity(h); h.context.navigator.onLine=false;
+  await restored.refresh(); assert.equal(restored.person(),'Adam');
+  h.state.workspace.tokenLabels.Adam=await restored.fingerprint('replacement');
+  assert.equal(restored.person(),'');
 });

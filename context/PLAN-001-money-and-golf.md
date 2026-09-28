@@ -6,6 +6,7 @@ Wish: WISH-001.
 ## Resume
 
 - User requested a plan to turn the supplied T&A note into a money ledger and golf history, with easy entry, new additions at the top, shared editing, and desktop/mobile layouts.
+- Follow-up implemented: owner labels both tokens once; shared fingerprints identify either person on any device. A fresh friend browser needs only token + Connect. Automated coverage includes the full mocked setup flow.
 - Confirmed: new golf winnings automatically create linked money entries. Keep the existing GitHub Sync approach.
 - Implemented: domain arithmetic, linked mutations, reviewed import, schema migration, responsive lists/forms, grouped three-way sync, Auto Sync, browser-tab draft recovery, and runtime-only deployment staging. Local verification passed 56 automated tests plus browser checks.
 - Next external steps: user commit/push and Pages run; initialize `main` in the empty private data repository, enter separate browser tokens, and complete a live two-browser round trip. An actual phone keyboard check remains. Preview servers are stopped; no agent commit/push/deploy occurred.
@@ -72,7 +73,7 @@ The appendix belongs in the existing private shared Notes content. Preserve its 
 - Round fields: scores, date precision, holes, course, independent winnings result, optional reimbursement, linked money IDs, and import provenance/review status.
 - A round and its linked entries form one consistency unit for local changes, Undo, validation, and conflict resolution. Never accept a sync merge that updates only one half of the relationship.
 - Retain deletion markers with revision information so an old offline browser cannot resurrect removed entries. Undo creates a new revision. Do not prune markers in the first release.
-- Store device preferences, selected tab/year, person attribution choice, credentials, pending sync state, and the last common sync snapshot locally. Exclude them from shared content. The snapshot used for three-way merge is bounded and tied to the configured target.
+- Store device preferences, selected tab/year, credentials, pending sync state, and the last common sync snapshot locally. Exclude them from shared content. The snapshot used for three-way merge is bounded and tied to the configured target.
 - Add a new local schema migration while preserving existing storage/recovery namespaces and Notes/preferences. Version the expanded cloud envelope so older Notes-only clients reject it safely; support importing the previous Notes-only format without clearing new collections during ordinary synchronization. Old clients must update before editing shared data.
 - Backups/import previews and recovery must include both collections, links, provenance, and deletion markers. Validate dates, finite integer scores/cents, limits, duplicate IDs, references, and unsupported future versions. Never let an import change the configured Sync target.
 
@@ -80,7 +81,7 @@ The appendix belongs in the existing private shared Notes content. Preserve its 
 
 Target remains `themadat/data-t-a`, branch `main`, `data/t-a.json`.
 
-- Verify repository existence/access and privacy before loading personal history. Each person should use their own GitHub account and token. Grant Tristan the required repository write access; use repository-limited Contents read/write credentials in each browser. Do not distribute one person's token in the site URL, source, backups, or chat. If the account/repository combination does not support the chosen token type, resolve that setup explicitly before claiming onboarding complete.
+- Verify repository existence/access and privacy before loading personal history. The user chose two distinct tokens under Adam’s GitHub account. Adam labels them once in the app; shared fingerprints provide attribution. Tristan enters only his token. GitHub permissions still control repository access.
 - Keep the public app code separate from private shared content. Confirm whether the data repository is private; do not change its visibility without a specific decision.
 - The current whole-Notes merge is insufficient. Implement a three-way merge against the last common snapshot: independent additions survive, one-sided edits/deletes apply, identical changes coalesce, and competing edits or edit-vs-delete produce a targeted conflict choice. Never resolve conflicts by whichever clock is later.
 - Display both versions of a conflicting entry with person, date, and changed fields. Resolve only that entry or linked round group; preserve unrelated changes. Conflicting Notes still require choosing or manually combining the text.

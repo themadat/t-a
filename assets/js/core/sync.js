@@ -432,6 +432,7 @@
   let autoTimer = 0, autoFailures = 0;
   function describeVersion(value) {
     if (value === undefined) return "No entry";
+    if (value.Adam && value.Tristan) return "Adam: " + value.Adam.slice(0, 12) + "…\nTristan: " + value.Tristan.slice(0, 12) + "…";
     if (typeof value === "string") return value || "Empty Notes";
     const rows = [...(value.golfRounds || []), ...(value.moneyEntries || [])];
     return rows.map(row => (row.deleted ? "Deleted · " : "") + row.date + " · " + (row.description || row.course || "Golf round") + " · " +
@@ -441,7 +442,7 @@
   async function resolveConflicts(conflicts, trigger) {
     const resolutions = {};
     for (const conflict of conflicts) {
-      const choice = await App.components.choose({ title: conflict.key === "notes" ? "Review conflicting Notes" : "Review a conflicting entry", message: "Both copies changed. Choose the version for this entry; unrelated entries will be kept.", trigger,
+      const choice = await App.components.choose({ title: conflict.key === "tokenLabels" ? "Review token associations" : conflict.key === "notes" ? "Review conflicting Notes" : "Review a conflicting entry", message: "Both copies changed. Choose the version for this entry; unrelated entries will be kept.", trigger,
         choices: [{ value: "local", label: "Keep this device’s version", description: describeVersion(conflict.local) }, { value: "remote", label: "Keep the shared version", description: describeVersion(conflict.remote) }], cancelLabel: "Review later" });
       if (!["local", "remote"].includes(choice)) return null;
       resolutions[conflict.key] = choice;
@@ -470,7 +471,7 @@
         } else {
           runtime.remoteState = remote.state; runtime.remoteSha = remote.sha; runtime.remoteHash = model.syncHash(remote.state); runtime.remoteMissing = false;
           const base = snapshot.modules.cloudSync.baselineTarget === target() ? snapshot.modules.cloudSync.baselineData : null;
-          if (!base && model.syncHash(snapshot) !== runtime.remoteHash) {
+          if (!base && model.syncHash(snapshot) !== runtime.remoteHash && !App.identity?.canInitializeFrom(remote.state)) {
             if (!interactive) return false;
             const choice = await App.components.choose({ title: "Connect to the shared ledger", message: "Combine this device’s entries with the existing shared file. Conflicting entries will be reviewed individually.", trigger, choices: [{ value: "merge", label: "Combine and sync", kind: "primary" }], cancelLabel: "Cancel" });
             if (choice !== "merge" || !currentRequest(context)) return false;
@@ -586,6 +587,18 @@
     configured: configured,
     saveConfiguration: saveConfiguration,
     testConnection: testConnection,
+    inspectToken: async function (token) {
+      if (getInfo().busy) throw new Error("Wait for the current sync to finish.");
+      const cloud = validateConfiguration(settings(), token);
+      const context = requestContext("checking");
+      runtime.checking = true; emit();
+      try {
+        await verifyTarget(cloud, token, context);
+        const remote = await readRemote(cloud, token, context, true);
+        if (!currentRequest(context)) throw new Error("Connection changed. Please reconnect.");
+        return remote && remote.state;
+      } finally { if (currentRequest(context)) { runtime.checking = false; emit(); } }
+    },
     check: check,
     syncNow: syncNow,
     restoreFromCloud: restoreFromCloud,

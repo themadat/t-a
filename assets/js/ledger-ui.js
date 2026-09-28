@@ -7,11 +7,11 @@
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const dateLabel = value => value.length === 4 ? value + ' · date unknown' : new Date(value + 'T12:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   const amountValue = value => value ? (value / 100).toFixed(2) : '';
-  const actor = () => { const name = state().preferences.person; if (!l.people.includes(name)) throw new Error('Choose your name above the list before saving.'); return name; };
+  const actor = () => { const name = App.identity.person(); if (!l.people.includes(name)) throw new Error('Connect your assigned token in Settings before saving.'); return name; };
   const notifyError = error => c.toast(error.message, { title: 'Please review', kind: 'warning', duration: 6000 });
   function shell() {
     return `<section class="ledger-workspace" aria-label="Money and Golf">
-      <div class="ledger-intro"><div><span class="eyebrow">BETWEEN FRIENDS</span><h1>The running tally.</h1><p>Bets, golf, and everything in between.</p></div><label class="person-picker" for="ledgerPerson">Adding as<select id="ledgerPerson"><option value="">Choose your name</option><option>Adam</option><option>Tristan</option></select></label></div>
+      <div class="ledger-intro"><div><span class="eyebrow">BETWEEN FRIENDS</span><h1>The running tally.</h1><p>Bets, golf, and everything in between.</p></div><div class="person-picker"><span>Adding as</span><strong id="ledgerPerson" role="status"></strong></div></div>
       <div class="ledger-overview"><section class="balance-card" aria-labelledby="balanceHeading"><span class="eyebrow" id="balanceHeading">CURRENT BALANCE · ALL TIME</span><strong id="balanceAmount"></strong><p id="balanceWords" role="status"></p><button type="button" id="settleBalance" class="button">Record repayment</button></section><section class="golf-overview" aria-label="Golf at a glance"><span class="eyebrow">ON THE COURSE</span><strong id="golfCount"></strong><p id="golfOverview"></p><button type="button" id="goGolf" class="button">View golf rounds</button></section></div>
       <div class="ledger-section-heading"><div class="ledger-tabs" role="tablist" aria-label="Your lists"><button type="button" id="moneyTab" role="tab" aria-controls="ledgerPanel" data-ledger-view="money">Money</button><button type="button" id="golfTab" role="tab" aria-controls="ledgerPanel" data-ledger-view="golf">Golf</button></div><button id="addLedgerEntry" type="button" class="button primary">+ Add money entry</button></div>
       <section id="ledgerPanel" role="tabpanel" aria-labelledby="moneyTab"><div class="ledger-filters"><label for="ledgerSearch" class="visually-hidden">Search this list</label><input id="ledgerSearch" type="search" placeholder="Find an entry…"><label class="visually-hidden" for="ledgerYear">Filter year</label><select id="ledgerYear"><option value="">All years</option></select><span id="ledgerCount" class="muted"></span></div><p class="ledger-order-note">Newest additions first · Event dates may be earlier</p><div id="golfAnnual" class="annual-summary" hidden></div><div id="ledgerEntries"></div></section>
@@ -33,7 +33,7 @@
     $('#balanceAmount').textContent = l.money(Math.abs(total.balance)); $('#balanceWords').textContent = l.balanceLabel(total.balance);
     $('#settleBalance').disabled = !total.balance; $('#golfCount').textContent = golf.count + (golf.count === 1 ? ' round' : ' rounds');
     $('#golfOverview').textContent = golf.count ? 'Adam ' + golf.adamWins + ' wins · Tristan ' + golf.tristanWins + ' wins · ' + golf.ties + ' ties' : 'Keep the scores. Remember the good ones.';
-    $('#ledgerPerson').value = s.preferences.person;
+    $('#ledgerPerson').textContent = App.identity.person() || 'Connect your token';
     document.querySelectorAll('[data-ledger-view]').forEach(button => { const selected = button.dataset.ledgerView === view; button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1; });
     $('#ledgerPanel').setAttribute('aria-labelledby', view + 'Tab'); $('#addLedgerEntry').textContent = view === 'money' ? '+ Add money entry' : '+ Add golf round';
     const rows = l.newest(w[view === 'money' ? 'moneyEntries' : 'golfRounds']);
@@ -75,7 +75,7 @@
     editing = row ? { id: row.id, rev: row.rev } : null;
     const form = $('#moneyForm'); form.reset(); $('#moneyError').hidden = true;
     const balance = l.totals(state().workspace.moneyEntries).balance;
-    fields(form, row ? { ...row, amount: amountValue(row.amountCents) } : { date: today(), kind: repayment ? 'repayment' : 'owed', description: repayment ? 'Repayment' : '', amount: repayment ? amountValue(Math.abs(balance)) : '', from: repayment ? balance > 0 ? 'Tristan' : 'Adam' : state().preferences.person || 'Adam', to: repayment ? balance > 0 ? 'Adam' : 'Tristan' : state().preferences.person === 'Tristan' ? 'Adam' : 'Tristan' });
+    fields(form, row ? { ...row, amount: amountValue(row.amountCents) } : { date: today(), kind: repayment ? 'repayment' : 'owed', description: repayment ? 'Repayment' : '', amount: repayment ? amountValue(Math.abs(balance)) : '', from: repayment ? balance > 0 ? 'Tristan' : 'Adam' : App.identity.person() || 'Adam', to: repayment ? balance > 0 ? 'Adam' : 'Tristan' : App.identity.person() === 'Tristan' ? 'Adam' : 'Tristan' });
     $('#moneyTitle').textContent = row ? 'Edit money entry' : repayment ? 'Record repayment' : 'Add money entry'; $('#deleteMoney').hidden = !row;
     c.openDialog($('#moneyDialog'), { trigger: document.activeElement, focus: '[name=description]' }); moneyImpact();
   }
@@ -174,7 +174,6 @@
     $('#mainContent').innerHTML = shell(); $('#mainContent').setAttribute('aria-label', 'Money and Golf'); document.body.insertAdjacentHTML('beforeend', dialogs());
     const file = document.createElement('input'); file.type = 'file'; file.accept = '.txt,text/plain'; file.id = 'runningNoteFile'; file.hidden = true; document.body.appendChild(file);
     file.addEventListener('change', () => { previewNote(file.files[0]); file.value = ''; });
-    $('#ledgerPerson').addEventListener('change', event => storage.mutate(next => { next.preferences.person = event.target.value; }, { reason: 'ledger-view', touch: false }));
     $('#ledgerSearch').addEventListener('input', event => { storage.mutate(next => { next.ui.ledgerSearch = event.target.value; }, { reason: 'ledger-view', touch: false }); render(); });
     $('#ledgerYear').addEventListener('change', event => { storage.mutate(next => { next.ui.ledgerYear = event.target.value; }, { reason: 'ledger-view', touch: false }); render(); });
     $('#addLedgerEntry').addEventListener('click', () => state().ui.activeModule === 'golf' ? openGolf() : openMoney());
@@ -193,7 +192,7 @@
     }
     window.addEventListener('app:tabconflict', tabConflictNotice);
     if (storage.getTabConflict()) window.setTimeout(tabConflictNotice, 100);
-    window.addEventListener('app:statechange', render); window.addEventListener('app:syncchange', renderStatus);
+    window.addEventListener('app:identitychange', render); window.addEventListener('app:statechange', render); window.addEventListener('app:syncchange', renderStatus);
     App.icons.mount(document); ready = true; render();
   }
   App.ledgerUI = { init, render, search, openEntry: (type, entryId) => { setView(type); if (type === 'money') openMoney(entryId); else openGolf(entryId); } };

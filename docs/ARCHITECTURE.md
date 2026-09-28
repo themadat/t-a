@@ -23,6 +23,7 @@ All runtime modules attach to `window.LocalApp`.
 - `core/storage.js`: local autosave, separate credentials, recovery.
 - `core/components.js`: dialogs, menus, toasts, focus.
 - `core/portability.js`: validated JSON import/export.
+- `core/identity.js`: owner token labeling, SHA-256 fingerprints, credential-derived attribution and one-step connection.
 - `core/sync.js`: cloud comparisons, choices, upload/download/merge.
 - `app.js`: rendering, event handlers, search, keyboard commands.
 
@@ -45,3 +46,9 @@ Baseline target/SHA/hash and the exact common content snapshot enable a three-wa
 Auto Sync is off until opted in and requires an established baseline. It debounces edits, checks while visible, retries on reconnect with bounded backoff, and never resolves conflicts automatically. A browser lock serializes cooperating tabs when available; SHA checks protect remote writes regardless. Local storage merges tab content against a common snapshot and retains conflicting drafts in session storage across reload. Mutations are transactional; failed validation does not partially change the live state.
 
 Data Sync displays the exact local upload payload via textContent in a collapsible preview. Fourteen centralized cloud states are shared by Settings and the toolbar; only the active arrow modifier rotates, respecting reduced motion.
+
+## Token attribution
+
+`workspace.tokenLabels` contains exactly two distinct SHA-256 fingerprints keyed by Adam and Tristan, or is empty before setup. The hash input is domain-separated by `t-a:token-identity:v1:`. Raw tokens never enter the state; only the current device credential uses the separate secret store. Association changes are one atomic three-way-merge group, included in backups and cloud content. Earlier builds reject the new cloud key safely.
+
+The owner labels both tokens once and publishes. Connect validates remote access and matches the supplied token against shared labels before saving the credential. Fresh empty browsers initialize without a merge-choice prompt, then enable Auto Sync. Browsers with existing content still retain merge/conflict review. Money/Golf attribution derives from the current secret and current labels; stored person preferences are no longer trusted. Cached labels support offline identity. These labels are not a security boundary against repository writers.

@@ -28,6 +28,7 @@
   <script type="application/x-app-script" data-app-src="assets/js/core/components.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/portability.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/sync.js"></script>
+  <script type="application/x-app-script" data-app-src="assets/js/core/identity.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/pwa.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/ledger-ui.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/app.js"></script>
@@ -157,7 +158,9 @@
               </dl>
               <label class="field sync-token-field"><span>Fine-grained access token <small id="storedTokenLabel" class="sync-token-state">Required</small></span><input id="syncToken" type="password" autocomplete="new-password" autocapitalize="none" spellcheck="false" placeholder="Enter token"></label>
               <label class="sync-remember"><input id="syncRememberToken" type="checkbox" checked><span>Remember token on this device</span><small>Otherwise it lasts only for this browser tab.</small></label>
-              <div class="button-row compact-sync-actions"><button id="forgetSyncButton" class="button danger-text" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="forgetConnection"></span><span>Forget</span></button><button id="testSyncButton" class="button" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="testConnection"></span><span>Test</span></button><button id="saveSyncButton" class="button primary" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="saveConnection"></span><span>Save</span></button></div>
+              <div class="button-row compact-sync-actions"><button id="forgetSyncButton" class="button danger-text" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="forgetConnection"></span><span>Forget</span></button><button id="testSyncButton" class="button" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="testConnection"></span><span>Test</span></button><button id="saveSyncButton" class="button primary" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="saveConnection"></span><span>Connect</span></button></div>
+              <p id="tokenIdentityStatus" role="status"></p>
+              <details id="tokenOwnerSetup"><summary>Adam: label both tokens once</summary><p>Enter the two different tokens you created. Their labels will sync privately. Tristan will only need to enter his token and press Connect.</p><label class="field">Adam’s token<input id="adamSetupToken" type="password" autocomplete="off" spellcheck="false" autocapitalize="none"></label><label class="field">Tristan’s token<input id="tristanSetupToken" type="password" autocomplete="off" spellcheck="false" autocapitalize="none"></label><button id="saveTokenLabels" class="button primary" type="button">Save labels and sync as Adam</button><p id="tokenSetupStatus" role="status"></p></details>
               </div>
             </div>
             <label class="sync-remember"><input id="autoSyncEnabled" type="checkbox"><span>Auto Sync while this app is open</span><small>After the first manual sync, changes sync automatically. Closed apps do not sync.</small></label>

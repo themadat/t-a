@@ -4,7 +4,7 @@ Read this and WISHES at session start. Identity and release history live in `ass
 
 ## Current work
 
-The approved [Money and Golf plan](PLAN-001-money-and-golf.md) is implemented locally. Read its Resume block for remaining external setup. Nothing has been committed, pushed, or deployed by the agent. Preserve the unrelated untracked `assets/icons/t-a-wip.svg`.
+The approved [Money and Golf plan](PLAN-001-money-and-golf.md) is implemented locally. Read its Resume block for remaining external setup. The prior Money/Golf work was committed by the user. The new token-identity changes are uncommitted. Preserve the unrelated untracked `assets/icons/t-a-wip.svg`.
 
 ## Product invariants
 
@@ -12,7 +12,8 @@ The approved [Money and Golf plan](PLAN-001-money-and-golf.md) is implemented lo
 - Keep one plain-text Notes modal, vertical Settings, separate What's New/Roadmap, top-bar search/Sync/Update, local backup/recovery, accessibility, and offline support.
 - Money, Golf, Notes, revisions, provenance, and deletion markers are cloud content. Preferences and UI remain device-local. Tokens never enter exports, diagnostics, or cloud files.
 - Sync is fixed to `themadat/data-t-a`, `main`, `data/t-a.json`. Imports cannot redirect it. Recovery is required before remote replacements. Three-way merges treat each round plus linked money as a group; same-group conflicts require review.
-- Auto Sync is opt-in after first manual sync, operates while open/visible, and does not choose conflicting versions. Browser tabs merge independent changes and retain conflicting drafts across reload.
+- Token setup: Adam labels both tokens once in Data Sync; only domain-separated SHA-256 fingerprints are shared in workspace.tokenLabels. Tristan enters only his token and presses Connect. The name picker is removed; unknown tokens cannot attribute Money/Golf edits.
+- Auto Sync is enabled after successful Connect or owner setup, operates while open/visible, and does not choose conflicting versions. Browser tabs merge independent changes and retain conflicting drafts across reload.
 - Local schema v5 migrates old v4 Notes state. Cloud v2/schema v6 safely excludes old clients; old Notes-only payloads are readable without clearing Money/Golf.
 - Preserve `t-a` storage namespaces and the sole VERSION in config. Shell SVGs are self-contained in `assets/js/icons.js`.
 - Preserve the stored origin `git@github.com:themadat/t-a.git`; this computer's URL rewrite selects personal SSH.
@@ -26,7 +27,7 @@ Pages is configured for GitHub Actions at https://themadat.github.io/t-a/ (reche
 
 ## Verification
 
-56 automated tests passed, including mocked two-client GitHub races, in-flight edits, Auto Sync conflict guards, and browser-tab draft recovery. JavaScript syntax and diff checks passed. Browser checks covered source import/reconciliation, linked winnings, delete/Undo, repayment preview, search, form focus/Escape, desktop/390px light/dark layouts, JSON backup restoration, the staged `/t-a/` path, save-before-update, and cached reload/entry forms with the server stopped. Preview servers are stopped. Device keyboard behavior still needs an actual phone check.
+60 automated tests passed, including owner setup, fresh friend/additional-device connection, unknown-token rejection, offline identity, credential isolation, and association conflicts; including mocked two-client GitHub races, in-flight edits, Auto Sync conflict guards, and browser-tab draft recovery. JavaScript syntax and diff checks passed. Browser checks covered source import/reconciliation, linked winnings, delete/Undo, repayment preview, search, form focus/Escape, desktop/390px light/dark layouts, JSON backup restoration, the staged `/t-a/` path, save-before-update, and cached reload/entry forms with the server stopped. Preview servers are stopped. Device keyboard behavior still needs an actual phone check.
 
 A clean populated backup and cloud JSON were prepared outside the repository under the task's private artifact directory; see the delivery message. Local preview browser data is test-only and does not provision the hosted site.
 

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.2";
+  const VERSION = "0.0.1.3";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -72,6 +72,16 @@
   "releases": [
     {
       "version": VERSION,
+      "date": "2026-09-28T12:00:00.000Z",
+      "title": "Token identity",
+      "summary": "Label both tokens once; each person connects with just their token.",
+      "features": ["Owner setup for Adam and Tristan’s tokens", "Automatic name selection from private token fingerprints"],
+      "improvements": ["Connect loads shared content and enables Auto Sync", "No everyday name picker"],
+      "fixes": [],
+      "knownIssues": []
+    },
+    {
+      "version": "0.0.1.2",
       "date": "2026-09-27T20:00:00.000Z",
       "title": "Money and Golf",
       "summary": "A shared running ledger and golf history for Adam and Tristan.",
@@ -102,7 +112,7 @@
       "title": "Getting started",
       "section": "Basics",
       "keywords": "start notes search settings",
-      "html": "<p>Choose your name, then add a Money entry or Golf round. New additions appear at the top, even when backdated. Golf winnings create a linked Money entry. Record repayment reduces the amount owed. Search finds Money, Golf, Notes, Help, releases, and Roadmap entries. Changes save on this device automatically. Open Settings to customize appearance, manage backups, or connect GitHub Sync.</p>"
+      "html": "<p>Connect your assigned token in Data Sync, then add a Money entry or Golf round. New additions appear at the top, even when backdated. Golf winnings create a linked Money entry. Record repayment reduces the amount owed. Search finds Money, Golf, Notes, Help, releases, and Roadmap entries. Changes save on this device automatically. Open Settings to customize appearance, manage backups, or connect GitHub Sync.</p>"
     },
     {
       "id": "notes",
@@ -130,7 +140,7 @@
       "title": "GitHub synchronization",
       "section": "Data",
       "keywords": "github cloud sync token conflict merge",
-      "html": "<p>GitHub sync is optional. The app configuration fixes the repository, branch, and JSON file path; enter a fine-grained token with Contents access in Settings → Data Sync. Expand Sync payload (JSON) there to inspect the current local content included in uploads. Money, Golf, and Notes sync; appearance and settings stay on this device. First use Sync Now to combine your content with the shared file. Then enable Auto Sync for background sharing while the app is open. Separate edits merge; conflicting edits are reviewed individually. Each person should use a separate token limited to the private data repository.</p>"
+      "html": "<p>GitHub sync is optional. The app configuration fixes the repository, branch, and JSON file path; enter a fine-grained token with Contents access in Settings → Data Sync. Expand Sync payload (JSON) there to inspect the current local content included in uploads. Money, Golf, and Notes sync; appearance and settings stay on this device. Adam labels both tokens once in Data Sync and publishes the setup. Afterward, paste your assigned token and press Connect: the app identifies you, loads shared content, and enables Auto Sync. Separate edits merge; conflicting edits are reviewed individually. Each person should use a separate token limited to the private data repository.</p>"
     },
     {
       "id": "install",

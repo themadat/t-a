@@ -191,6 +191,8 @@
       const group = pick(key, maps[0][key], maps[1][key], maps[2][key]);
       if (group) { result.moneyEntries.push(...group.moneyEntries); result.golfRounds.push(...group.golfRounds); }
     });
+    const labels = pick("tokenLabels", local.tokenLabels, remote.tokenLabels, base?.tokenLabels);
+    if (labels) result.tokenLabels = labels;
     const notes = pick("notes", local.notes || "", remote.notes || "", base ? base.notes || "" : undefined);
     if (notes) result.notes = notes;
     // An absent initial Notes document is not a concurrent edit.

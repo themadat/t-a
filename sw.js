@@ -21,6 +21,7 @@ const SHELL = [
   versioned("./assets/js/core/components.js"),
   versioned("./assets/js/core/portability.js"),
   versioned("./assets/js/core/sync.js"),
+  versioned("./assets/js/core/identity.js"),
   versioned("./assets/js/core/pwa.js"),
   versioned("./assets/js/ledger-ui.js"),
   versioned("./assets/js/app.js"),

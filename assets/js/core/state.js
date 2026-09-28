@@ -38,7 +38,7 @@
         updatedAt: now,
         lastMutationId: u.uid("mutation"),
       },
-      workspace: { title: config.identity.name, documents: documents, moneyEntries: [], golfRounds: [] },
+      workspace: { title: config.identity.name, documents: documents, moneyEntries: [], golfRounds: [], tokenLabels: {} },
       preferences: {
         person: "",
         appearance: {
@@ -157,6 +157,7 @@
       workspace: {
         title: u.cleanLine(sourceWorkspace.title || base.workspace.title, 100) || base.workspace.title,
         documents: documents,
+        tokenLabels: tokenLabels(sourceWorkspace.tokenLabels),
         ...App.ledger.collections(sourceWorkspace)
       },
       preferences: {
@@ -284,10 +285,24 @@
 
   // Cloud data is a complete content snapshot. Empty collections are omitted;
   // their absence still clears that content when a snapshot is downloaded.
+  function tokenLabels(input) {
+    if (input === undefined) return {};
+    if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !["Adam", "Tristan"].includes(key))) throw new Error("Token labels are invalid.");
+    const result = {};
+    for (const name of ["Adam", "Tristan"]) if (input[name] !== undefined) {
+      if (typeof input[name] !== "string" || !/^[a-f0-9]{64}$/.test(input[name])) throw new Error("Token labels must contain fingerprints, never tokens.");
+      result[name] = input[name];
+    }
+    if (Object.keys(result).length && (!result.Adam || !result.Tristan || result.Adam === result.Tristan)) throw new Error("Assign two different tokens, one to each person.");
+    return result;
+  }
+
   function normalizeData(data) {
-    if (!data || typeof data !== "object" || Array.isArray(data) || Object.keys(data).some(key => !["notes", "moneyEntries", "golfRounds"].includes(key))) throw new Error("The cloud file contains invalid or unsupported content.");
+    if (!data || typeof data !== "object" || Array.isArray(data) || Object.keys(data).some(key => !["notes", "moneyEntries", "golfRounds", "tokenLabels"].includes(key))) throw new Error("The cloud file contains invalid or unsupported content.");
     if ("notes" in data && (typeof data.notes !== "string" || data.notes.length > config.controls.maxDocumentHtmlLength)) throw new Error("Notes are invalid or too long.");
     const result = App.ledger.collections(data);
+    const labels = tokenLabels(data.tokenLabels);
+    if (labels.Adam) result.tokenLabels = labels;
     result.moneyEntries.sort((a, b) => a.id.localeCompare(b.id));
     result.golfRounds.sort((a, b) => a.id.localeCompare(b.id));
     if (data.notes) result.notes = data.notes;
@@ -297,6 +312,7 @@
   function syncPayload(state) {
     const normalized = normalize(state);
     const data = {};
+    if (normalized.workspace.tokenLabels.Adam) data.tokenLabels = normalized.workspace.tokenLabels;
     const notes = u.richTextToPlainText(normalized.workspace.documents[0].html, config.controls.maxDocumentHtmlLength);
     if (notes) data.notes = notes;
     for (const key of ["moneyEntries", "golfRounds"]) if (normalized.workspace[key].length) data[key] = normalized.workspace[key].slice().sort((a, b) => a.id.localeCompare(b.id));
@@ -328,6 +344,7 @@
   function applySync(localState, remoteState) {
     const next = normalize(localState), remote = normalize(remoteState);
     next.workspace.documents = remote.workspace.documents;
+    next.workspace.tokenLabels = remoteState.legacyNotesOnly ? next.workspace.tokenLabels : remote.workspace.tokenLabels;
     if (!remoteState.legacyNotesOnly) for (const key of ["moneyEntries", "golfRounds"]) next.workspace[key] = remote.workspace[key];
     return normalize(touch(next));
   }
@@ -335,7 +352,7 @@
   function mergeResult(localState, remoteState, resolutions, baseOverride) {
     const base = baseOverride === undefined ? localState.modules.cloudSync.baselineData : baseOverride;
     const local = syncPayload(localState).data, remote = syncPayload(remoteState).data;
-    if (remoteState.legacyNotesOnly) { remote.moneyEntries = local.moneyEntries; remote.golfRounds = local.golfRounds; }
+    if (remoteState.legacyNotesOnly) { remote.moneyEntries = local.moneyEntries; remote.golfRounds = local.golfRounds; remote.tokenLabels = local.tokenLabels; }
     return App.ledger.mergeData(local, remote, base, resolutions);
   }
   function canMerge(localState, remoteState) { return !mergeResult(localState, remoteState).conflicts.length; }

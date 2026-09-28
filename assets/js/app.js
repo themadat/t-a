@@ -358,7 +358,7 @@
     const localAvailable = storage.isPersistent();
     $("#localStorageSettingsState").textContent = localAvailable ? "Saved locally" : "Unavailable";
     $("#localStorageSettingsState").dataset.kind = localAvailable ? "success" : "danger";
-    $("#localStorageSettingsSummary").innerHTML = '<span aria-hidden="true">' + icons.markup(localAvailable ? "check" : "close") + '</span><span><strong>' + (localAvailable ? "Browser storage is working" : "Browser storage is unavailable") + '</strong><small>' + (localAvailable ? "Notes, preferences, and sync metadata save automatically on this device." : "Changes may not survive a reload. Export a backup before continuing.") + "</small></span>";
+    $("#localStorageSettingsSummary").innerHTML = '<span aria-hidden="true">' + icons.markup(localAvailable ? "check" : "close") + '</span><span><strong>' + (localAvailable ? "Browser storage is working" : "Browser storage is unavailable") + '</strong><small>' + (localAvailable ? "Money, Golf, Notes, preferences, and sync metadata save automatically on this device." : "Changes may not survive a reload. Export a backup before continuing.") + "</small></span>";
     if (!config.features.cloudSync) { $("#cloudSyncSettings").hidden = true; return; }
     const cloud = state().modules.cloudSync;
     const info = sync.getInfo();
@@ -557,11 +557,10 @@
 
   async function saveSyncSettings() {
     try {
-      sync.saveConfiguration(syncFormValues());
+      await App.identity.connect(syncFormValues());
       markSyncCredentialFieldsClean();
       renderSyncSettings(); renderSyncStatus();
-      components.toast("The GitHub connection settings were saved.", { title: "Sync configured", kind: "success" });
-      sync.check(true);
+      components.toast("Your token is connected.", { title: "Sync configured", kind: "success" });
     } catch (error) {
       components.message("Settings not saved", error.message || "Check the GitHub settings and try again.", { trigger: $("#saveSyncButton") });
     }
@@ -970,6 +969,7 @@
     bindGeneralEvents();
     bindRuntimeEvents();
     pwa.init();
+    App.identity.init();
     sync.init();
     renderAll();
     document.documentElement.classList.toggle("offline", navigator.onLine === false);

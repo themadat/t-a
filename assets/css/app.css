@@ -1009,3 +1009,7 @@ details > summary { width: fit-content; cursor: pointer; color: var(--accent-str
   .entry-fields { gap:.9rem; }
   .entry-fields input, .entry-fields select, .entry-fields textarea { font-size:16px; }
 }
+
+#tokenOwnerSetup { margin-top: 1rem; }
+#tokenOwnerSetup .field { margin: .8rem 0; }
+#tokenSetupStatus, #tokenIdentityStatus { overflow-wrap: anywhere; }
