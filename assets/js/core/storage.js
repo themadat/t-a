@@ -6,6 +6,8 @@
   const u = App.utils;
   const model = App.stateModel;
   let currentState;
+  let tabConflict = null;
+  const draftKey = config.storage.stateKey + ".pending-tab";
   let persistentStorageAvailable = true;
   let lastSavedJson = "";
   let loadReport = { source: "default", migrations: [], warnings: [], recovered: false, error: "" };
@@ -103,13 +105,32 @@
 
   function saveNow() {
     if (!currentState) return false;
+    const other = readLocal(config.storage.stateKey);
+    if (other && lastSavedJson && other !== lastSavedJson) {
+      try {
+        const remote = model.prepare(JSON.parse(other)).state;
+        const base = model.prepare(JSON.parse(lastSavedJson)).state;
+        const result = model.mergeResult(currentState, remote, {}, model.syncPayload(base).data);
+        if (result.conflicts.length) {
+          const changed = !tabConflict || tabConflict.raw !== other;
+          tabConflict = { raw: other, remote, base, conflicts: result.conflicts, localHash: model.syncHash(currentState) };
+          saveDraft();
+          if (changed) emit("app:tabconflict", {});
+          return false;
+        }
+        currentState = model.merge(currentState, remote, {}, model.syncPayload(base).data);
+        lastSavedJson = other; tabConflict = null;
+        emit("app:statechange", { reason: "tab-merge", state: currentState });
+      } catch (error) { saveDraft(); emit("app:storageerror", { title: "Another tab needs review", message: error.message }); return false; }
+    }
     const normalized = model.normalize(currentState);
     currentState = normalized;
     const json = JSON.stringify(normalized);
-    if (json === lastSavedJson) return true;
+    if (json === lastSavedJson) { clearDraft(); return true; }
     const saved = writeLocal(config.storage.stateKey, json);
     if (saved) {
       lastSavedJson = json;
+      clearDraft();
       emit("app:statesaved", { bytes: new Blob([json]).size, updatedAt: normalized.meta.updatedAt });
     }
     return saved;
@@ -119,11 +140,11 @@
 
   function mutate(callback, options) {
     const settings = Object.assign({ touch: true, save: true, reason: "change" }, options || {});
-    const state = getState();
+    const state = u.clone(getState());
     callback(state);
     if (settings.touch) model.touch(state);
     currentState = model.normalize(state);
-    if (settings.save) scheduleSave();
+    if (settings.save) { saveDraft(); scheduleSave(); }
     emit("app:statechange", { reason: settings.reason, state: currentState });
     return currentState;
   }
@@ -140,10 +161,10 @@
   function replace(nextState, options) {
     const settings = Object.assign({ recoveryReason: "Before data replacement", saveRecovery: true, reason: "replace", touch: true }, options || {});
     const prepared = model.prepare(nextState);
-    if (settings.saveRecovery && currentState) saveRecovery(settings.recoveryReason, currentState);
+    if (settings.saveRecovery && currentState && !saveRecovery(settings.recoveryReason, currentState)) throw new Error("A recovery copy could not be saved.");
     currentState = prepared.state;
     if (settings.touch) model.touch(currentState);
-    lastSavedJson = "";
+    saveDraft();
     saveNow();
     emit("app:statechange", { reason: settings.reason, state: currentState });
     return currentState;
@@ -163,6 +184,8 @@
 
   function clearAll() {
     scheduleSave.cancel();
+    clearDraft();
+    tabConflict = null;
     [config.storage.stateKey, config.storage.recoveryKey, config.storage.secretKey, config.storage.sessionSecretKey].concat(config.storage.legacyKeys).forEach(removeLocal);
     try { sessionStorage.removeItem(config.storage.sessionSecretKey); } catch (error) { /* unavailable */ }
     lastSavedJson = "";
@@ -218,11 +241,46 @@
     };
   }
 
+  function saveDraft() {
+    try { sessionStorage.setItem(draftKey, JSON.stringify({ state: currentState, base: lastSavedJson ? JSON.parse(lastSavedJson) : currentState })); }
+    catch (error) { /* The normal storage error path still offers export. */ }
+  }
+  function clearDraft() { try { sessionStorage.removeItem(draftKey); } catch (error) { /* Storage may be unavailable. */ } }
+  function restoreDraft(saved, raw) {
+    if (!raw) return saved;
+    try {
+      const draft = JSON.parse(raw), local = model.prepare(draft.state).state, base = model.prepare(draft.base).state;
+      const result = model.mergeResult(local, saved, {}, model.syncPayload(base).data);
+      if (result.conflicts.length) {
+        currentState = local;
+        tabConflict = { raw: lastSavedJson, remote: saved, base, conflicts: result.conflicts, localHash: model.syncHash(local) };
+        // Retain the original ancestor until the user resolves both versions.
+        lastSavedJson = JSON.stringify(base);
+      } else { currentState = model.merge(local, saved, {}, model.syncPayload(base).data); saveNow(); }
+      return currentState;
+    } catch (error) { emit("app:storageerror", { title: "Saved tab draft needs review", message: error.message }); return saved; }
+  }
+  function resolveTabs(resolutions) {
+    if (!tabConflict) return;
+    if (readLocal(config.storage.stateKey) !== tabConflict.raw || model.syncHash(currentState) !== tabConflict.localHash) {
+      tabConflict = null; saveNow(); throw new Error("A tab changed during review. Review the latest versions again.");
+    }
+    const merged = model.merge(currentState, tabConflict.remote, resolutions, model.syncPayload(tabConflict.base).data);
+    if (!saveRecovery("Before resolving browser tabs")) throw new Error("A recovery copy could not be saved.");
+    lastSavedJson = tabConflict.raw; currentState = merged; tabConflict = null; saveNow();
+    emit("app:statechange", { reason: "tab-merge", state: currentState });
+  }
+  window.addEventListener("storage", function (event) {
+    if (event.key === config.storage.stateKey && currentState && event.newValue) saveNow();
+  });
+
   window.addEventListener("pagehide", function () { scheduleSave.flush(); });
   window.addEventListener("beforeunload", function () { scheduleSave.flush(); });
 
   App.storage = {
-    load: load,
+    load: function () { let draft; try { draft = sessionStorage.getItem(draftKey); } catch (error) { /* optional tab draft */ } return restoreDraft(load(), draft); },
+    getTabConflict: function () { return tabConflict; },
+    resolveTabs: resolveTabs,
     getState: getState,
     getLoadReport: function () { return u.clone(loadReport); },
     mutate: mutate,

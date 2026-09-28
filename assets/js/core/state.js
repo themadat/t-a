@@ -5,16 +5,16 @@
   const config = App.config;
   const u = App.utils;
   const SYNC_FORMAT = "local-first-app-data";
-  const SYNC_VERSION = 1;
+  const SYNC_VERSION = 2;
   // Older apps reject v5 instead of mistaking this compact envelope for empty v4 state.
-  const SYNC_SCHEMA_VERSION = 5;
+  const SYNC_SCHEMA_VERSION = 6;
   const CLOUD_TARGET = Object.freeze({
     owner: u.cleanLine(config.cloudSync?.owner, 39),
     repo: u.cleanLine(config.cloudSync?.repo, 100).replace(/\.git$/i, ""),
     branch: u.cleanLine(config.cloudSync?.branch || "main", 250) || "main",
     path: u.cleanLine(config.cloudSync?.path || "data/t-a.json", 500).replace(/^\/+/, "") || "data/t-a.json"
   });
-  const MODULE_IDS = ["roadmap"];
+  const MODULE_IDS = ["money", "golf", "roadmap"];
   function blankNotes(now) {
     return [
       { id: "app-notes", title: "Notes", html: "", order: 0, createdAt: now, updatedAt: now }
@@ -38,8 +38,9 @@
         updatedAt: now,
         lastMutationId: u.uid("mutation"),
       },
-      workspace: { title: config.identity.name, documents: documents },
+      workspace: { title: config.identity.name, documents: documents, moneyEntries: [], golfRounds: [] },
       preferences: {
+        person: "",
         appearance: {
           mode: "system",
           accent: defaultTheme().accent,
@@ -65,8 +66,10 @@
         }
       },
       ui: {
-        activeModule: "roadmap",
+        activeModule: "money",
         search: "",
+        ledgerYear: "",
+        ledgerSearch: "",
         dismissedHints: [],
         seenReleaseVersion: "",
         supportTab: "settings"
@@ -81,6 +84,8 @@
           branch: CLOUD_TARGET.branch,
           path: CLOUD_TARGET.path,
           rememberToken: true,
+          autoSync: false,
+          baselineData: null,
           advancedOpen: false,
           baselineTarget: "",
           baselineSha: "",
@@ -151,9 +156,11 @@
       },
       workspace: {
         title: u.cleanLine(sourceWorkspace.title || base.workspace.title, 100) || base.workspace.title,
-        documents: documents
+        documents: documents,
+        ...App.ledger.collections(sourceWorkspace)
       },
       preferences: {
+        person: ["Adam", "Tristan"].includes(sourcePreferences.person) ? sourcePreferences.person : "",
         appearance: {
           mode: mode,
           accent: u.normalizeColor(sourceAppearance.accent, theme.accent),
@@ -181,6 +188,8 @@
       ui: {
         activeModule: activeModule,
         search: u.cleanLine(sourceUi.search, 200),
+        ledgerYear: /^\d{4}$/.test(sourceUi.ledgerYear) ? sourceUi.ledgerYear : "",
+        ledgerSearch: u.cleanLine(sourceUi.ledgerSearch, 200),
         dismissedHints: Array.from(new Set((Array.isArray(sourceUi.dismissedHints) ? sourceUi.dismissedHints : []).map(function (id) { return u.cleanLine(id, 80); }).filter(Boolean))).slice(0, 200),
         seenReleaseVersion: u.cleanLine(sourceUi.seenReleaseVersion, 32),
         supportTab: ["settings", "dataSync", "help", "releases", "shortcuts", "roadmap", "developer"].includes(sourceUi.supportTab) ? sourceUi.supportTab : "settings"
@@ -203,6 +212,8 @@
           branch: CLOUD_TARGET.branch,
           path: CLOUD_TARGET.path,
           rememberToken: sourceCloud.rememberToken !== false,
+          autoSync: sourceCloud.autoSync === true,
+          baselineData: sourceCloud.baselineData ? normalizeData(sourceCloud.baselineData) : null,
           advancedOpen: sourceCloud.advancedOpen === true,
           baselineTarget: u.cleanLine(sourceCloud.baselineTarget, 800),
           baselineSha: u.cleanLine(sourceCloud.baselineSha, 100),
@@ -229,8 +240,8 @@
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("The backup must be a JSON object.");
     const source = input.exportFormat === "local-first-workspace-backup" ? input.state : input;
     if (!source || typeof source !== "object" || Array.isArray(source)) throw new Error("The backup state is invalid.");
-    if (Object.keys(source).length && (source.schemaVersion !== config.schemaVersion || !source.workspace || !Array.isArray(source.workspace.documents) || source.workspace.documents.length !== 1)) throw new Error("This backup is not a supported T&A workspace.");
-    const migration = { state: source, applied: [] };
+    if (Object.keys(source).length && (![4, config.schemaVersion].includes(source.schemaVersion) || !source.workspace || !Array.isArray(source.workspace.documents) || source.workspace.documents.length !== 1)) throw new Error("This backup is not a supported T&A workspace.");
+    const migration = { state: source, applied: source.schemaVersion === 4 ? ["4→" + config.schemaVersion] : [] };
     const state = normalize(migration.state);
     const validation = validate(state);
     if (!validation.ok) throw new Error(validation.errors.join(" "));
@@ -273,68 +284,71 @@
 
   // Cloud data is a complete content snapshot. Empty collections are omitted;
   // their absence still clears that content when a snapshot is downloaded.
+  function normalizeData(data) {
+    if (!data || typeof data !== "object" || Array.isArray(data) || Object.keys(data).some(key => !["notes", "moneyEntries", "golfRounds"].includes(key))) throw new Error("The cloud file contains invalid or unsupported content.");
+    if ("notes" in data && (typeof data.notes !== "string" || data.notes.length > config.controls.maxDocumentHtmlLength)) throw new Error("Notes are invalid or too long.");
+    const result = App.ledger.collections(data);
+    result.moneyEntries.sort((a, b) => a.id.localeCompare(b.id));
+    result.golfRounds.sort((a, b) => a.id.localeCompare(b.id));
+    if (data.notes) result.notes = data.notes;
+    return result;
+  }
+
   function syncPayload(state) {
     const normalized = normalize(state);
     const data = {};
     const notes = u.richTextToPlainText(normalized.workspace.documents[0].html, config.controls.maxDocumentHtmlLength);
     if (notes) data.notes = notes;
+    for (const key of ["moneyEntries", "golfRounds"]) if (normalized.workspace[key].length) data[key] = normalized.workspace[key].slice().sort((a, b) => a.id.localeCompare(b.id));
     return { syncFormat: SYNC_FORMAT, syncVersion: SYNC_VERSION, schemaVersion: SYNC_SCHEMA_VERSION, data: data };
   }
 
-  function syncHash(state) {
-    // Prefix separates content hashes from the previous whole-state baselines.
-    return "data-v1:" + u.fingerprint(syncPayload(state));
+  function syncHash(state) { return "data-v2:" + u.fingerprint(syncPayload(state)); }
+
+  function fromData(data) {
+    const checked = normalizeData(data);
+    return normalize({ workspace: { ...checked, documents: [{ id: "app-notes", title: "Notes", html: u.escapeHtml(checked.notes || "").replace(/\n/g, "<br>") }] } });
   }
 
   function prepareSync(input) {
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("The GitHub data must be a JSON object.");
     if (!("syncFormat" in input) && !("syncVersion" in input)) {
-      return Object.assign({}, prepare(input), { legacy: true });
+      const prepared = prepare(input);
+      if (!input.schemaVersion || input.schemaVersion === 4) prepared.state.legacyNotesOnly = true;
+      return Object.assign({}, prepared, { legacy: true });
     }
-    if (input.syncFormat !== SYNC_FORMAT || input.syncVersion !== SYNC_VERSION || input.schemaVersion !== SYNC_SCHEMA_VERSION) throw new Error("This cloud data format is not supported. Update the app before syncing.");
-    const data = input.data;
-    if (!data || typeof data !== "object" || Array.isArray(data)
-      || Object.keys(data).some(function (key) { return !["notes"].includes(key); })
-      || ("notes" in data && (typeof data.notes !== "string" || data.notes.length > config.controls.maxDocumentHtmlLength))
-      ) {
-      throw new Error("The cloud file contains invalid or unsupported content.");
-    }
-    const state = normalize({
-      workspace: {
-        documents: [{ id: "app-notes", title: "Notes", html: u.escapeHtml(data.notes || "").replace(/\n/g, "<br>") }],
-      },
-
-    });
-    return { state: state, legacy: false, migrations: [], validation: validate(state) };
+    const legacy = input.syncVersion === 1 && input.schemaVersion === 5;
+    if (input.syncFormat !== SYNC_FORMAT || (!legacy && (input.syncVersion !== SYNC_VERSION || input.schemaVersion !== SYNC_SCHEMA_VERSION))) throw new Error("This cloud data format is not supported. Update the app before syncing.");
+    if (legacy && Object.keys(input.data || {}).some(key => key !== "notes")) throw new Error("The old Notes file contains unsupported content.");
+    const state = fromData(input.data);
+    if (legacy) state.legacyNotesOnly = true;
+    return { state, legacy, migrations: [], validation: validate(state) };
   }
 
   function applySync(localState, remoteState) {
-    const next = normalize(localState);
-    const remote = normalize(remoteState);
+    const next = normalize(localState), remote = normalize(remoteState);
     next.workspace.documents = remote.workspace.documents;
+    if (!remoteState.legacyNotesOnly) for (const key of ["moneyEntries", "golfRounds"]) next.workspace[key] = remote.workspace[key];
     return normalize(touch(next));
   }
 
-  function mergeSyncData(localState, remoteState) {
-    const local = syncPayload(localState).data;
-    const remote = syncPayload(remoteState).data;
-    if (local.notes && remote.notes && local.notes !== remote.notes) throw new Error("Notes differ. Choose which copy to keep.");
-    const data = {};
-    if (local.notes || remote.notes) data.notes = local.notes || remote.notes;
-    return { syncFormat: SYNC_FORMAT, syncVersion: SYNC_VERSION, schemaVersion: SYNC_SCHEMA_VERSION, data: data };
+  function mergeResult(localState, remoteState, resolutions, baseOverride) {
+    const base = baseOverride === undefined ? localState.modules.cloudSync.baselineData : baseOverride;
+    const local = syncPayload(localState).data, remote = syncPayload(remoteState).data;
+    if (remoteState.legacyNotesOnly) { remote.moneyEntries = local.moneyEntries; remote.golfRounds = local.golfRounds; }
+    return App.ledger.mergeData(local, remote, base, resolutions);
   }
-
-  function canMerge(localState, remoteState) {
-    try { mergeSyncData(localState, remoteState); return true; }
-    catch (error) { return false; }
-  }
-
-  function merge(localState, remoteState) {
-    return applySync(localState, prepareSync(mergeSyncData(localState, remoteState)).state);
+  function canMerge(localState, remoteState) { return !mergeResult(localState, remoteState).conflicts.length; }
+  function merge(localState, remoteState, resolutions, baseOverride) {
+    const result = mergeResult(localState, remoteState, resolutions, baseOverride);
+    if (result.conflicts.length) throw Object.assign(new Error(result.conflicts.some(x => x.key === "notes") ? "Notes differ. Review both versions." : "Entries differ. Review the conflicting changes."), { conflicts: result.conflicts });
+    return applySync(localState, fromData(result.data));
   }
 
   App.stateModel = {
-    migrations: {},
+    migrations: { 4: "Preserve Notes and add Money/Golf collections" },
+    mergeResult: mergeResult,
+    fromData: fromData,
     createDefaultState: createDefaultState,
     normalize: normalize,
     validate: validate,

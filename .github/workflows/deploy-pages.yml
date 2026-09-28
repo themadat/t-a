@@ -1,8 +1,9 @@
 name: Deploy App Template
 
-run-name: Deploy ${{ github.event.head_commit.message }}
+run-name: Deploy ${{ github.event.head_commit.message || 'T&A manual deployment' }}
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -26,13 +27,28 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Set up Node for verification
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Verify application
+        run: |
+          node --test tests/*.test.mjs
+          for file in assets/js/*.js assets/js/core/*.js sw.js; do node --check "$file"; done
+          node -e "for (const f of ['manifest.webmanifest','manifest-dark.webmanifest']) JSON.parse(require('fs').readFileSync(f,'utf8'))"
+
+      - name: Stage public runtime files
+        run: node scripts/stage-site.mjs
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment

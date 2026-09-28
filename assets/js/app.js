@@ -244,7 +244,7 @@
   function globalSearchMatches(query) {
     const needle = query.trim().toLowerCase();
     if (!needle) return [];
-    const results = [];
+    const results = App.ledgerUI ? App.ledgerUI.search(query) : [];
     const notes = state().workspace.documents[0];
     if (config.features.documents && notes && (`notes ${documentText(notes)}`).toLowerCase().includes(needle)) results.push({ type: "notes", id: notes.id, title: "Notes", meta: "Local notes" });
     config.help.forEach(function (topic) {
@@ -278,7 +278,8 @@
   }
 
   function activateGlobalSearchResult(type, id) {
-    if (type === "notes") openNotes($("#globalSearch"));
+    if (type === "money" || type === "golf") App.ledgerUI.openEntry(type, id);
+    else if (type === "notes") openNotes($("#globalSearch"));
     else if (type === "help") { openSupport("help"); setInputValue($("#helpSearch"), config.help.find(function (topic) { return topic.id === id; })?.title || ""); renderHelp(); }
     else if (type === "roadmap") {
       storage.mutate(function (next) { next.modules.roadmap.search = config.roadmap.find(function (item) { return item.id === id; })?.title || ""; }, { reason: "roadmap-search" });
@@ -412,6 +413,7 @@
     if (rememberInput.dataset.dirty !== "true") rememberInput.checked = cloud.rememberToken;
     $("#storedTokenLabel").textContent = hasStoredToken ? (cloud.rememberToken ? "Stored on this device" : "Stored for this tab") : "Required";
     tokenInput.placeholder = hasStoredToken ? "Token stored" : "Enter token";
+    $("#autoSyncEnabled").checked = cloud.autoSync;
     $("#forgetSyncButton").disabled = !hasStoredToken && !cloud.baselineHash;
     $("#saveSyncButton").disabled = info.busy;
     $("#testSyncButton").disabled = info.busy;
@@ -739,6 +741,7 @@
     $("#resetSupportRoadmapFilters").addEventListener("click", clearRoadmapFilters);
     $("#restoreRecoveryButton").addEventListener("click", restoreRecovery);
     $("#saveRecoveryButton").addEventListener("click", saveRecoveryCopy);
+    $("#autoSyncEnabled").addEventListener("change", function (event) { storage.mutate(function (next) { next.modules.cloudSync.autoSync = event.target.checked; }, { reason: "sync-auto", touch: false }); });
     $("#disableDeveloperButton").addEventListener("click", function () { toggleDeveloperMode(false); });
   }
 
@@ -900,6 +903,7 @@
   }
 
   function renderAll() {
+    App.ledgerUI?.render();
     applyAppearance();
     renderHeader();
     renderNotesEditor();
@@ -960,6 +964,7 @@
   function init() {
     storage.load();
     applyIdentity();
+    App.ledgerUI.init();
     components.init();
     portability.init();
     bindGeneralEvents();

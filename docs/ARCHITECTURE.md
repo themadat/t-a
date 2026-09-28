@@ -16,6 +16,9 @@ All runtime modules attach to `window.LocalApp`.
 - `config.js`: identity, flags, help, releases, Roadmap, fixed sync target.
 - `icons.js`: shared interface SVGs, including cloud state symbols.
 - `core/utils.js`: sanitization, URLs, dates, hashing, search utilities.
+- `core/ledger.js`: cents, running balances, annual golf results, linked mutations and grouped merge.
+- `core/note-import.js`: local reviewed source import with stable occurrence IDs.
+- `ledger-ui.js`: responsive Money/Golf lists, entry forms, import review.
 - `core/state.js`: defaults, normalization, backup/cloud formats.
 - `core/storage.js`: local autosave, separate credentials, recovery.
 - `core/components.js`: dialogs, menus, toasts, focus.
@@ -25,18 +28,20 @@ All runtime modules attach to `window.LocalApp`.
 
 ## Persistence
 
-Local state/full backups use schema v4. Notes use stable `app-notes` in a single-item documents collection; editing is plain text escaped into the internal html field. Old template records and catalog state are not part of T&A.
+Local state/full backups use schema v5; migration from v4 preserves Notes and preferences and adds empty Money/Golf collections. Notes use stable `app-notes` in a single-item documents collection; editing is plain text escaped into the internal html field. Old template records and catalog state are not part of T&A.
 
 Startup normalizes T&A state and can recover from a snapshot. Imports validate before replacing. Preserve storage keys across normal releases. New state shapes require migration tests. Preferences and UI stay device-local. Reset Preferences preserves content; Erase All requires confirmation.
 
 ## Cloud contract
 
-The `local-first-app-data` v1 envelope declares schema v5 (older builds reject it safely). Its data allowlist is Notes only. Empty fields are omitted; absence clears that content when downloaded. Built-in SVGs, preferences/UI, timestamps, mutation IDs, and credentials are excluded. Full backups transfer preferences.
+The `local-first-app-data` v2 envelope declares schema v6 so older builds reject it safely. Its allowlist contains plain-text Notes, money entries, and golf rounds. Entry IDs, addition order, revisions, attribution, import provenance, and deletion markers travel with content. Empty collections may be omitted. Local preferences/UI and credentials are excluded. Full backups include device preferences.
 
-`syncPayload`, `syncHash`, `prepareSync`, and `applySync` centralize this contract. Hashes use `data-v1:`. Downloads keep local settings/credentials. T&A full-state cloud files remain readable and compact on explicit Sync Now; background checks do not write.
+`syncPayload`, `syncHash`, `prepareSync`, and `applySync` centralize this contract. Hashes use `data-v2:`. Old Notes-only cloud envelopes remain readable without clearing new collections; Sync Now upgrades them. All amounts use integer cents; balances are derived in addition order. Four-digit dates preserve unknown historical days. A round and linked winnings/payment rows form an atomic conflict group.
 
 Target owner/repo/branch/path always come from config. Tokens use separate local/session storage and never enter state, backups, diagnostics, or sync JSON. Save and successful Test keep a masked value and visible storage label; background renders preserve dirty fields.
 
-Baseline target/SHA/hash distinguishes equal, local, remote, first-sync, and conflict states. Matching content establishes a baseline. Differing content is never resolved from general save timestamps. Merge combines compatible/separate content only. Download/merge/Restore require recovery; Restore also confirms replacement. Requests and pending decisions suppress stale or overlapping work.
+Baseline target/SHA/hash and the exact common content snapshot enable a three-way merge. Each sync fetches the latest file, merges independent groups, requires review for same-group conflicts, and writes against the fetched SHA. A 409/422 refetches and retries at most three times. The baseline acknowledges only the actual uploaded snapshot, so edits made during a request remain pending. Recovery is required before applying remote content. First connection and file creation require interactive review. Explicit Restore confirms replacement.
+
+Auto Sync is off until opted in and requires an established baseline. It debounces edits, checks while visible, retries on reconnect with bounded backoff, and never resolves conflicts automatically. A browser lock serializes cooperating tabs when available; SHA checks protect remote writes regardless. Local storage merges tab content against a common snapshot and retains conflicting drafts in session storage across reload. Mutations are transactional; failed validation does not partially change the live state.
 
 Data Sync displays the exact local upload payload via textContent in a collapsible preview. Fourteen centralized cloud states are shared by Settings and the toolbar; only the active arrow modifier rotates, respecting reduced motion.

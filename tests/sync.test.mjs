@@ -17,7 +17,7 @@ function harness({ token = 'test-token', online = true } = {}) {
     TextEncoder, TextDecoder, Uint8Array, AbortController, structuredClone, atob, btoa, URL, console,
     fetch: async (url, options) => { requests.push({ url, options }); return h.respond(url, options); }
   });
-  for (const file of ['config.js', 'icons.js', 'core/utils.js', 'core/state.js']) {
+  for (const file of ['config.js', 'icons.js', 'core/utils.js', 'core/ledger.js', 'core/state.js']) {
     vm.runInContext(readFileSync(new URL('../assets/js/' + file, import.meta.url), 'utf8'), context);
     // Fixtures contain plain text; DOM sanitization is exercised in browser checks.
     if (file === 'core/utils.js') {
@@ -35,7 +35,7 @@ function harness({ token = 'test-token', online = true } = {}) {
     setSecret(value) { token = value; return true; }, clearSecret() { token = ''; },
     mutate(callback, options = {}) { callback(state); if (options.touch !== false) App.stateModel.touch(state); state = App.stateModel.normalize(state); },
     saveRecovery() { if (!h.recoveryWorks) return false; h.recovery = structuredClone(state); return true; },
-    replace(next, options) { replacements.push(options); state = next; }
+    replace(next, options) { replacements.push(options); state = App.stateModel.normalize(structuredClone(next)); }
   };
   App.components = {
     toast: (message, options) => toasts.push({ message, ...options }),
@@ -48,7 +48,7 @@ function harness({ token = 'test-token', online = true } = {}) {
   h.file = () => response(200, { type: 'file', sha: 'remote-sha', content: Buffer.from(JSON.stringify(h.legacy ? h.remote : App.stateModel.syncPayload(h.remote))).toString('base64') });
   h.respond = h.file;
   h.setBaseline = () => Object.assign(state.modules.cloudSync, {
-    baselineTarget: 'themadat/data-t-a/main/data/t-a.json', baselineHash: App.stateModel.syncHash(state), baselineSha: 'base-sha'
+    baselineTarget: 'themadat/data-t-a/main/data/t-a.json', baselineHash: App.stateModel.syncHash(state), baselineSha: 'base-sha', baselineData: App.stateModel.syncPayload(state).data
   });
   return h;
 }
@@ -240,7 +240,7 @@ test('ordinary remote-only sync downloads without writing to GitHub', async () =
 });
 
 test('first upload still requires a choice; a synchronized copy needs no write', async () => {
-  const h = harness(); h.respond = (url, options) => options.method === 'PUT' ? response(200, { content: { sha: 'new-sha' } }) : response(404);
+  const h = harness(); h.respond = (url, options) => options.method === 'PUT' ? response(200, { content: { sha: 'new-sha' } }) : url.includes('/contents/') ? response(404) : response(200);
   await h.sync.syncNow();
   assert.ok(h.requests.every(request => request.options.method !== 'PUT'));
   h.choice = 'upload'; await h.sync.syncNow();
@@ -255,7 +255,7 @@ test('first upload still requires a choice; a synchronized copy needs no write',
 test('empty notes sync only an empty content envelope, independent of device, UI, or save metadata', () => {
   const h = harness(), model = h.App.stateModel;
   const original = JSON.stringify(model.syncPayload(h.state));
-  assert.deepEqual(JSON.parse(original), { syncFormat: 'local-first-app-data', syncVersion: 1, schemaVersion: 5, data: {} });
+  assert.deepEqual(JSON.parse(original), { syncFormat: 'local-first-app-data', syncVersion: 2, schemaVersion: 6, data: {} });
   assert.ok(Buffer.byteLength(JSON.stringify(model.syncPayload(h.state), null, 2)) < 120);
   h.App.storage.mutate(state => {
     state.preferences.appearance.mode = 'dark'; state.ui.search = 'cloud'; state.ui.supportTab = 'dataSync';
@@ -297,12 +297,12 @@ test('legacy whole-state files migrate without false conflicts and compact on ex
   h.respond = (url, options) => options.method === 'PUT' ? response(200, { content: { sha: 'compact-sha' } }) : h.file();
   await h.sync.check(true);
   assert.equal(h.sync.getInfo().state, 'upToDate');
-  assert.match(h.state.modules.cloudSync.baselineHash, /^data-v1:/);
+  assert.match(h.state.modules.cloudSync.baselineHash, /^data-v2:/);
   assert.ok(h.requests.every(request => request.options.method !== 'PUT'));
   await h.sync.syncNow();
   const written = JSON.parse(Buffer.from(JSON.parse(h.requests.find(r => r.options.method === 'PUT').options.body).content, 'base64').toString());
   assert.deepEqual(written.data, {});
-  assert.equal(written.syncVersion, 1);
+  assert.equal(written.syncVersion, 2);
   assert.equal(h.state.preferences.appearance.mode, 'system');
 });
 
@@ -352,7 +352,8 @@ test('merges combine disjoint content while preserving device settings; differin
   changeNotes(h.remote, 'different notes');
   assert.equal(model.canMerge(h.state, h.remote), false);
   await h.sync.syncNow();
-  assert.ok(h.choices[0].choices.every(choice => choice.value !== 'merge'));
+  assert.ok(h.choices[0].choices.every(choice => choice.value !== 'upload'));
+  assert.equal(h.choices[0].choices[0].value, 'merge');
   assert.equal(h.replacements.length, 0);
   assert.throws(() => model.merge(h.state, h.remote), /Notes differ/);
 });
@@ -360,7 +361,7 @@ test('merges combine disjoint content while preserving device settings; differin
 
 
 test('invalid or future cloud data is rejected without replacing or uploading content', async () => {
-  for (const transform of [p => ({ ...p, syncVersion: 2 }), p => ({ ...p, data: { notes: [] } }), p => ({ ...p, data: { unknown: 'content' } }), p => ({ ...p, data: { iconOverrides: [{}] } }), () => null]) {
+  for (const transform of [p => ({ ...p, syncVersion: 99 }), p => ({ ...p, data: { notes: [] } }), p => ({ ...p, data: { unknown: 'content' } }), p => ({ ...p, data: { iconOverrides: [{}] } }), () => null]) {
     const h = harness(); h.confirmation = true;
     const invalid = transform(h.App.stateModel.syncPayload(h.state));
     h.respond = () => response(200, { type: 'file', sha: 'sha', content: Buffer.from(JSON.stringify(invalid)).toString('base64') });
@@ -407,4 +408,59 @@ test('T&A backups preserve Notes, reset preferences safely, and cannot redirect 
   for (const invalid of [null, [], { unexpected: true }, { schemaVersion: 99, workspace: { documents: [] } }]) {
     assert.throws(() => model.prepare(invalid));
   }
+});
+
+function sharedServer(initial) {
+  let payload = initial, generation = 1, race;
+  return {
+    get payload() { return payload; },
+    beforeWrite(callback) { race = callback; },
+    respond: async (url, options = {}) => {
+      if (options.method === 'PUT') {
+        if (race) { const next = race; race = null; payload = next(payload); generation++; }
+        const body = JSON.parse(options.body);
+        if (body.sha !== 'sha-' + generation) return response(409);
+        payload = JSON.parse(Buffer.from(body.content, 'base64').toString()); generation++;
+        return response(200, { content: { sha: 'sha-' + generation } });
+      }
+      return response(200, { type: 'file', sha: 'sha-' + generation, content: Buffer.from(JSON.stringify(payload)).toString('base64') });
+    }
+  };
+}
+function addMoney(h, description, amountCents = 100) {
+  h.App.ledger.saveMoney(h.state.workspace, { date: '2026-01-01', kind: 'owed', from: 'Adam', to: 'Tristan', amountCents, description, category: 'Other', details: '' }, 'Adam');
+}
+test('two clients and a stale SHA converge without losing independent additions', async () => {
+  const a = harness(), b = harness(); a.setBaseline(); b.setBaseline();
+  const server = sharedServer(a.App.stateModel.syncPayload(a.state)); a.respond = server.respond; b.respond = server.respond;
+  addMoney(a, 'A'); addMoney(b, 'B');
+  server.beforeWrite(() => b.App.stateModel.syncPayload(b.state));
+  await a.sync.syncNow(); await b.sync.syncNow(); await a.sync.syncNow();
+  assert.deepEqual(Array.from(a.state.workspace.moneyEntries, e => e.description).sort(), ['A','B']);
+  assert.equal(a.App.stateModel.syncHash(a.state), b.App.stateModel.syncHash(b.state));
+  assert.equal(a.choices.length, 0);
+  assert.equal(a.requests.filter(r => r.options.method === 'PUT').length, 2);
+});
+test('an edit made during upload stays pending and is sent on the next sync', async () => {
+  const h = harness(); h.setBaseline(); addMoney(h, 'Before');
+  const server = sharedServer(h.App.stateModel.syncPayload(h.remote));
+  h.respond = async (url, options) => { if (options.method === 'PUT' && !h.edited) { h.edited = true; addMoney(h, 'During'); } return server.respond(url, options); };
+  await h.sync.syncNow(); assert.equal(h.sync.getInfo().change, 'local');
+  await h.sync.syncNow(); assert.equal(server.payload.data.moneyEntries.length, 2);
+  assert.equal(h.sync.getInfo().change, 'current');
+});
+test('Auto Sync requires opt-in and a baseline and never chooses a conflicting version', async () => {
+  const h = harness(); h.setBaseline(); await h.sync.autoSync(); assert.equal(h.requests.length, 0);
+  h.state.modules.cloudSync.autoSync = true;
+  changeNotes(h.state, 'local'); changeNotes(h.remote, 'remote');
+  await h.sync.autoSync();
+  assert.equal(h.choices.length, 0); assert.equal(h.replacements.length, 0);
+  assert.equal(h.sync.getInfo().state, 'warning');
+  assert.equal(h.requests.filter(r => r.options.method === 'PUT').length, 0);
+});
+test('turning Auto Sync off while reading prevents the pending write', async () => {
+  const h = harness(); h.setBaseline(); h.state.modules.cloudSync.autoSync = true; addMoney(h, 'Queued');
+  const pending = deferred(); h.respond = () => pending.promise;
+  const syncing = h.sync.autoSync(); h.state.modules.cloudSync.autoSync = false; pending.resolve(h.file()); await syncing;
+  assert.equal(h.requests.filter(r => r.options.method === 'PUT').length, 0);
 });

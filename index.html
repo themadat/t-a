@@ -21,12 +21,15 @@
   <script defer src="assets/js/boot.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/icons.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/utils.js"></script>
+  <script type="application/x-app-script" data-app-src="assets/js/core/ledger.js"></script>
+  <script type="application/x-app-script" data-app-src="assets/js/core/note-import.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/state.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/storage.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/components.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/portability.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/sync.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/pwa.js"></script>
+  <script type="application/x-app-script" data-app-src="assets/js/ledger-ui.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/app.js"></script>
 </head>
 <body>
@@ -48,8 +51,8 @@
 
     <div class="global-search-wrap" data-shortcut="/">
       <span class="search-icon" aria-hidden="true" data-symbol="search"></span>
-      <label class="visually-hidden" for="globalSearch">Search notes and application support</label>
-      <input id="globalSearch" type="search" autocomplete="off" placeholder="Search notes and help" aria-haspopup="listbox" aria-controls="globalSearchResults" aria-keyshortcuts="/ Control+Alt+Shift+/">
+      <label class="visually-hidden" for="globalSearch">Search Money, Golf, Notes, and help</label>
+      <input id="globalSearch" type="search" autocomplete="off" placeholder="Search Money, Golf, Notes…" aria-haspopup="listbox" aria-controls="globalSearchResults" aria-keyshortcuts="/ Control+Alt+Shift+/">
       <kbd aria-hidden="true">/</kbd>
       <button id="clearSearchButton" class="icon-button search-clear-button" type="button" aria-label="Clear search" aria-keyshortcuts="C Control+Alt+Shift+C" data-shortcut="C" data-shortcut-title="C" title="C" disabled><span aria-hidden="true" data-symbol="clearSearch"></span><span class="search-clear-label">Clear</span></button>
       <div id="globalSearchResults" class="global-search-results" role="listbox" aria-label="Search results" hidden></div>
@@ -131,9 +134,9 @@
 
             <div class="settings-section">
               <div class="section-heading"><div><span class="eyebrow">Data safety</span><h3>Backup, restore & reset</h3></div></div>
-              <p class="section-intro">JSON backups include notes, preferences, and module settings. Tokens are excluded.</p>
-              <div class="button-row"><button id="exportButton" class="button primary" type="button">Export JSON</button><button id="importButton" class="button" type="button">Import JSON</button><input id="importFileInput" type="file" accept="application/json,.json" hidden></div>
-              <div class="danger-zone"><div><strong>Reset preferences</strong><small>Keep notes, but restore appearance, filters, and hints.</small></div><button id="resetPreferencesButton" class="button danger-text" type="button">Reset preferences</button></div>
+              <p class="section-intro">JSON backups include Money, Golf, Notes, preferences, and module settings. Tokens are excluded.</p>
+              <div class="button-row"><button id="exportButton" class="button primary" type="button">Export JSON</button><button id="importButton" class="button" type="button">Import JSON</button><button type="button" class="button" data-import-running-note>Import running note (.txt)</button><input id="importFileInput" type="file" accept="application/json,.json" hidden></div>
+              <div class="danger-zone"><div><strong>Reset preferences</strong><small>Keep Money, Golf, and Notes; restore appearance, filters, and hints.</small></div><button id="resetPreferencesButton" class="button danger-text" type="button">Reset preferences</button></div>
               <div class="danger-zone"><div><strong>Erase all application data</strong><small>Permanently remove content, preferences, sync settings, token, and recovery data from this browser.</small></div><button id="eraseAllButton" class="button danger" type="button">Erase all data</button></div>
             </div>
           </section>
@@ -144,7 +147,7 @@
               <div id="localStorageSettingsSummary" class="inline-status" role="status" aria-live="polite"></div>
               <div id="cloudSyncSettings" class="sync-settings-group compact-github-settings">
               <div class="compact-github-header"><span class="compact-github-icon" aria-hidden="true" data-symbol="icloud"></span><span class="compact-github-copy"><strong>GitHub</strong><a id="appRepositoryLink" class="compact-app-repository-link" target="_blank" rel="noopener noreferrer">App repository</a></span><span id="syncSettingsState" class="status-pill" data-cloud-sync role="status" aria-live="polite"><span data-sync-icon aria-hidden="true"></span><span data-sync-label>Cloud Sync</span></span></div>
-              <p class="setting-note">Syncs Notes. Appearance and settings stay on this device.</p>
+              <p class="setting-note">Syncs Money, Golf, and Notes. Appearance and settings stay on this device.</p>
               <div class="button-row compact-sync-actions"><button id="syncNowButton" class="button" type="button" disabled><span class="setting-button-icon" data-sync-action-icon aria-hidden="true"></span><span data-sync-action-label>Sync Now</span></button><button id="restoreCloudButton" class="button" type="button" disabled><span class="setting-button-icon" data-sync-action-icon aria-hidden="true"></span><span data-sync-action-label>Restore from Cloud</span></button></div>
               <dl class="sync-target-line" aria-label="GitHub Sync target">
                 <div class="sync-target-item"><dt>Owner</dt><dd id="syncOwner">Not set</dd></div>
@@ -157,6 +160,7 @@
               <div class="button-row compact-sync-actions"><button id="forgetSyncButton" class="button danger-text" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="forgetConnection"></span><span>Forget</span></button><button id="testSyncButton" class="button" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="testConnection"></span><span>Test</span></button><button id="saveSyncButton" class="button primary" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="saveConnection"></span><span>Save</span></button></div>
               </div>
             </div>
+            <label class="sync-remember"><input id="autoSyncEnabled" type="checkbox"><span>Auto Sync while this app is open</span><small>After the first manual sync, changes sync automatically. Closed apps do not sync.</small></label>
             <details id="syncPayloadDetails" class="sync-payload">
               <summary><span class="sync-payload-heading"><span aria-hidden="true" data-symbol="json"></span><span>Sync payload (JSON)</span></span></summary>
               <p class="setting-note">Current local content used for GitHub Sync. The cloud copy may differ until you sync. Device settings and credentials are excluded.</p>
@@ -206,7 +210,7 @@
       <header class="dialog-header"><div><span class="eyebrow">Validated backup</span><h2 id="importPreviewTitle">Review import</h2></div><button type="button" class="icon-button" data-close-dialog="importPreviewDialog" aria-label="Close"><span aria-hidden="true" data-symbol="close"></span></button></header>
       <div class="dialog-body">
         <p><strong data-import-file></strong> passed parsing, migration, sanitization, normalization, and validation.</p>
-        <dl class="preview-grid"><div><dt>Workspace</dt><dd data-import-workspace></dd></div><div><dt>Notes</dt><dd data-import-documents></dd></div><div><dt>Versions</dt><dd data-import-version></dd></div><div><dt>Last updated</dt><dd data-import-updated></dd></div><div data-import-migrations-row><dt>Migrations</dt><dd data-import-migrations></dd></div></dl>
+        <dl class="preview-grid"><div><dt>Workspace</dt><dd data-import-workspace></dd></div><div><dt>Content</dt><dd data-import-documents></dd></div><div><dt>Versions</dt><dd data-import-version></dd></div><div><dt>Last updated</dt><dd data-import-updated></dd></div><div data-import-migrations-row><dt>Migrations</dt><dd data-import-migrations></dd></div></dl>
         <p class="inline-status warning" data-import-warning hidden></p>
         <p class="inline-status"><span aria-hidden="true">↶</span><span>The current data will be saved as a local recovery copy before replacement.</span></p>
       </div>

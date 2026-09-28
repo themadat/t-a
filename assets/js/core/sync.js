@@ -116,6 +116,7 @@
         cloud.baselineTarget = "";
         cloud.baselineSha = "";
         cloud.baselineHash = "";
+        cloud.baselineData = null;
         cloud.lastSyncedAt = "";
         cloud.lastCheckedAt = "";
       }
@@ -164,7 +165,7 @@
   async function responseError(response) {
     let detail = "";
     try { detail = u.cleanLine((await response.json()).message, 300); } catch (error) { detail = ""; }
-    const failure = function (message, state) { return Object.assign(new Error(message), { syncState: state }); };
+    const failure = function (message, state) { return Object.assign(new Error(message), { syncState: state, status: response.status }); };
     if (response.status === 401) return failure("GitHub rejected the token. Create a new fine-grained token and try again.", CloudSyncState.authenticationRequired);
     if (response.status === 429 || (response.status === 403 && /rate limit|abuse|secondary rate/i.test(detail))) return failure("GitHub is limiting requests. Wait before trying again.", CloudSyncState.warning);
     if (response.status === 403) return failure("GitHub denied access. Confirm that the token has Contents read and write permission.", CloudSyncState.permissionDenied);
@@ -200,6 +201,7 @@
     const repository = await fetch(repositoryUrl, { headers: headers(token), signal: context.signal });
     if (!repository.ok) throw await responseError(repository);
     const branch = await fetch(repositoryUrl + "/branches/" + encodeURIComponent(cloud.branch), { headers: headers(token), signal: context.signal });
+    if (branch.status === 404) throw new Error("The configured branch is missing or inaccessible. Initialize " + cloud.branch + " in the private data repository, then retry Sync Now.");
     if (!branch.ok) throw await responseError(branch);
   }
 
@@ -251,13 +253,14 @@
     return model.syncHash(storage.getState());
   }
 
-  function rememberBaseline(sha, hash) {
+  function rememberBaseline(sha, hash, snapshot) {
     const now = u.isoNow();
     storage.mutate(function (state) {
       const cloud = state.modules.cloudSync;
       cloud.baselineTarget = target(cloud);
       cloud.baselineSha = sha || "";
       cloud.baselineHash = hash || localHash();
+      cloud.baselineData = model.syncPayload(snapshot || runtime.remoteState || storage.getState()).data;
       cloud.lastSyncedAt = now;
       cloud.lastCheckedAt = now;
     }, { touch: false, reason: "sync-baseline" });
@@ -267,7 +270,7 @@
   function reconciliation() {
     const cloud = settings();
     const hash = localHash();
-    const baselineMatchesTarget = cloud.baselineTarget === target(cloud) && cloud.baselineHash.startsWith("data-v1:");
+    const baselineMatchesTarget = cloud.baselineTarget === target(cloud) && cloud.baselineHash.startsWith("data-v2:");
     if (runtime.remoteMissing) return baselineMatchesTarget ? "local" : "first-sync";
     if (!runtime.remoteSha || !runtime.remoteHash) return baselineMatchesTarget && hash !== cloud.baselineHash ? "local" : "unknown";
     if (hash === runtime.remoteHash) return "current";
@@ -305,8 +308,8 @@
     const details = {
       local: "This device has changes ready to upload.",
       remote: "GitHub has changes ready to download.",
-      "first-sync": runtime.remoteMissing ? "Sync Now will create the GitHub data file after you confirm." : "Choose which copy should start this sync connection.",
-      conflict: "This device and GitHub both changed. Sync Now lets you choose or merge copies."
+      "first-sync": runtime.remoteMissing ? "Sync Now will create the GitHub data file after you confirm." : "Review and combine entries to start this sync connection.",
+      conflict: "This device and GitHub both changed. Sync Now merges separate entries and reviews conflicting edits."
     };
     if (runtime.error && state !== CloudSyncState.offline) info.message = runtime.error;
     else if (state === CloudSyncState.pending || state === CloudSyncState.warning) info.message = details[change] || info.message;
@@ -351,8 +354,8 @@
       // Equal content establishes a baseline even after an upgrade or first check.
       // An unchanged legacy SHA also identifies the old baseline's actual content.
       if (remote && (localHash() === runtime.remoteHash
-        || (cloud.baselineTarget === target(cloud) && cloud.baselineSha === remote.sha && !cloud.baselineHash.startsWith("data-v1:")))) {
-        if (cloud.baselineTarget !== target(cloud) || cloud.baselineHash !== runtime.remoteHash || cloud.baselineSha !== remote.sha) rememberBaseline(remote.sha, runtime.remoteHash);
+        || (cloud.baselineTarget === target(cloud) && cloud.baselineSha === remote.sha && !cloud.baselineHash.startsWith("data-v2:")))) {
+        if (cloud.baselineTarget !== target(cloud) || cloud.baselineHash !== runtime.remoteHash || cloud.baselineSha !== remote.sha) rememberBaseline(remote.sha, runtime.remoteHash, remote.state);
       }
       runtime.checkedAt = checkedAt;
       storage.mutate(function (state) { state.modules.cloudSync.lastCheckedAt = checkedAt; }, { touch: false, reason: "sync-check" });
@@ -403,33 +406,6 @@
     }
   }
 
-  async function performUpload() {
-    const context = requestContext("uploading");
-    runtime.busy = true;
-    runtime.operation = "uploading";
-    runtime.error = "";
-    emit();
-    try {
-      const state = model.normalize(u.clone(storage.getState()));
-      const hash = model.syncHash(state);
-      const sha = await writeRemote(settings(), storage.getSecret(), context, state, runtime.remoteSha);
-      if (!currentRequest(context)) return false;
-      rememberBaseline(sha, hash);
-      runtime.remoteState = state;
-      runtime.remoteNeedsRewrite = false;
-      App.components.toast("This device’s latest data is now on GitHub.", { title: "Sync complete", kind: "success" });
-      return true;
-    } catch (error) {
-      if (!currentRequest(context) || error && error.name === "AbortError") return false;
-      recordError(error, "Upload failed.");
-      const info = presentation(runtime.offline ? CloudSyncState.offline : runtime.errorState);
-      App.components.toast(runtime.error, { title: info.title, kind: info.kind, duration: 6000 });
-      return false;
-    } finally {
-      if (currentRequest(context)) { runtime.busy = false; runtime.operation = ""; emit(); }
-    }
-  }
-
   async function performDownload() {
     if (!runtime.remoteState) throw new Error("No remote data is available to download.");
     const context = requestContext("downloading");
@@ -453,64 +429,106 @@
     }
   }
 
-  async function performMerge() {
-    if (!runtime.remoteState) return performUpload();
-    try {
-      const merged = model.merge(storage.getState(), runtime.remoteState);
-      if (!storage.saveRecovery("Before merging GitHub data")) throw new Error("The local recovery copy could not be saved. Export a backup before merging.");
-      storage.replace(merged, { saveRecovery: false, reason: "sync-merge", touch: false });
-    } catch (error) {
-      recordError(error, "Merge failed.");
-      App.components.toast(runtime.error, { title: "Sync Failed", kind: "danger", duration: 6000 });
-      emit();
-      return false;
-    }
-    return performUpload();
+  let autoTimer = 0, autoFailures = 0;
+  function describeVersion(value) {
+    if (value === undefined) return "No entry";
+    if (typeof value === "string") return value || "Empty Notes";
+    const rows = [...(value.golfRounds || []), ...(value.moneyEntries || [])];
+    return rows.map(row => (row.deleted ? "Deleted · " : "") + row.date + " · " + (row.description || row.course || "Golf round") + " · " +
+      (row.amountCents ? row.kind + " · " + row.category + " · " + row.from + " → " + row.to + " " + App.ledger.money(row.amountCents) : row.holes + " holes · Adam " + row.adam + ", Tristan " + row.tristan + "; winnings " + (row.winner || "Even") + " " + App.ledger.money(row.winningsCents)) +
+      (row.details ? " · " + row.details : "") + (row.updatedBy ? " · edited by " + row.updatedBy : "")).join("\n");
   }
-
+  async function resolveConflicts(conflicts, trigger) {
+    const resolutions = {};
+    for (const conflict of conflicts) {
+      const choice = await App.components.choose({ title: conflict.key === "notes" ? "Review conflicting Notes" : "Review a conflicting entry", message: "Both copies changed. Choose the version for this entry; unrelated entries will be kept.", trigger,
+        choices: [{ value: "local", label: "Keep this device’s version", description: describeVersion(conflict.local) }, { value: "remote", label: "Keep the shared version", description: describeVersion(conflict.remote) }], cancelLabel: "Review later" });
+      if (!["local", "remote"].includes(choice)) return null;
+      resolutions[conflict.key] = choice;
+    }
+    return resolutions;
+  }
+  async function reconcileShared(interactive, trigger) {
+    if (runtime.busy || runtime.checking || runtime.deciding || !configured()) return false;
+    if (!interactive && (!settings().autoSync || !settings().baselineData || settings().baselineTarget !== target())) return false;
+    if (navigator.onLine === false) { runtime.offline = true; emit(); return false; }
+    if (storage.saveNow && !storage.saveNow()) { recordError(new Error("Save or resolve this device’s pending changes before syncing.")); emit(); return false; }
+    const context = requestContext("syncing"); runtime.busy = true; runtime.error = ""; runtime.offline = false; emit();
+    try {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const remote = await readRemote(settings(), storage.getSecret(), context, true);
+        if (!currentRequest(context) || (!interactive && !settings().autoSync)) return false;
+        let snapshot = model.normalize(u.clone(storage.getState()));
+        const originalHash = model.syncHash(snapshot);
+        if (!remote) {
+          runtime.remoteMissing = true;
+          if (!interactive) throw Object.assign(new Error("The shared file is missing. Use Sync Now to review its creation."), { syncState: CloudSyncState.warning });
+          await verifyTarget(settings(), storage.getSecret(), context);
+          const choice = await App.components.choose({ title: "Create the shared data file?", message: "Upload this device’s reviewed Money, Golf, and Notes to the configured repository.", trigger, choices: [{ value: "upload", label: "Create shared file", kind: "primary" }], cancelLabel: "Cancel" });
+          if (choice !== "upload" || !currentRequest(context)) return false;
+          if (model.syncHash(storage.getState()) !== originalHash) continue;
+        } else {
+          runtime.remoteState = remote.state; runtime.remoteSha = remote.sha; runtime.remoteHash = model.syncHash(remote.state); runtime.remoteMissing = false;
+          const base = snapshot.modules.cloudSync.baselineTarget === target() ? snapshot.modules.cloudSync.baselineData : null;
+          if (!base && model.syncHash(snapshot) !== runtime.remoteHash) {
+            if (!interactive) return false;
+            const choice = await App.components.choose({ title: "Connect to the shared ledger", message: "Combine this device’s entries with the existing shared file. Conflicting entries will be reviewed individually.", trigger, choices: [{ value: "merge", label: "Combine and sync", kind: "primary" }], cancelLabel: "Cancel" });
+            if (choice !== "merge" || !currentRequest(context)) return false;
+          }
+          const result = model.mergeResult(snapshot, remote.state, {}, base);
+          let resolutions = {};
+          if (result.conflicts.length) {
+            if (!interactive) throw Object.assign(new Error("Conflicting entries need review. Use Sync Now; both versions are preserved."), { syncState: CloudSyncState.warning });
+            resolutions = await resolveConflicts(result.conflicts, trigger);
+            if (!resolutions || !currentRequest(context)) return false;
+          }
+          if (model.syncHash(storage.getState()) !== originalHash) continue;
+          const merged = model.merge(snapshot, remote.state, resolutions, base);
+          if (model.syncHash(merged) !== originalHash && !storage.saveRecovery("Before merging shared entries")) throw new Error("A recovery copy could not be saved. No data was replaced.");
+          snapshot = model.applySync(storage.getState(), merged);
+          // The fetched remote is a common ancestor of the merged local copy.
+          // Persist it before PUT so retry/reload cannot mistake imported remote edits for local conflicts.
+          Object.assign(snapshot.modules.cloudSync, { baselineTarget: target(), baselineSha: remote.sha, baselineHash: model.syncHash(remote.state), baselineData: model.syncPayload(remote.state).data });
+          storage.replace(snapshot, { saveRecovery: false, reason: "sync-merge", touch: false });
+          if (storage.saveNow && !storage.saveNow()) throw new Error("The merged copy could not be saved on this device.");
+        }
+        const hash = model.syncHash(snapshot);
+        let sha = remote?.sha || "";
+        if (!remote || hash !== model.syncHash(remote.state) || remote.needsRewrite) {
+          runtime.operation = "uploading"; emit();
+          try { sha = await writeRemote(settings(), storage.getSecret(), context, snapshot, sha); }
+          catch (error) { if (error.status === 409 || error.status === 422) { runtime.operation = "syncing"; continue; } throw error; }
+        }
+        if (!currentRequest(context)) return false;
+        runtime.remoteState = snapshot; runtime.remoteNeedsRewrite = false;
+        rememberBaseline(sha, hash, snapshot);
+        if (storage.saveNow) storage.saveNow();
+        autoFailures = 0;
+        if (interactive) App.components.toast("Shared entries are synchronized. New edits remain queued if you changed anything during upload.", { title: "Sync complete", kind: "success" });
+        return true;
+      }
+      throw Object.assign(new Error("The shared file kept changing. Your edits are saved locally; retry Sync Now."), { syncState: CloudSyncState.warning });
+    } catch (error) {
+      if (!currentRequest(context) || error.name === "AbortError") return false;
+      recordError(error, "Sync failed."); autoFailures = Math.min(autoFailures + 1, 6);
+      if (interactive) App.components.toast(runtime.error, { title: "Sync needs attention", kind: "warning", duration: 6000 });
+      return false;
+    } finally { if (currentRequest(context)) { runtime.busy = false; runtime.operation = ""; emit(); } }
+  }
   async function syncNow(trigger) {
-    const info = getInfo();
-    if (info.busy) return;
-    if (!configured() || info.primaryAction === "settings") {
-      window.dispatchEvent(new CustomEvent("app:opensyncsettings", { detail: { trigger: trigger } }));
-      return;
-    }
-    await check(true);
-    if (runtime.error || runtime.offline || !configured() || getInfo().busy) return;
-    const state = reconciliation();
-    if (state === "current") {
-      if (runtime.remoteNeedsRewrite) return performUpload();
-      App.components.toast("This device already matches GitHub.", { title: "Up to date", kind: "success" });
-      return;
-    }
-    if (state === "local") return performUpload();
-    if (state === "remote") return performDownload();
-    if (state === "first-sync" || state === "conflict") {
-      const choices = runtime.remoteMissing
-        ? [{ value: "upload", symbol: STATE_PRESENTATIONS.uploading.symbol, label: "Upload this device", description: "Create the GitHub data file from this device.", kind: "primary" }]
-        : [
-            ...(model.canMerge(storage.getState(), runtime.remoteState) ? [{ value: "merge", symbol: "link.icloud", label: "Merge both copies", description: "Combine matching or separate items, keeping content present in either copy.", kind: "primary" }] : []),
-            { value: "upload", symbol: STATE_PRESENTATIONS.uploading.symbol, label: "Upload this device", description: "Replace the GitHub copy with this device.", kind: "secondary" },
-            { value: "download", symbol: STATE_PRESENTATIONS.downloading.symbol, label: "Download GitHub", description: "Replace saved content after making a recovery copy; keep this device’s settings.", kind: "secondary" }
-          ];
-      const sequence = runtime.requestSequence;
-      runtime.deciding = true;
-      emit();
-      let choice;
-      try {
-        choice = await App.components.choose({
-          title: state === "conflict" ? "Resolve sync conflict" : "Choose the first sync copy",
-          message: getInfo().newer + " Nothing will be overwritten until you choose.",
-          choices: choices,
-          cancelLabel: "Cancel sync",
-          trigger: trigger
-        });
-      } finally { runtime.deciding = false; emit(); }
-      if (sequence !== runtime.requestSequence || navigator.onLine === false || !configured()) return;
-      if (choice === "upload") return performUpload();
-      if (choice === "download") return performDownload();
-      if (choice === "merge") return performMerge();
-    }
+    if (!configured()) { window.dispatchEvent(new CustomEvent("app:opensyncsettings", { detail: { trigger } })); return; }
+    const run = () => reconcileShared(true, trigger);
+    return navigator.locks?.request ? navigator.locks.request("t-a-sync-" + target(), run) : run();
+  }
+  function scheduleAuto() {
+    if (autoTimer && window.clearTimeout) window.clearTimeout(autoTimer);
+    if (!settings().autoSync || !settings().baselineData || settings().baselineTarget !== target() || !configured()) return;
+    autoTimer = window.setTimeout(async function () {
+      autoTimer = 0;
+      if (document.visibilityState === "hidden") return;
+      const run = () => reconcileShared(false);
+      if (navigator.locks?.request) await navigator.locks.request("t-a-sync-" + target(), run); else await run();
+    }, Math.min(60000, 1200 * Math.pow(2, autoFailures)));
   }
 
   async function restoreFromCloud(trigger) {
@@ -549,11 +567,12 @@
       runtime.offline = false;
       runtime.error = "";
       emit();
-      check(true);
+      if (settings().autoSync) scheduleAuto(); else check(true);
     });
     window.addEventListener("offline", function () { runtime.offline = true; emit(); });
-    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") check(false); });
-    window.setInterval(function () { check(false); }, config.controls.syncCheckIntervalMs);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") { if (settings().autoSync) scheduleAuto(); else check(false); } });
+    window.setInterval(function () { if (document.visibilityState === "hidden") return; if (settings().autoSync) scheduleAuto(); else check(false); }, config.controls.syncCheckIntervalMs);
+    window.addEventListener("app:statechange", function (event) { if (!["sync-baseline", "sync-check", "sync-merge", "ledger-view"].includes(event.detail.reason)) scheduleAuto(); });
     window.setTimeout(function () { check(false); }, 700);
     emit();
   }
@@ -570,6 +589,8 @@
     check: check,
     syncNow: syncNow,
     restoreFromCloud: restoreFromCloud,
+    resolveConflicts: resolveConflicts,
+    autoSync: function () { return reconcileShared(false); },
     forget: forget
   };
 })();

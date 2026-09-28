@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.1";
+  const VERSION = "0.0.1.2";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -31,7 +31,7 @@
       "manifestDark": "manifest-dark.webmanifest"
     }
   },
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "storage": {
     "stateKey": "t-a.state.v4",
     "legacyKeys": [],
@@ -55,7 +55,7 @@
   "controls": {
     "shortcutHintModifier": "ShiftControlOption",
     "autosaveDelayMs": 180,
-    "syncCheckIntervalMs": 300000,
+    "syncCheckIntervalMs": 30000,
     "hintsEnabledByDefault": false,
     "whatsNewAutoDismissMs": 20000,
     "maxImportBytes": 5242880,
@@ -72,6 +72,16 @@
   "releases": [
     {
       "version": VERSION,
+      "date": "2026-09-27T20:00:00.000Z",
+      "title": "Money and Golf",
+      "summary": "A shared running ledger and golf history for Adam and Tristan.",
+      "features": ["Money balances and repayments", "Golf rounds with linked winnings", "Reviewed note import", "Concurrent and offline shared editing"],
+      "improvements": ["Desktop tables and mobile cards", "New entries appear at the top", "Automatic Sync after initial setup"],
+      "fixes": [],
+      "knownIssues": []
+    },
+    {
+      "version": "0.0.1.1",
       "date": "2026-09-27T12:00:00.000Z",
       "title": "Welcome to T&A",
       "summary": "A fresh shared starting point for bets, golf, and other shenanigans.",
@@ -92,7 +102,7 @@
       "title": "Getting started",
       "section": "Basics",
       "keywords": "start notes search settings",
-      "html": "<p>Open Notes to write your running note. Changes save on this device automatically. Search finds Notes, Help, releases, and Roadmap entries. Open Settings to customize appearance, manage backups, or connect GitHub Sync.</p>"
+      "html": "<p>Choose your name, then add a Money entry or Golf round. New additions appear at the top, even when backdated. Golf winnings create a linked Money entry. Record repayment reduces the amount owed. Search finds Money, Golf, Notes, Help, releases, and Roadmap entries. Changes save on this device automatically. Open Settings to customize appearance, manage backups, or connect GitHub Sync.</p>"
     },
     {
       "id": "notes",
@@ -120,7 +130,7 @@
       "title": "GitHub synchronization",
       "section": "Data",
       "keywords": "github cloud sync token conflict merge",
-      "html": "<p>GitHub sync is optional. The app configuration fixes the repository, branch, and JSON file path; enter a fine-grained token with Contents access in Settings → Data Sync. Expand Sync payload (JSON) there to inspect the current local content included in uploads. Only Notes sync; appearance and settings stay on this device. Conflicts ask which copy to keep, with merging available for matching or separate items.</p>"
+      "html": "<p>GitHub sync is optional. The app configuration fixes the repository, branch, and JSON file path; enter a fine-grained token with Contents access in Settings → Data Sync. Expand Sync payload (JSON) there to inspect the current local content included in uploads. Money, Golf, and Notes sync; appearance and settings stay on this device. First use Sync Now to combine your content with the shared file. Then enable Auto Sync for background sharing while the app is open. Separate edits merge; conflicting edits are reviewed individually. Each person should use a separate token limited to the private data repository.</p>"
     },
     {
       "id": "install",
@@ -141,7 +151,7 @@
       "title": "Privacy and local data",
       "section": "Data",
       "keywords": "privacy local storage token secret",
-      "html": "<p>Notes remain in browser storage unless you export them or explicitly use GitHub Sync. Tokens are stored separately per device and excluded from backups and diagnostics.</p>"
+      "html": "<p>Money, Golf, and Notes remain in browser storage unless you export them or use GitHub Sync. Tokens are stored separately per device and excluded from backups and diagnostics.</p>"
     },
     {
       "id": "shortcuts",
