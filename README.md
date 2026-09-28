@@ -4,6 +4,8 @@ Tristan's and Adam's Running Note for Bets, Golf, and Other Shenanigans.
 
 Track amounts owed, repayments, and golf rounds in two lists with the latest additions at the top. Golf winnings automatically create a linked Money entry. Editing or deleting the round updates its linked entries together. Annual summaries show scores, wins, ties, and betting results. A single private Notes editor holds the extra details.
 
+Settings includes an Info tab between Data Sync and Help. It turns the golf-rules and contacts sections of private shared Notes into a readable reference with call and email links. Those personal values stay in the private data repository and browser storage; they are not embedded in this public app repository or its deployment artifact.
+
 The app works on desktop and mobile and saves locally, including offline. It has no runtime dependencies or required build step. Serve with `python3 -m http.server 8000`; stop afterward. Run checks with Node.js 18 or later: `node --test tests/*.test.mjs`.
 
 ## Import the running note

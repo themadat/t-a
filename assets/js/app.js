@@ -193,6 +193,26 @@
     setInputValue($("#notesTextarea"), documentText(documentItem));
   }
 
+  function infoData() {
+    return App.info.parse(documentText(state().workspace.documents[0]));
+  }
+
+  function renderInfo() {
+    const data = infoData();
+    const rules = data.rules.length
+      ? '<ol class="info-rules">' + data.rules.map(function (rule) { return "<li>" + u.escapeHtml(rule) + "</li>"; }).join("") + "</ol>"
+      : '<p class="info-empty">No golf rules were found in shared Notes.</p>';
+    const contacts = data.contacts.length
+      ? '<div class="contact-list">' + data.contacts.map(function (contact) {
+        const phone = App.info.phoneHref(contact.phone);
+        const phoneMarkup = phone ? '<a href="' + u.escapeHtml(phone) + '">' + u.escapeHtml(contact.phone) + "</a>" : "<span>" + u.escapeHtml(contact.phone) + "</span>";
+        const mail = "mailto:" + contact.email;
+        return '<article class="contact-card"><div><strong>' + u.escapeHtml(contact.name) + '</strong><span>' + u.escapeHtml(contact.relationship) + '</span></div><div class="contact-actions">' + phoneMarkup + '<a href="' + u.escapeHtml(mail) + '">' + u.escapeHtml(contact.email) + "</a></div></article>";
+      }).join("") + "</div>"
+      : '<p class="info-empty">No contacts were found in shared Notes.</p>';
+    $("#infoContent").innerHTML = '<section class="info-card"><span class="eyebrow">On the course</span><h4>Bad (drunk) golf rules</h4>' + rules + '</section><section class="info-card"><span class="eyebrow">Contacts</span><h4>Adam Lauer</h4>' + contacts + "</section>";
+  }
+
   function saveNotes(value) {
     const normalized = u.cleanText(value, config.controls.maxDocumentHtmlLength);
     storage.mutate(function (next) {
@@ -247,6 +267,9 @@
     const results = App.ledgerUI ? App.ledgerUI.search(query) : [];
     const notes = state().workspace.documents[0];
     if (config.features.documents && notes && (`notes ${documentText(notes)}`).toLowerCase().includes(needle)) results.push({ type: "notes", id: notes.id, title: "Notes", meta: "Local notes" });
+    const reference = infoData();
+    const referenceText = reference.rules.concat(reference.contacts.flatMap(function (contact) { return [contact.name, contact.relationship, contact.phone, contact.email]; })).join(" ");
+    if (referenceText.toLowerCase().includes(needle)) results.push({ type: "info", id: "reference", title: "Shared info", meta: "Info · Rules and contacts" });
     config.help.forEach(function (topic) {
       if ((topic.title + " " + topic.keywords + " " + u.stripHtml(topic.html)).toLowerCase().includes(needle)) results.push({ type: "help", id: topic.id, title: topic.title, meta: "Help · " + topic.section });
     });
@@ -280,6 +303,7 @@
   function activateGlobalSearchResult(type, id) {
     if (type === "money" || type === "golf") App.ledgerUI.openEntry(type, id);
     else if (type === "notes") openNotes($("#globalSearch"));
+    else if (type === "info") openSupport("info", $("#globalSearch"));
     else if (type === "help") { openSupport("help"); setInputValue($("#helpSearch"), config.help.find(function (topic) { return topic.id === id; })?.title || ""); renderHelp(); }
     else if (type === "roadmap") {
       storage.mutate(function (next) { next.modules.roadmap.search = config.roadmap.find(function (item) { return item.id === id; })?.title || ""; }, { reason: "roadmap-search" });
@@ -311,6 +335,7 @@
     });
     $$('[data-support-panel]').forEach(function (panel) { panel.hidden = panel.dataset.supportPanel !== tab; });
     if (tab === "dataSync") renderSyncSettings();
+    else if (tab === "info") renderInfo();
     else if (tab === "help") renderHelp();
     else if (tab === "releases") renderReleases();
     else if (tab === "shortcuts") renderShortcuts();

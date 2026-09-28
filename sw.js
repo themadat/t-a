@@ -14,6 +14,7 @@ const SHELL = [
   versioned("./assets/css/app.css"),
   versioned("./assets/js/icons.js"),
   versioned("./assets/js/core/utils.js"),
+  versioned("./assets/js/core/info.js"),
   versioned("./assets/js/core/ledger.js"),
   versioned("./assets/js/core/note-import.js"),
   versioned("./assets/js/core/state.js"),

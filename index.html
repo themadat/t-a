@@ -21,6 +21,7 @@
   <script defer src="assets/js/boot.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/icons.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/utils.js"></script>
+  <script type="application/x-app-script" data-app-src="assets/js/core/info.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/ledger.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/note-import.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/core/state.js"></script>
@@ -115,6 +116,7 @@
         <div class="support-tabs" role="tablist" aria-label="Settings sections">
           <button id="settingsTab" type="button" role="tab" aria-selected="true" aria-controls="settingsPanel" data-support-tab="settings"><span class="support-tab-icon" aria-hidden="true" data-symbol="support"></span><span>Settings</span></button>
           <button id="dataSyncTab" type="button" role="tab" aria-selected="false" aria-controls="dataSyncPanel" data-support-tab="dataSync"><span class="support-tab-icon" aria-hidden="true" data-symbol="json"></span><span>Data Sync</span></button>
+          <button id="infoTab" type="button" role="tab" aria-selected="false" aria-controls="infoPanel" data-support-tab="info"><span class="support-tab-icon" aria-hidden="true" data-symbol="info"></span><span>Info</span></button>
           <button id="helpTab" type="button" role="tab" aria-selected="false" aria-controls="helpPanel" data-support-tab="help"><span class="support-tab-icon" aria-hidden="true" data-symbol="help"></span><span>Help</span></button>
           <button id="releasesTab" type="button" role="tab" aria-selected="false" aria-controls="releasesPanel" data-support-tab="releases"><span class="support-tab-icon" aria-hidden="true" data-symbol="releaseNotes"></span><span>What’s New</span></button>
           <button id="supportRoadmapTab" type="button" role="tab" aria-selected="false" aria-controls="supportRoadmapPanel" data-support-tab="roadmap"><span class="support-tab-icon" aria-hidden="true" data-symbol="roadmap"></span><span>Roadmap</span></button>
@@ -169,6 +171,11 @@
               <p class="setting-note">Current local content used for GitHub Sync. The cloud copy may differ until you sync. Device settings and credentials are excluded.</p>
               <pre class="developer-json sync-json" tabindex="0" role="region" aria-label="JSON included in GitHub Sync"><code id="syncPayloadJson"></code></pre>
             </details>
+          </section>
+
+          <section id="infoPanel" class="support-panel info-panel" role="tabpanel" aria-labelledby="infoTab" data-support-panel="info" hidden>
+            <div class="support-section-title"><span aria-hidden="true" data-symbol="info"></span><div><span class="eyebrow">Shared reference</span><h3>Info</h3></div></div>
+            <div id="infoContent" class="info-content"></div>
           </section>
 
           <section id="helpPanel" class="support-panel" role="tabpanel" aria-labelledby="helpTab" data-support-panel="help" hidden>

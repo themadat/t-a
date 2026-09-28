@@ -24,6 +24,7 @@ All runtime modules attach to `window.LocalApp`.
 - `core/components.js`: dialogs, menus, toasts, focus.
 - `core/portability.js`: validated JSON import/export.
 - `core/identity.js`: owner token labeling, SHA-256 fingerprints, credential-derived attribution and one-step connection.
+- `core/info.js`: extracts the golf-rules and contacts sections from private Notes for the Settings Info tab.
 - `core/sync.js`: cloud comparisons, choices, upload/download/merge.
 - `app.js`: rendering, event handlers, search, keyboard commands.
 

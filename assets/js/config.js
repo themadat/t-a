@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.3";
+  const VERSION = "0.0.1.4";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -72,6 +72,16 @@
   "releases": [
     {
       "version": VERSION,
+      "date": "2026-09-28T16:00:00.000Z",
+      "title": "Shared info",
+      "summary": "Golf rules and contacts now have a dedicated private Info tab.",
+      "features": ["Info tab between Data Sync and Help", "Tap-to-call and email contact links"],
+      "improvements": ["Info stays sourced from private synced Notes", "Rules and contacts are searchable"],
+      "fixes": [],
+      "knownIssues": []
+    },
+    {
+      "version": "0.0.1.3",
       "date": "2026-09-28T12:00:00.000Z",
       "title": "Token identity",
       "summary": "Label both tokens once; each person connects with just their token.",

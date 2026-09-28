@@ -18,6 +18,7 @@ The approved [Money and Golf plan](PLAN-001-money-and-golf.md) is implemented lo
 - Preserve `t-a` storage namespaces and the sole VERSION in config. Shell SVGs are self-contained in `assets/js/icons.js`.
 - Preserve the stored origin `git@github.com:themadat/t-a.git`; this computer's URL rewrite selects personal SSH.
 - Private source/seed data stays outside this public repository. Tests contain synthetic fixtures only. The import preserves history and flags discrepancies instead of silently posting historical winnings.
+- Settings has an Info tab between Data Sync and Help. It parses golf rules and contacts from private synced Notes, so personal contact values are never embedded in public runtime source.
 
 ## External setup pending
 
@@ -27,7 +28,7 @@ Pages is configured for GitHub Actions at https://themadat.github.io/t-a/ (reche
 
 ## Verification
 
-60 automated tests passed, including owner setup, fresh friend/additional-device connection, unknown-token rejection, offline identity, credential isolation, and association conflicts; including mocked two-client GitHub races, in-flight edits, Auto Sync conflict guards, and browser-tab draft recovery. JavaScript syntax and diff checks passed. Browser checks covered source import/reconciliation, linked winnings, delete/Undo, repayment preview, search, form focus/Escape, desktop/390px light/dark layouts, JSON backup restoration, the staged `/t-a/` path, save-before-update, and cached reload/entry forms with the server stopped. Preview servers are stopped. Device keyboard behavior still needs an actual phone check.
+63 automated tests cover the existing app plus private Info parsing and source-isolation checks. JavaScript syntax and diff checks passed. Browser checks cover source import/reconciliation, linked winnings, delete/Undo, repayment preview, search, form focus/Escape, desktop/390px light/dark layouts, JSON backup restoration, the staged `/t-a/` path, save-before-update, and cached reload/entry forms with the server stopped. Preview servers are stopped. Device keyboard behavior still needs an actual phone check.
 
 A clean populated backup and cloud JSON were prepared outside the repository under the task's private artifact directory; see the delivery message. Local preview browser data is test-only and does not provision the hosted site.
 
