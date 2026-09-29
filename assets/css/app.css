@@ -1129,3 +1129,30 @@ html[data-theme="dark"] .category-other { background:#263e5e; color:#b7d5ff; }
 }
 .entry-row.money > .entry-amount { grid-column:auto; grid-row:auto; text-align:left; }
 .ledger-overview .balance-card .quick-round button { grid-column:auto; grid-row:auto; margin:0; background:var(--surface); color:var(--text); border-color:var(--line); }
+
+/* Text-height rows with half-size edit/link controls. */
+.ledger-columns .entry-actions .row-edit, .ledger-columns .entry-actions .row-link { width:18px; height:18px; min-height:18px; min-width:18px; padding:0; border-radius:4px; }
+.ledger-columns .entry-actions svg { width:10px; height:10px; }
+.ledger-columns .entry-row { padding-block:.3rem; }
+.ledger-columns .entry-column-head.money, .ledger-columns .entry-row.money { grid-template-columns:90px minmax(100px,1.4fr) 65px 105px 65px 100px 40px; }
+.ledger-columns .entry-column-head.golf, .ledger-columns .entry-row.golf { display:grid; grid-template-columns:90px minmax(125px,1.5fr) minmax(105px,1fr) minmax(85px,1fr) 62px; gap:.4rem; }
+.entry-row.golf > time { margin:0; white-space:nowrap; }
+.entry-course { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:.8rem; }
+.entry-row.golf > .golf-results, .entry-row.golf > .entry-actions, .entry-row.golf > .golf-winnings { grid-column:auto; grid-row:auto; }
+.golf-results { display:grid; grid-template-columns:1fr 1fr 1fr; gap:.35rem; font-variant-numeric:tabular-nums; font-size:.75rem; }
+.golf-winnings { font-size:.75rem; white-space:nowrap; }
+.entry-row.golf .entry-details { grid-column:1 / -1; margin:.1rem 0; }
+.review-dot { color:var(--warning); margin-left:.2rem; }
+#moneyEntries .entry-list, #moneyEntries .entry-column-head { min-width:620px; }
+#golfEntries { overflow-x:auto; }
+#golfEntries .entry-list, #golfEntries .entry-column-head { min-width:530px; }
+.balance-card .quick-round { grid-template-columns:50px 50px; align-self:flex-start; margin:.75rem .2rem .4rem; }
+.balance-card .quick-round > span { white-space:nowrap; }
+.ledger-overview #golfCount { font-size:1.4rem; }
+@media (max-width:1099px) {
+  #golfEntries .entry-column-head.golf { display:grid; }
+  #golfEntries .entry-list { display:block; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  #golfEntries .entry-row.golf { border-radius:0; }
+}
+
+#ledgerEntries .entry-row.golf > .golf-results, #ledgerEntries .entry-row.golf > .entry-actions, #ledgerEntries .entry-row.golf > .golf-winnings { grid-column:auto; grid-row:auto; }

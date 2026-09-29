@@ -4,6 +4,8 @@ Read this and WISHES at session start. Identity and release history live in `ass
 
 ## Current work
 
+Compact Golf refinement is ready locally: half-size 18px Edit/Link controls, linked Money detail dialogs from Golf, separate Date/Course, three-part Results, parenthesized hole counts, compact two-line golf summary, and a single-line payment label aligned with In the Books. Desktop Golf rows measure about 30px; mobile columns stay aligned inside a horizontal scroller. Verified linked detail dialog and mobile containment; 65 tests passed. No commit/push performed.
+
 Ledger-column refinement is ready locally: dedicated What/Category columns, colored pills, full-width detail lines, short Balance labels, linked-round buttons, quick-payment icons inside In the Books, and golf statistics inside On the Course. Redundant table headings and golf summary removed. Money scrolls within its panel on narrow screens. Verified row geometry, linked-round opening, quick-button placement and mobile containment; 65 tests pass. No commit/push performed.
 
 Side-by-side desktop Money/Golf is ready locally (1100px and wider), with mobile view switching, shared search/year filters, hover-E row editing, square controls, centered identity, and black icon treatment without the light border. T/A quick buttons add today's $20 Golf Round owed to the buyer. Verified desktop/mobile overflow and hover editing; 65 tests pass including buyer direction, attribution, and save failures. No commit/push performed.
