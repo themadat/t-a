@@ -88,3 +88,14 @@ test('legacy person spelling and numeric holes normalize without losing links', 
   assert.equal(result.workspace.tokenLabels.Tristen, 'b'.repeat(64));
   App.ledger.validateLinks(result.workspace);
 });
+
+test('category totals combine golf and dollar bets and reverse by viewer', () => {
+  const a = domain(), w = a.stateModel.createDefaultState().workspace;
+  for (const [description, category, amountCents] of [['Golf Bets','Golf',400],['Dollar Bet','Bets',100],['Golf Round','Golf',2000],['Lunch','Food',700]]) {
+    a.ledger.saveMoney(w, {...moneyFields, description, category, amountCents}, 'Adam');
+  }
+  const adam = a.ledger.categoryTotals(w.moneyEntries, 'Adam');
+  const tristen = a.ledger.categoryTotals(w.moneyEntries, 'Tristen');
+  assert.equal(adam.Bets, -500); assert.equal(adam.Golf, -2000); assert.equal(adam.Food, -700);
+  for (const name of ['Golf','Bets','Food','Other']) assert.equal(tristen[name] || 0, -adam[name] || 0);
+});

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.10";
+  const VERSION = "0.0.1.11";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -70,7 +70,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-09-29T22:00:00.000Z", "title": "Faster entry forms", "summary": "One-click categories, payment direction, and winnings controls.", "features": [], "improvements": ["Compact Money and Golf forms", "Tristen name correction with legacy-data support", "Compact summary labels and linked course names"], "fixes": [], "knownIssues": []},
+    {"version": VERSION, "date": "2026-09-29T23:00:00.000Z", "title": "Personal balance views", "summary": "Balances and rows reflect your signed-in perspective.", "features": ["Developer identity preview", "Command–Enter saves entry forms"], "improvements": ["Category totals and compact quick payments", "Blue golf summary and outcome row shading", "Single entry search"], "fixes": [], "knownIssues": []},
+    {"version": "0.0.1.10", "date": "2026-09-29T22:00:00.000Z", "title": "Faster entry forms", "summary": "One-click categories, payment direction, and winnings controls.", "features": [], "improvements": ["Compact Money and Golf forms", "Tristen name correction with legacy-data support", "Compact summary labels and linked course names"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.9", "date": "2026-09-29T21:00:00.000Z", "title": "Compact golf results", "summary": "Compact results and two-way entry links.", "features": ["Golf links to its Money entries"], "improvements": ["Separate Date and Course columns", "Three-part results and compact golf summary", "Half-size row controls"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.8", "date": "2026-09-29T20:00:00.000Z", "title": "Clearer ledger rows", "summary": "Dedicated columns and full-width details keep Money compact.", "features": ["Colored category pills", "Linked-round buttons"], "improvements": ["Quick round payments inside In the Books", "Golf totals inside On the Course", "Shorter balance labels"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.7", "date": "2026-09-29T18:00:00.000Z", "title": "Side-by-side tables", "summary": "Money and Golf share the desktop workspace.", "features": ["Quick $20 golf-round entries", "Hover a row and press E to edit"], "improvements": ["Side-by-side desktop tables", "Square Add and Edit controls", "Centered identity and edge-to-edge black favicon"], "fixes": [], "knownIssues": []},

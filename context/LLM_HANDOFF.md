@@ -4,6 +4,8 @@ Read this and WISHES at session start. Identity and release history live in `ass
 
 ## Current work
 
+Personal balance views are ready locally. Top-bar search is hidden and search shortcuts target the table search. Quick Round Paid By controls are centered in a 52px container matching Add. Signed-in identity controls balance/row colors; Developer Mode supports temporary Adam/Tristen previews by clicking Adding as without changing save attribution. Golf summary is muted blue. Balance includes names/amount and signed category totals, combining golf winnings and dollar bets under Bets. Command/Ctrl–Enter submits Money/Golf forms with existing validation and identity guards. All 68 tests pass; desktop/390px layout and both perspectives verified. Command–Enter reached the expected token guard in the unconnected browser. No commit or push performed.
+
 Faster entry forms and Tristen spelling correction are ready locally. Money uses a hidden preserved entry kind, Date/Amount, one-click category (Bets default), swap-direction control, What and Notes. Golf uses Date/Course/numeric Holes (18 default), winner toggle/amount, scores and Notes, with historical/payment options below. Old person names and token-label keys normalize to Tristen; existing score-field names remain schema-compatible and import IDs stay stable across spelling variants. Summary wording, Results labels, linked-course descriptions and details spacing updated. All 67 tests pass; desktop/mobile forms, toggles and direction swap were checked. No commit or push performed.
 
 Compact Golf refinement is ready locally: half-size 18px Edit/Link controls, linked Money detail dialogs from Golf, separate Date/Course, three-part Results, parenthesized hole counts, compact two-line golf summary, and a single-line payment label aligned with In the Books. Desktop Golf rows measure about 30px; mobile columns stay aligned inside a horizontal scroller. Verified linked detail dialog and mobile containment; 65 tests passed. No commit/push performed.
@@ -21,7 +23,7 @@ The approved [Money and Golf plan](PLAN-001-money-and-golf.md) is implemented lo
 ## Product invariants
 
 - T&A tracks Money and Golf with newest additions first, integer-cent balances, repayments, annual results, and linked round winnings/payment entries. Changing a linked entry opens its round.
-- Keep one plain-text Notes modal, vertical Settings, separate What's New/Roadmap, top-bar search/Sync/Update, local backup/recovery, accessibility, and offline support.
+- Keep one plain-text Notes modal, vertical Settings, separate What's New/Roadmap, table search and top-bar Sync/Update, local backup/recovery, accessibility, and offline support.
 - Money, Golf, Notes, revisions, provenance, and deletion markers are cloud content. Preferences and UI remain device-local. Tokens never enter exports, diagnostics, or cloud files.
 - Sync is fixed to `themadat/data-t-a`, `main`, `data/t-a.json`. Imports cannot redirect it. Recovery is required before remote replacements. Three-way merges treat each round plus linked money as a group; same-group conflicts require review.
 - Token setup: Adam labels both tokens once in Data Sync; only domain-separated SHA-256 fingerprints are shared in workspace.tokenLabels. Tristen enters only his token and presses Connect. The name picker is removed; unknown tokens cannot attribute Money/Golf edits.

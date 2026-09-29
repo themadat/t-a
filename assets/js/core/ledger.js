@@ -204,5 +204,13 @@
     if (!conflicts.length) collections(result);
     return { data: result, conflicts };
   }
-  App.ledger = { people, id, cents, money, balanceLabel, date, collections, validateLinks, active, newest, delta, totals, golfSummary, nextOrder, saveMoney, saveRound, remove, undo, mergeData };
+  function categoryTotals(entries, viewer) {
+    const result = { Golf: 0, Bets: 0, Food: 0, Other: 0 };
+    for (const entry of active(entries)) {
+      const category = entry.linkRole === 'winnings' || /golf bets|golf winnings|dollar bets?/i.test(entry.description) ? 'Bets' : Object.hasOwn(result, entry.category) ? entry.category : 'Other';
+      result[category] += delta(entry) * (viewer === 'Tristen' ? -1 : 1);
+    }
+    return result;
+  }
+  App.ledger = { categoryTotals, people, id, cents, money, balanceLabel, date, collections, validateLinks, active, newest, delta, totals, golfSummary, nextOrder, saveMoney, saveRound, remove, undo, mergeData };
 })();

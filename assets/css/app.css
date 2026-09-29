@@ -1172,3 +1172,24 @@ html[data-theme="dark"] .category-other { background:#263e5e; color:#b7d5ff; }
 .entry-row.money .entry-details { margin:0; line-height:1.15; }
 .entry-row.money { row-gap:0 !important; }
 @media(max-width:520px) { .golf-date-row { grid-template-columns:1.1fr 1.1fr .6fr; gap:.35rem; } .choice-toggle span { padding:.6rem; } }
+
+/* Viewer-relative balance and row colors. */
+.app-header { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"title toolbar"; }
+.global-search-wrap[hidden] { display:none; }
+.toolbar-person { border:0; background:transparent; color:var(--text); box-shadow:none; }
+.toolbar-person:disabled { opacity:1; cursor:default; }
+.ledger-overview .golf-overview { background:color-mix(in srgb,#477ba8 20%,var(--surface)); }
+.ledger-overview .balance-card[data-outcome="positive"] { background:color-mix(in srgb,#427a50 22%,var(--surface)); }
+.ledger-overview .balance-card[data-outcome="negative"] { background:color-mix(in srgb,#a34b50 22%,var(--surface)); }
+.ledger-overview .balance-card[data-outcome="neutral"] { background:color-mix(in srgb,#477ba8 14%,var(--surface)); }
+#ledgerEntries .entry-row[data-outcome="positive"] { background:color-mix(in srgb,#427a50 10%,var(--surface)); }
+#ledgerEntries .entry-row[data-outcome="negative"] { background:color-mix(in srgb,#a34b50 10%,var(--surface)); }
+#ledgerEntries .entry-row[data-outcome="tied"] { background:color-mix(in srgb,#477ba8 12%,var(--surface)); }
+#ledgerEntries .entry-row:hover { box-shadow:inset 0 0 0 1px var(--line); }
+.balance-card .quick-round { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:28px 14px; align-self:center; height:52px; min-width:120px; box-sizing:border-box; padding:4px 8px; gap:2px 8px; margin:.65rem 0; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+.balance-card .quick-round > span { grid-column:1 / -1; grid-row:2; font-size:.7rem; line-height:14px; color:var(--text); }
+.ledger-overview .balance-card .quick-round button { grid-row:1; width:28px; height:28px; min-height:28px; justify-self:center; border:0; }
+.quick-round button svg { width:24px; height:24px; }
+.ledger-overview #balanceAmount { font-size:clamp(1rem,1.5vw,1.4rem); }
+.ledger-overview #balanceWords { font-size:.72rem; }
+@media(max-width:699px) { .app-header { grid-template-columns:1fr; grid-template-areas:"title" "toolbar"; } .balance-card .quick-round { min-width:106px; padding-inline:4px; } }

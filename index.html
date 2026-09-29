@@ -51,7 +51,7 @@
       </div>
     </div>
 
-    <div class="global-search-wrap" data-shortcut="/">
+    <div class="global-search-wrap" hidden>
       <span class="search-icon" aria-hidden="true" data-symbol="search"></span>
       <label class="visually-hidden" for="globalSearch">Search Money, Golf, Notes, and help</label>
       <input id="globalSearch" type="search" autocomplete="off" placeholder="Search Money, Golf, Notes…" aria-haspopup="listbox" aria-controls="globalSearchResults" aria-keyshortcuts="/ Control+Alt+Shift+/">
@@ -61,7 +61,7 @@
     </div>
 
     <div class="top-toolbar" aria-label="Application actions">
-    <div id="ledgerIdentity" class="toolbar-person"><span>Adding as</span><strong id="ledgerPerson" role="status"></strong></div>
+    <button type="button" id="ledgerIdentity" class="toolbar-person" aria-label="Adding as"><span>Adding as</span><strong id="ledgerPerson" role="status"></strong></button>
     <button id="floatingStatusButton" class="button status-button toolbar-status" type="button" aria-label="Cloud Sync. Open Sync Settings." title="Cloud Sync. Open Sync Settings." aria-keyshortcuts="S Control+Alt+Shift+S" data-cloud-sync data-shortcut="S">
       <span class="floating-status-icon" data-sync-icon data-symbol="icloud" aria-hidden="true"></span>
       <span class="floating-status-copy"><strong data-floating-local-label>Saved locally</strong><small data-floating-sync-label>GitHub setup required</small></span>

@@ -284,8 +284,8 @@
   }
 
   function focusGlobalSearch() {
-    $("#globalSearch").focus();
-    $("#globalSearch").select();
+    $("#ledgerSearch").focus();
+    $("#ledgerSearch").select();
   }
 
   function renderGlobalSearchResults() {
