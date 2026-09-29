@@ -915,41 +915,41 @@ details > summary { width: fit-content; cursor: pointer; color: var(--accent-str
 .global-search-wrap[data-shortcut]::after { right: 57px; }
 
 /* Money and Golf: one semantic list adapts from desktop rows to mobile cards. */
-.ledger-workspace { max-width: 1260px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-.ledger-intro { display:flex; justify-content:space-between; align-items:end; gap:1.5rem; margin-bottom:1.5rem; }
-.ledger-intro h1 { margin:.3rem 0 .5rem; font-size:clamp(1.8rem,4vw,2.65rem); line-height:1.05; letter-spacing:-.055em; }
+.ledger-workspace { width: 100%; max-width: none; margin: 0; padding: .75rem 1rem 2rem; }
+.ledger-intro { display:flex; justify-content:space-between; align-items:end; gap:1rem; margin-bottom:.6rem; }
+.ledger-intro h1 { margin:.15rem 0; font-size:clamp(1.3rem,2vw,1.7rem); line-height:1.05; letter-spacing:-.055em; }
 .ledger-intro p, .ledger-footer { color:var(--muted); margin:.4rem 0; }
 .person-picker { display:grid; gap:.35rem; font-size:.75rem; font-weight:700; color:var(--muted); min-width:160px; }
-.ledger-overview { display:grid; grid-template-columns:1.35fr 1fr; gap:1rem; margin-bottom:2rem; }
-.balance-card, .golf-overview { display:flex; flex-direction:column; align-items:start; padding:1.5rem; border:1px solid var(--line); border-radius:18px; background:var(--surface); }
+.ledger-overview { display:grid; grid-template-columns:1.35fr 1fr; gap:.65rem; margin-bottom:.65rem; }
+.balance-card, .golf-overview { display:flex; flex-direction:column; align-items:start; padding:.65rem .85rem; border:1px solid var(--line); border-radius:18px; background:var(--surface); }
 .balance-card { background:var(--accent-strong); color:white; }
 .balance-card .eyebrow { color:inherit; opacity:.82; }
-.balance-card > strong { font-size:clamp(2.5rem,6vw,4rem); line-height:1.2; letter-spacing:-.06em; margin:.5rem 0 0; }
-.balance-card p { font-size:1rem; margin:.35rem 0 1.2rem; }
+.balance-card > strong { font-size:1.8rem; line-height:1.2; letter-spacing:-.06em; margin:.15rem 0 0; }
+.balance-card p { font-size:1rem; margin:.15rem 0 .4rem; }
 .balance-card .button { background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.4); color:white; }
 .balance-card .button:focus-visible { outline:3px solid white; outline-offset:3px; }
-.golf-overview > strong { font-size:2rem; letter-spacing:-.04em; margin:1rem 0 .25rem; }
-.golf-overview > p { color:var(--muted); margin:.3rem 0 1.25rem; }
+.golf-overview > strong { font-size:1.5rem; letter-spacing:-.04em; margin:.15rem 0; }
+.golf-overview > p { color:var(--muted); margin:.15rem 0 .4rem; }
 .golf-overview .button { margin-top:auto; }
-.ledger-section-heading { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding-bottom:1rem; }
+.ledger-section-heading { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding-bottom:.4rem; }
 .ledger-tabs { display:flex; gap:.3rem; background:var(--surface-2); border:1px solid var(--line); padding:4px; border-radius:12px; }
 .ledger-tabs button { border:0; border-radius:8px; padding:.7rem 1.4rem; background:transparent; color:var(--muted); font-weight:750; min-height:44px; }
 .ledger-tabs button[aria-selected="true"] { background:var(--surface); color:var(--text); box-shadow:var(--shadow-small); }
 .ledger-filters { display:flex; gap:.65rem; align-items:center; }
-.ledger-filters input { flex:1; max-width:420px; width:0; }
+.ledger-filters input { flex:1; max-width:none; width:0; }
 .ledger-filters select { min-width:120px; }
 .ledger-filters > span { margin-left:auto; font-size:.8rem; }
-.ledger-order-note { font-size:.75rem; color:var(--muted); margin:.8rem 0; }
+.ledger-order-note { font-size:.75rem; color:var(--muted); margin:.35rem 0; }
 .entry-column-head, .entry-row { display:grid; grid-template-columns:minmax(200px,2fr) minmax(125px,1fr) minmax(85px,.7fr) minmax(150px,1.1fr) 60px; align-items:center; gap:1rem; }
 .entry-column-head { padding:.8rem 1rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-size:.65rem; font-weight:750; }
 .entry-list { list-style:none; padding:0; margin:0; border:1px solid var(--line); border-radius:14px; background:var(--surface); overflow:hidden; }
-.entry-row { padding:1.15rem 1rem; font-size:.85rem; border-bottom:1px solid var(--line); }
+.entry-row { padding:.35rem .75rem; font-size:.85rem; border-bottom:1px solid var(--line); }
 .entry-row:last-child { border-bottom:0; }
 .entry-row > div { min-width:0; }
-.entry-row time { display:block; color:var(--muted); font-size:.73rem; margin-bottom:.35rem; }
+.entry-row time { display:block; color:var(--muted); font-size:.73rem; margin-bottom:.1rem; }
 .entry-row > div:first-child > strong { display:block; font-size:.95rem; }
-.entry-row small { display:block; font-size:.7rem; color:var(--muted); margin-top:.25rem; }
-.entry-row p { margin:.4rem 0 0; font-size:.78rem; color:var(--muted); overflow-wrap:anywhere; white-space:pre-wrap; }
+.entry-row small { display:block; font-size:.7rem; color:var(--muted); margin-top:.1rem; }
+.entry-row p { margin:.15rem 0 0; font-size:.78rem; color:var(--muted); overflow-wrap:anywhere; white-space:pre-wrap; }
 .entry-row .entry-amount { font-size:1.1rem; font-variant-numeric:tabular-nums; }
 .entry-running { font-size:.75rem; color:var(--muted); }
 .mobile-label { display:none; }
@@ -983,12 +983,12 @@ details > summary { width: fit-content; cursor: pointer; color: var(--accent-str
 .entry-dialog .dialog-footer > .danger { margin-right:auto; }
 #noteImportPreview li { margin:.5rem 0; overflow-wrap:anywhere; }
 @media (max-width:760px) {
-  .ledger-workspace { padding:1.4rem .85rem 3rem; }
+  .ledger-workspace { padding:.65rem .65rem 2rem; }
   .ledger-intro { align-items:start; gap:.75rem; }
   .ledger-intro p { max-width:210px; font-size:.82rem; }
   .person-picker { min-width:0; max-width:145px; }
-  .ledger-overview { grid-template-columns:1fr; gap:.75rem; margin-bottom:1.4rem; }
-  .balance-card, .golf-overview { padding:1.2rem; border-radius:14px; }
+  .ledger-overview { grid-template-columns:1fr; gap:.4rem; margin-bottom:.5rem; }
+  .balance-card, .golf-overview { padding:.6rem .75rem; border-radius:12px; }
   .golf-overview { display:grid; grid-template-columns:1fr auto; align-items:center; gap:.2rem 1rem; }
   .golf-overview .eyebrow { grid-column:1/-1; }
   .golf-overview > strong { margin:.25rem 0; font-size:1.5rem; }
@@ -1001,8 +1001,8 @@ details > summary { width: fit-content; cursor: pointer; color: var(--accent-str
   .ledger-filters input { max-width:none; }
   .ledger-filters > span { display:none; }
   .entry-column-head { display:none; }
-  .entry-list { border:0; background:transparent; border-radius:0; display:grid; gap:.7rem; overflow:visible; }
-  .entry-row { grid-template-columns:1fr auto; gap:.6rem 1rem; border:1px solid var(--line); background:var(--surface); border-radius:12px; padding:1rem; }
+  .entry-list { border:0; background:transparent; border-radius:0; display:grid; gap:.3rem; overflow:visible; }
+  .entry-row { grid-template-columns:1fr auto; gap:.2rem .65rem; border:1px solid var(--line); background:var(--surface); border-radius:12px; padding:.5rem .65rem; }
   .entry-row:last-child { border-bottom:1px solid var(--line); }
   .entry-row > div:first-child { grid-column:1; }
   .entry-row > .entry-amount { grid-column:2; grid-row:1; text-align:right; }
@@ -1026,3 +1026,19 @@ details > summary { width: fit-content; cursor: pointer; color: var(--accent-str
 #tokenOwnerSetup { margin-top: 1rem; }
 #tokenOwnerSetup .field { margin: .8rem 0; }
 #tokenSetupStatus, #tokenIdentityStatus { overflow-wrap: anywhere; }
+
+/* Notes uses the requested viewport proportions at every breakpoint. */
+dialog.notes-dialog { width:80vw; max-width:80vw; height:80dvh; max-height:80dvh; margin:auto; border:1px solid var(--line); border-radius:14px; }
+.notes-dialog > .dialog-shell { height:100%; min-height:0; }
+.notes-dialog .dialog-header { flex-shrink:0; }
+.notes-dialog-body { flex:1; overflow:hidden; padding:.65rem; }
+.notes-textarea { height:100%; }
+@media (min-width:761px) {
+  .balance-card, .golf-overview { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:0 .75rem; align-items:center; }
+  .balance-card .eyebrow, .golf-overview .eyebrow { grid-column:1; }
+  .balance-card > strong, .golf-overview > strong { grid-column:1; }
+  .balance-card > p, .golf-overview > p { grid-column:1; }
+  .balance-card .button, .golf-overview .button { grid-column:2; grid-row:1 / 4; margin:0; }
+  .entry-row time { display:inline; margin-right:.6rem; }
+  .entry-row > div:first-child > strong { display:inline; }
+}

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.4";
+  const VERSION = "0.0.1.5";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -72,6 +72,16 @@
   "releases": [
     {
       "version": VERSION,
+      "date": "2026-09-28T18:00:00.000Z",
+      "title": "Compact layout",
+      "summary": "More room for entries and Notes.",
+      "features": [],
+      "improvements": ["Full-width Money and Golf layout", "Compact summaries and entry rows", "Notes fills 80% of the viewport with an expanding editor"],
+      "fixes": [],
+      "knownIssues": []
+    },
+    {
+      "version": "0.0.1.4",
       "date": "2026-09-28T16:00:00.000Z",
       "title": "Shared info",
       "summary": "Golf rules and contacts now have a dedicated private Info tab.",
