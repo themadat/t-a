@@ -3,6 +3,7 @@
   const App = window.LocalApp, u = App.utils, l = App.ledger, storage = App.storage, c = App.components;
   const $ = selector => document.querySelector(selector), esc = u.escapeHtml;
   let ready = false, editing = null, pendingImport = null;
+  const desktop = window.matchMedia('(min-width:1100px)');
   const state = () => storage.getState();
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const dateLabel = value => value.length === 4 ? value + ' · date unknown' : new Date(value + 'T12:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -12,7 +13,7 @@
   function shell() {
     return `<section class="ledger-workspace" aria-label="Money and Golf">
       <div class="ledger-overview"><section class="balance-card"><button class="overview-select" type="button" id="moneyTab" data-ledger-view="money" aria-controls="ledgerPanel"><span class="eyebrow">In the Books</span><strong id="balanceAmount"></strong><span id="balanceWords" role="status"></span></button><button type="button" id="addMoney" class="button overview-add" aria-label="Add money entry"><span data-symbol="add"></span><span>Add</span></button></section><section class="golf-overview"><button class="overview-select" type="button" id="golfTab" data-ledger-view="golf" aria-controls="ledgerPanel"><span class="eyebrow">On the Course</span><strong id="golfCount"></strong><span id="golfOverview"></span></button><button type="button" id="addGolf" class="button overview-add" aria-label="Add golf round"><span data-symbol="add"></span><span>Add</span></button></section></div>
-      <section id="ledgerPanel" aria-labelledby="moneyTab"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search this list</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Find an entry (Newest additions first · Event dates may be earlier)…"><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter year</label><select id="ledgerYear"><option value="">All years</option></select></div><div id="golfAnnual" class="annual-summary" hidden></div><div id="ledgerEntries"></div></section>
+      <section id="ledgerPanel" aria-labelledby="moneyTab"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search this list</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Find an entry (Newest additions first · Event dates may be earlier)…"><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter year</label><select id="ledgerYear"><option value="">All years</option></select></div><div id="ledgerEntries" class="ledger-columns"><section id="moneyColumn" aria-label="Money"><div class="table-heading"><h2>Money</h2><div class="quick-round"><span>Round paid by · $20</span><button type="button" class="button" data-round-payer="Tristan" aria-label="Tristan bought a golf round: Adam owes Tristan $20">T</button><button type="button" class="button" data-round-payer="Adam" aria-label="Adam bought a golf round: Tristan owes Adam $20">A</button></div></div><div id="moneyEntries"></div></section><section id="golfColumn" aria-label="Golf"><h2>Golf</h2><div id="golfAnnual" class="annual-summary"></div><div id="golfEntries"></div></section></div></section>
       <p class="ledger-footer" id="ledgerSyncStatus" role="status"></p>
     </section>`;
   }
@@ -34,28 +35,35 @@
     $('#ledgerPerson').textContent = App.identity.person() || 'Connect your token';
     $('#ledgerIdentity').dataset.person = App.identity.person() || '';
     document.querySelectorAll('[data-ledger-view]').forEach(button => { const selected = button.dataset.ledgerView === view; button.setAttribute('aria-pressed', String(selected)); button.closest('section').classList.toggle('is-selected', selected); });
-    $('#ledgerPanel').setAttribute('aria-labelledby', view + 'Tab');
+    $('#ledgerPanel').setAttribute('aria-label', desktop.matches ? 'Money and Golf' : view === 'money' ? 'Money' : 'Golf');
+    $('#ledgerPanel').removeAttribute('aria-labelledby');
+    $('#moneyColumn').hidden = !desktop.matches && view !== 'money';
+    $('#golfColumn').hidden = !desktop.matches && view !== 'golf';
     const rows = l.newest(w[view === 'money' ? 'moneyEntries' : 'golfRounds']);
-    const years = [...new Set(rows.map(x => x.date.slice(0, 4)))].sort().reverse();
+    const years = [...new Set((desktop.matches ? [...l.active(w.moneyEntries), ...l.active(w.golfRounds)] : rows).map(x => x.date.slice(0, 4)))].sort().reverse();
     $('#ledgerYear').innerHTML = '<option value="">All years</option>' + years.map(year => `<option value="${year}">${year}</option>`).join(''); $('#ledgerYear').value = s.ui.ledgerYear;
     if (document.activeElement !== $('#ledgerSearch')) $('#ledgerSearch').value = s.ui.ledgerSearch;
+    let counts = {};
+    for (const view of ['money', 'golf']) {
+    const rows = l.newest(w[view === 'money' ? 'moneyEntries' : 'golfRounds']);
     const filtered = rows.filter(row => (!s.ui.ledgerYear || row.date.startsWith(s.ui.ledgerYear)) && (!s.ui.ledgerSearch || entryText(row).includes(s.ui.ledgerSearch.toLowerCase())));
-    $('#ledgerCount').textContent = filtered.length + (view === 'money' ? (filtered.length === 1 ? ' entry' : ' entries') : (filtered.length === 1 ? ' round' : ' rounds'));
-    $('#golfAnnual').hidden = view !== 'golf';
+    counts[view] = filtered.length;
     if (view === 'golf') {
       const summary = l.golfSummary(w.golfRounds, s.ui.ledgerYear);
       $('#golfAnnual').innerHTML = `<span><small>${s.ui.ledgerYear || 'ALL YEARS'}</small><strong>${summary.count} ${summary.count === 1 ? 'round' : 'rounds'}</strong></span><span><small>STROKE ADVANTAGE</small><strong>${summary.margin ? (summary.margin > 0 ? 'Adam · ' : 'Tristan · ') + Math.abs(summary.margin) : 'Even'}</strong></span><span><small>NET GOLF WINNINGS</small><strong>${summary.winnings ? (summary.winnings > 0 ? 'Adam · ' : 'Tristan · ') + l.money(Math.abs(summary.winnings)) : 'Even'}</strong></span><p>Adam ${summary.adamWins} wins · Tristan ${summary.tristanWins} wins · ${summary.ties} ties<br>Includes partial rounds and unknown hole counts. Summary follows the selected year, not search.</p>`;
     }
-    if (!filtered.length) $('#ledgerEntries').innerHTML = `<div class="ledger-empty"><span aria-hidden="true">${view === 'money' ? '↔' : '⚑'}</span><h3>${rows.length ? 'No matching entries' : view === 'money' ? 'Start your running tally' : 'Your next round starts here'}</h3><p>${rows.length ? 'Try another search or year.' : 'Add your first entry above, or import your existing note in Settings.'}</p>${rows.length ? '<button class="button" data-clear-ledger type="button">Clear filters</button>' : '<button class="button" data-import-shortcut type="button">Import existing note</button>'}</div>`;
-    else $('#ledgerEntries').innerHTML = `<div class="entry-column-head ${view}" aria-hidden="true">${view === 'money' ? '<span>Date / what</span><span>Direction</span><span>Amount</span><span>Balance after entry</span><span></span>' : '<span>Date / course</span><span>Adam / Tristan</span><span>Score result</span><span>Bet winnings</span><span></span>'}</div><ol class="entry-list">` + filtered.map(row => view === 'money' ? moneyRow(row, total.running[row.id]) : golfRow(row)).join('') + '</ol>';
+    if (!filtered.length) $('#' + view + 'Entries').innerHTML = `<div class="ledger-empty"><span aria-hidden="true">${view === 'money' ? '↔' : '⚑'}</span><h3>${rows.length ? 'No matching entries' : view === 'money' ? 'Start your running tally' : 'Your next round starts here'}</h3><p>${rows.length ? 'Try another search or year.' : 'Add your first entry above, or import your existing note in Settings.'}</p>${rows.length ? '<button class="button" data-clear-ledger type="button">Clear filters</button>' : '<button class="button" data-import-shortcut type="button">Import existing note</button>'}</div>`;
+    else $('#' + view + 'Entries').innerHTML = `<div class="entry-column-head ${view}" aria-hidden="true">${view === 'money' ? '<span>Date / what</span><span>Direction</span><span>Amount</span><span>Balance after entry</span><span></span>' : '<span>Date / course</span><span>Adam / Tristan</span><span>Score result</span><span>Bet winnings</span><span></span>'}</div><ol class="entry-list">` + filtered.map(row => view === 'money' ? moneyRow(row, total.running[row.id]) : golfRow(row)).join('') + '</ol>';
+    }
+    $('#ledgerCount').textContent = desktop.matches ? counts.money + ' entries · ' + counts.golf + ' rounds' : counts[view] + (view === 'money' ? ' entries' : ' rounds');
     renderStatus();
   }
   function moneyRow(row, balance) {
-    return `<li id="row-${esc(row.id)}" class="entry-row money"><div><time>${esc(dateLabel(row.date))}</time><strong>${esc(row.description)}</strong><small>${esc(row.category)}${row.kind === 'repayment' ? ' · Repayment' : ''}${row.sourceRoundId ? ' · Linked to Golf' : ''}</small>${row.details ? '<p>' + esc(row.details) + '</p>' : ''}</div><div class="entry-direction"><span class="mobile-label">${row.kind === 'repayment' ? 'Paid' : 'Owed'}</span>${esc(row.from)} → ${esc(row.to)}</div><strong class="entry-amount">${l.money(row.amountCents)}</strong><div class="entry-running"><span class="mobile-label">Balance after entry</span>${esc(l.balanceLabel(balance))}</div><button type="button" class="button small" data-edit-money="${esc(row.id)}" aria-label="Edit ${esc(row.description)} on ${esc(row.date)}">${App.icons.markup('entryEdit')}</button></li>`;
+    return `<li id="row-${esc(row.id)}" class="entry-row money"><div><time>${esc(dateLabel(row.date))}</time><strong>${esc(row.description)}</strong><small>${esc(row.category)}${row.kind === 'repayment' ? ' · Repayment' : ''}${row.sourceRoundId ? ' · Linked to Golf' : ''}</small>${row.details ? '<p>' + esc(row.details) + '</p>' : ''}</div><div class="entry-direction"><span class="mobile-label">${row.kind === 'repayment' ? 'Paid' : 'Owed'}</span>${esc(row.from)} → ${esc(row.to)}</div><strong class="entry-amount">${l.money(row.amountCents)}</strong><div class="entry-running"><span class="mobile-label">Balance after entry</span>${esc(l.balanceLabel(balance))}</div><button type="button" class="button small row-edit" title="Edit · hover this row and press E" aria-keyshortcuts="E" data-edit-money="${esc(row.id)}" aria-label="Edit ${esc(row.description)} on ${esc(row.date)}">${App.icons.markup('entryEdit')}</button></li>`;
   }
   function golfRow(row) {
     const difference = row.tristan - row.adam;
-    return `<li id="row-${esc(row.id)}" class="entry-row golf"><div><time>${esc(dateLabel(row.date))}</time><strong>${esc(row.course || 'Golf round')}</strong><small>${row.holes === 'unknown' ? 'Hole count unknown' : row.holes + ' holes'}</small>${row.review ? '<span class="review-badge">Needs review</span>' : ''}${row.details ? '<p>' + esc(row.details) + '</p>' : ''}</div><div class="score-pair"><span><small>Adam</small><strong>${row.adam}</strong></span><span><small>Tristan</small><strong>${row.tristan}</strong></span></div><div>${difference === 0 ? 'Tied round' : (difference > 0 ? 'Adam' : 'Tristan') + ' by ' + Math.abs(difference)}</div><div>${row.winningsCents ? esc(row.winner) + ' +' + l.money(row.winningsCents) : 'Even'}<small>${row.winningsEntryId ? 'Linked to Money' : row.winningsCents ? 'Separate from Money' : 'No money exchanged'}</small></div><button type="button" class="button small" data-edit-golf="${esc(row.id)}" aria-label="Edit golf round on ${esc(row.date)}">${App.icons.markup('entryEdit')}</button></li>`;
+    return `<li id="row-${esc(row.id)}" class="entry-row golf"><div><time>${esc(dateLabel(row.date))}</time><strong>${esc(row.course || 'Golf round')}</strong><small>${row.holes === 'unknown' ? 'Hole count unknown' : row.holes + ' holes'}</small>${row.review ? '<span class="review-badge">Needs review</span>' : ''}${row.details ? '<p>' + esc(row.details) + '</p>' : ''}</div><div class="score-pair"><span><small>Adam</small><strong>${row.adam}</strong></span><span><small>Tristan</small><strong>${row.tristan}</strong></span></div><div>${difference === 0 ? 'Tied round' : (difference > 0 ? 'Adam' : 'Tristan') + ' by ' + Math.abs(difference)}</div><div>${row.winningsCents ? esc(row.winner) + ' +' + l.money(row.winningsCents) : 'Even'}<small>${row.winningsEntryId ? 'Linked to Money' : row.winningsCents ? 'Separate from Money' : 'No money exchanged'}</small></div><button type="button" class="button small row-edit" title="Edit · hover this row and press E" aria-keyshortcuts="E" data-edit-golf="${esc(row.id)}" aria-label="Edit golf round on ${esc(row.date)}">${App.icons.markup('entryEdit')}</button></li>`;
   }
   function renderStatus() {
     if (!ready) return;
@@ -77,6 +85,17 @@
     fields(form, row ? { ...row, amount: amountValue(row.amountCents) } : { date: today(), kind: repayment ? 'repayment' : 'owed', description: repayment ? 'Repayment' : '', amount: repayment ? amountValue(Math.abs(balance)) : '', from: repayment ? balance > 0 ? 'Tristan' : 'Adam' : App.identity.person() || 'Adam', to: repayment ? balance > 0 ? 'Adam' : 'Tristan' : App.identity.person() === 'Tristan' ? 'Adam' : 'Tristan' });
     $('#moneyTitle').textContent = row ? 'Edit money entry' : repayment ? 'Record repayment' : 'Add money entry'; $('#deleteMoney').hidden = !row;
     c.openDialog($('#moneyDialog'), { trigger: document.activeElement, focus: '[name=description]' }); moneyImpact();
+  }
+  function quickRound(payer) {
+    try {
+      const name = actor();
+      storage.mutate(next => {
+        l.saveMoney(next.workspace, { date: today(), kind: 'owed', description: 'Golf Round', category: 'Golf', amountCents: 2000, from: payer === 'Adam' ? 'Tristan' : 'Adam', to: payer, details: payer + ' bought the round', sourceRoundId: '', linkRole: '' }, name);
+        next.ui.ledgerYear = ''; next.ui.ledgerSearch = '';
+      }, { reason: 'ledger-edit' });
+      const persistent = storage.saveNow();
+      c.toast(persistent ? '$20 owed to ' + payer + ' added to Money.' : 'Entry is visible but could not be saved. Export a backup.', { title: persistent ? 'Golf round recorded' : 'Storage needs attention', kind: persistent ? 'success' : 'warning' });
+    } catch (error) { notifyError(error); }
   }
   function moneyImpact() {
     const f = $('#moneyForm').elements;
@@ -184,7 +203,14 @@
       event.preventDefault(); $('#ledgerSearch').focus(); $('#ledgerSearch').select();
     });
     document.querySelectorAll('[data-ledger-view]').forEach(button => { button.addEventListener('click', () => setView(button.dataset.ledgerView)); button.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight'].includes(event.key)) { event.preventDefault(); const next = button.dataset.ledgerView === 'money' ? 'golf' : 'money'; setView(next); $('#' + next + 'Tab').focus(); } }); });
-    $('#ledgerEntries').addEventListener('click', event => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.editMoney) openMoney(button.dataset.editMoney); else if (button.dataset.editGolf) openGolf(button.dataset.editGolf); else if (button.hasAttribute('data-clear-ledger')) setView(state().ui.activeModule); else if (button.hasAttribute('data-import-shortcut')) file.click(); });
+    desktop.addEventListener('change', render);
+    document.addEventListener('keydown', event => {
+      if (event.key.toLowerCase() !== 'e' || event.repeat || event.isComposing || event.metaKey || event.ctrlKey || event.altKey || document.querySelector('dialog[open]') || u.isEditableTarget(event.target)) return;
+      const row = document.querySelector('.entry-row:hover');
+      if (!row) return;
+      event.preventDefault(); row.querySelector('[data-edit-money], [data-edit-golf]')?.click();
+    });
+    $('#ledgerEntries').addEventListener('click', event => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.roundPayer) quickRound(button.dataset.roundPayer); else if (button.dataset.editMoney) openMoney(button.dataset.editMoney); else if (button.dataset.editGolf) openGolf(button.dataset.editGolf); else if (button.hasAttribute('data-clear-ledger')) setView(state().ui.activeModule); else if (button.hasAttribute('data-import-shortcut')) file.click(); });
     $('#moneyForm').addEventListener('submit', saveMoney); $('#moneyForm').addEventListener('input', moneyImpact); $('#golfForm').addEventListener('submit', saveGolf);
     $('#deleteMoney').addEventListener('click', () => deleteEntry('moneyEntries')); $('#deleteGolf').addEventListener('click', () => deleteEntry('golfRounds')); $('#confirmNoteImport').addEventListener('click', confirmImport);
     document.addEventListener('click', event => { if (event.target.closest('[data-import-running-note]')) file.click(); });
