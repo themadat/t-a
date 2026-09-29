@@ -4,6 +4,8 @@ Read this and WISHES at session start. Identity and release history live in `ass
 
 ## Current work
 
+Ledger-column refinement is ready locally: dedicated What/Category columns, colored pills, full-width detail lines, short Balance labels, linked-round buttons, quick-payment icons inside In the Books, and golf statistics inside On the Course. Redundant table headings and golf summary removed. Money scrolls within its panel on narrow screens. Verified row geometry, linked-round opening, quick-button placement and mobile containment; 65 tests pass. No commit/push performed.
+
 Side-by-side desktop Money/Golf is ready locally (1100px and wider), with mobile view switching, shared search/year filters, hover-E row editing, square controls, centered identity, and black icon treatment without the light border. T/A quick buttons add today's $20 Golf Round owed to the buyer. Verified desktop/mobile overflow and hover editing; 65 tests pass including buyer direction, attribution, and save failures. No commit/push performed.
 
 Table-controls update is ready locally: black favicon, colored top-bar identity, muted Money/Golf cards that select the view with separate Add controls, inline search count and period shortcut, matching input/select heights, and pencil-only edit controls. Verified both selectors/Add dialogs, shortcut focus, desktop/mobile overflow, and all 63 tests. Unrelated icon artwork remains untouched.

@@ -1095,3 +1095,37 @@ select { height:44px; }
   .ledger-columns .annual-summary { padding:.5rem; gap:.5rem 1rem; margin:.3rem 0; }
 }
 @media (pointer:coarse) { .entry-row .row-edit, .quick-round button { width:44px; height:44px; min-height:44px; } }
+
+/* Money has a single compact information line, followed only by optional details. */
+.ledger-columns .entry-row.money, .ledger-columns .entry-column-head.money { grid-template-columns:90px minmax(100px,1.4fr) 65px 105px 65px 100px 76px; gap:.4rem; }
+.entry-row.money > time { margin:0; white-space:nowrap; }
+.entry-row.money .entry-what { font-size:.8rem; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.entry-row.money .entry-direction, .entry-row.money .entry-running, .entry-row.money .entry-amount { white-space:nowrap; font-size:.75rem; }
+.entry-actions { display:flex; justify-content:flex-end; gap:4px; }
+.entry-actions .row-link, .entry-actions .row-edit { width:36px; height:36px; min-height:36px; padding:0; display:grid; place-items:center; flex-shrink:0; }
+.row-link svg { width:20px; height:20px; }
+.entry-row.money .entry-details { grid-column:1 / -1; grid-row:auto; margin:.1rem 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.category-pill { display:inline-block; justify-self:start; border-radius:999px; padding:.15rem .4rem; font-size:.68rem; font-weight:700; white-space:nowrap; }
+.category-golf { background:#d9ecdd; color:#205c30; }
+.category-bets { background:#f3dadd; color:#8c2535; }
+.category-food { background:#f4e8b4; color:#69510b; }
+.category-other { background:#dae6f7; color:#244d85; }
+html[data-theme="dark"] .category-golf { background:#284a31; color:#b6e5bf; }
+html[data-theme="dark"] .category-bets { background:#592a32; color:#f6bbc5; }
+html[data-theme="dark"] .category-food { background:#51451d; color:#f4df8b; }
+html[data-theme="dark"] .category-other { background:#263e5e; color:#b7d5ff; }
+.balance-card .quick-round { align-self:center; display:grid; grid-template-columns:36px 36px; gap:.25rem; flex-shrink:0; margin:.4rem; }
+.balance-card .quick-round > span { grid-column:1 / -1; text-align:center; font-size:.65rem; }
+.quick-round svg { width:25px; height:25px; }
+.golf-summary-stats { display:flex; flex-wrap:wrap; gap:.25rem .75rem; font-size:.75rem; }
+.golf-summary-stats small { flex-basis:100%; font-size:.65rem; }
+#moneyEntries { overflow-x:auto; }
+#moneyEntries .entry-list, #moneyEntries .entry-column-head { min-width:655px; }
+@media (max-width:1099px) {
+  #moneyEntries .entry-column-head.money { display:grid; }
+  #moneyEntries .entry-row.money { display:grid; border-radius:0; }
+  #moneyEntries .entry-list { display:block; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .entry-row.money .entry-direction, .entry-row.money .entry-running, .entry-row.money .entry-actions { grid-column:auto; grid-row:auto; }
+}
+.entry-row.money > .entry-amount { grid-column:auto; grid-row:auto; text-align:left; }
+.ledger-overview .balance-card .quick-round button { grid-column:auto; grid-row:auto; margin:0; background:var(--surface); color:var(--text); border-color:var(--line); }
