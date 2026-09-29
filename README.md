@@ -1,6 +1,6 @@
 # T&A
 
-Tristan's and Adam's Running Note for Bets, Golf, and Other Shenanigans.
+Tristen's and Adam's Running Note for Bets, Golf, and Other Shenanigans.
 
 Track amounts owed, repayments, and golf rounds in two lists with the latest additions at the top. Golf winnings automatically create a linked Money entry. Editing or deleting the round updates its linked entries together. Annual summaries show scores, wins, ties, and betting results. A single private Notes editor holds the extra details.
 
@@ -20,12 +20,12 @@ The fixed destination is the private `themadat/data-t-a` repository, `main` bran
 
 1. Initialize `main` in the private data repository if it is empty. Do not put personal data in the public app repository.
 2. Create two separate fine-grained tokens limited to `data-t-a`, with **Contents: Read and write**. Both may belong to Adam’s GitHub account. See [GitHub's token guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
-3. Adam imports the running note, then opens **Settings → Data Sync → Adam: label both tokens once**. Paste each token in its named field and choose **Save labels and sync as Adam**. Complete the first-sync review. Wait for **Both labels are shared** before sending Tristan the app link. If the upload fails, labels remain saved locally; use Sync Now after fixing the connection.
-4. Tristan opens **Settings → Data Sync**, pastes only his token, and presses **Connect**. A fresh browser downloads the shared ledger, identifies him as Tristan, and enables Auto Sync automatically. No name selection, import, or separate sync setup is needed.
+3. Adam imports the running note, then opens **Settings → Data Sync → Adam: label both tokens once**. Paste each token in its named field and choose **Save labels and sync as Adam**. Complete the first-sync review. Wait for **Both labels are shared** before sending Tristen the app link. If the upload fails, labels remain saved locally; use Sync Now after fixing the connection.
+4. Tristen opens **Settings → Data Sync**, pastes only his token, and presses **Connect**. A fresh browser downloads the shared ledger, identifies him as Tristen, and enables Auto Sync automatically. No name selection, import, or separate sync setup is needed.
 5. On additional devices, either person enters their assigned token and presses Connect. Remembered credentials identify the person after reload and during offline edits. While visible, Auto Sync shares changes and checks about every 30 seconds; offline changes reconcile on reconnect.
 6. Verify a disposable entry added by each person appears on the other browser, then delete those entries and verify their removal. Test this before relying on live shared editing.
 
-Only domain-separated SHA-256 fingerprints and the two names are shared. Tristan’s raw token is cleared from the owner’s setup fields and is never saved on Adam’s device. Adam’s token is retained according to the visible device/tab-storage choice. The main-page name is derived from the current token, not an editable preference. Token labels provide attribution; GitHub repository permissions still determine access. Replacing a token requires Adam to update the two labels and sync them again. Unknown tokens cannot save attributed Money/Golf entries.
+Only domain-separated SHA-256 fingerprints and the two names are shared. Tristen’s raw token is cleared from the owner’s setup fields and is never saved on Adam’s device. Adam’s token is retained according to the visible device/tab-storage choice. The main-page name is derived from the current token, not an editable preference. Token labels provide attribution; GitHub repository permissions still determine access. Replacing a token requires Adam to update the two labels and sync them again. Unknown tokens cannot save attributed Money/Golf entries.
 
 Separate changes merge automatically. Competing changes to the same entry ask which version to keep; a round and its linked money are reviewed together. Notes conflicts compare the full note. No automatic decision replaces a conflicting version. Keep backups; browser storage can be cleared by the browser or device.
 

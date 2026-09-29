@@ -161,7 +161,7 @@
         ...App.ledger.collections(sourceWorkspace)
       },
       preferences: {
-        person: ["Adam", "Tristan"].includes(sourcePreferences.person) ? sourcePreferences.person : "",
+        person: ["Adam", "Tristen"].includes(sourcePreferences.person) ? sourcePreferences.person : "",
         appearance: {
           mode: mode,
           accent: u.normalizeColor(sourceAppearance.accent, theme.accent),
@@ -286,14 +286,15 @@
   // Cloud data is a complete content snapshot. Empty collections are omitted;
   // their absence still clears that content when a snapshot is downloaded.
   function tokenLabels(input) {
+    if (input && input.Tristan && !input.Tristen) { input = { ...input, Tristen: input.Tristan }; delete input.Tristan; }
     if (input === undefined) return {};
-    if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !["Adam", "Tristan"].includes(key))) throw new Error("Token labels are invalid.");
+    if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !["Adam", "Tristen"].includes(key))) throw new Error("Token labels are invalid.");
     const result = {};
-    for (const name of ["Adam", "Tristan"]) if (input[name] !== undefined) {
+    for (const name of ["Adam", "Tristen"]) if (input[name] !== undefined) {
       if (typeof input[name] !== "string" || !/^[a-f0-9]{64}$/.test(input[name])) throw new Error("Token labels must contain fingerprints, never tokens.");
       result[name] = input[name];
     }
-    if (Object.keys(result).length && (!result.Adam || !result.Tristan || result.Adam === result.Tristan)) throw new Error("Assign two different tokens, one to each person.");
+    if (Object.keys(result).length && (!result.Adam || !result.Tristen || result.Adam === result.Tristen)) throw new Error("Assign two different tokens, one to each person.");
     return result;
   }
 

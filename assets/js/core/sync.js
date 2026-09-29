@@ -432,11 +432,11 @@
   let autoTimer = 0, autoFailures = 0;
   function describeVersion(value) {
     if (value === undefined) return "No entry";
-    if (value.Adam && value.Tristan) return "Adam: " + value.Adam.slice(0, 12) + "…\nTristan: " + value.Tristan.slice(0, 12) + "…";
+    if (value.Adam && value.Tristen) return "Adam: " + value.Adam.slice(0, 12) + "…\nTristen: " + value.Tristen.slice(0, 12) + "…";
     if (typeof value === "string") return value || "Empty Notes";
     const rows = [...(value.golfRounds || []), ...(value.moneyEntries || [])];
     return rows.map(row => (row.deleted ? "Deleted · " : "") + row.date + " · " + (row.description || row.course || "Golf round") + " · " +
-      (row.amountCents ? row.kind + " · " + row.category + " · " + row.from + " → " + row.to + " " + App.ledger.money(row.amountCents) : row.holes + " holes · Adam " + row.adam + ", Tristan " + row.tristan + "; winnings " + (row.winner || "Even") + " " + App.ledger.money(row.winningsCents)) +
+      (row.amountCents ? row.kind + " · " + row.category + " · " + row.from + " → " + row.to + " " + App.ledger.money(row.amountCents) : row.holes + " holes · Adam " + row.adam + ", Tristen " + row.tristan + "; winnings " + (row.winner || "Even") + " " + App.ledger.money(row.winningsCents)) +
       (row.details ? " · " + row.details : "") + (row.updatedBy ? " · edited by " + row.updatedBy : "")).join("\n");
   }
   async function resolveConflicts(conflicts, trigger) {

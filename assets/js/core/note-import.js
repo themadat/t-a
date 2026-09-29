@@ -5,13 +5,13 @@
     if (!globalThis.crypto?.subtle) throw new Error("Note import requires HTTPS or localhost.");
     return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)))).map(n => n.toString(16).padStart(2, "0")).join("");
   }
-  function person(value) { return /^(A|Adam)$/i.test(value) ? "Adam" : "Tristan"; }
+  function person(value) { return /^(A|Adam)$/i.test(value) ? "Adam" : "Tristen"; }
   async function parse(source) {
     if (typeof source !== "string" || source.length > 500000) throw new Error("The note must be text smaller than 500 KB.");
     const batch = await digest(source), moneyEntries = [], golfRounds = [], warnings = [], appendix = [], summaries = [];
     const occurrences = new Map(); let section = "", running = 0, lineNumber = 0;
     async function common(kind, canonical, line, date, order) {
-      const hash = await digest(JSON.stringify(canonical)); const key = kind + hash;
+      const hash = await digest(JSON.stringify(canonical).replace(/Tristen/g, "Tristan")); const key = kind + hash;
       const occurrence = occurrences.get(key) || 0; occurrences.set(key, occurrence + 1);
       return { id: "import:" + kind + ":" + hash + ":" + occurrence, date, order, createdAt: "", updatedAt: "", createdBy: "Imported", updatedBy: "Imported", rev: batch,
         deleted: false, source: { batch, line, occurrence: lineNumber } };
@@ -61,7 +61,7 @@
       }
     });
     summaries.forEach(line => {
-      const match = line.match(/^(\d{4}):\s*(Adam|Tristan)-(\d+)\s*\|\s*(Adam|Tristan)\s*\+\$(\d+)/i);
+      const match = line.match(/^(\d{4}):\s*(Adam|Trist[ae]n)-(\d+)\s*\|\s*(Adam|Trist[ae]n)\s*\+\$(\d+)/i);
       if (!match) { warnings.push("Unrecognized annual summary: " + line); return; }
       const actual = ledger.golfSummary(golfRounds, match[1]);
       if (actual.margin !== Number(match[3]) * (person(match[2]) === "Adam" ? 1 : -1) || actual.winnings !== Number(match[5]) * 100 * (person(match[4]) === "Adam" ? 1 : -1)) warnings.push("The " + match[1] + " summary differs from its rounds.");

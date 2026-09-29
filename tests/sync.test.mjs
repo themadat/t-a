@@ -429,7 +429,7 @@ function sharedServer(initial) {
   };
 }
 function addMoney(h, description, amountCents = 100) {
-  h.App.ledger.saveMoney(h.state.workspace, { date: '2026-01-01', kind: 'owed', from: 'Adam', to: 'Tristan', amountCents, description, category: 'Other', details: '' }, 'Adam');
+  h.App.ledger.saveMoney(h.state.workspace, { date: '2026-01-01', kind: 'owed', from: 'Adam', to: 'Tristen', amountCents, description, category: 'Other', details: '' }, 'Adam');
 }
 test('two clients and a stale SHA converge without losing independent additions', async () => {
   const a = harness(), b = harness(); a.setBaseline(); b.setBaseline();
@@ -481,15 +481,15 @@ test('owner labels both tokens once; a fresh friend connects without choosing a 
   assert.ok(!encoded.includes('adam-secret-example')); assert.ok(!encoded.includes('tristan-secret-example'));
   const server = sharedServer(owner.App.stateModel.syncPayload(owner.state));
   const friend = harness({ token: '' }), friendNames = identity(friend); friend.respond = server.respond;
-  assert.equal(await friendNames.connect({ token:'tristan-secret-example', rememberToken:true }), 'Tristan');
-  assert.equal(friendNames.person(), 'Tristan'); assert.equal(friend.choices.length,0);
+  assert.equal(await friendNames.connect({ token:'tristan-secret-example', rememberToken:true }), 'Tristen');
+  assert.equal(friendNames.person(), 'Tristen'); assert.equal(friend.choices.length,0);
   assert.equal(friend.state.workspace.moneyEntries[0].description, 'Shared history');
   assert.equal(friend.state.modules.cloudSync.autoSync,true);
   const secondDevice = harness({ token: '' }); secondDevice.respond=server.respond;
-  assert.equal(await identity(secondDevice).connect({token:'tristan-secret-example'}),'Tristan');
+  assert.equal(await identity(secondDevice).connect({token:'tristan-secret-example'}),'Tristen');
 });
 test('unlabelled and duplicate tokens cannot impersonate the remembered name', async () => {
-  const h=harness(), names=identity(h); h.state.preferences.person='Tristan';
+  const h=harness(), names=identity(h); h.state.preferences.person='Tristen';
   assert.equal(names.person(),'');
   await assert.rejects(names.associate('same','same',true),/different/);
   await names.associate('adam-example','tristan-example',true);
@@ -503,10 +503,10 @@ test('token label roundtrips, old data migration, and conflicting rotations reta
   const h=harness(), names=identity(h), m=h.App.stateModel;
   await names.associate('adam-example','tristan-example',true);
   const base=structuredClone(h.state), payload=m.syncPayload(base);
-  assert.equal(m.prepareSync(payload).state.workspace.tokenLabels.Tristan,base.workspace.tokenLabels.Tristan);
+  assert.equal(m.prepareSync(payload).state.workspace.tokenLabels.Tristen,base.workspace.tokenLabels.Tristen);
   const local=structuredClone(base), remote=structuredClone(base);
-  local.workspace.tokenLabels.Tristan=await names.fingerprint('replacement-one');
-  remote.workspace.tokenLabels.Tristan=await names.fingerprint('replacement-two');
+  local.workspace.tokenLabels.Tristen=await names.fingerprint('replacement-one');
+  remote.workspace.tokenLabels.Tristen=await names.fingerprint('replacement-two');
   assert.equal(m.mergeResult(local,remote,{},payload.data).conflicts[0].key,'tokenLabels');
   const legacy={syncFormat:'local-first-app-data',syncVersion:2,schemaVersion:6,data:{}};
   assert.equal(Object.keys(m.prepareSync(legacy).state.workspace.tokenLabels).length,0);

@@ -29,7 +29,7 @@ The appendix belongs in the existing private shared Notes content. Preserve its 
 ### Navigation and layout
 
 - Main workspace has clearly labelled Money and Golf tabs. Remember the selected tab on each device.
-- Money starts with the current balance in words: “Adam owes Tristan …”, “Tristan owes Adam …”, or “All square”. Color supports the wording; a signed number alone is insufficient.
+- Money starts with the current balance in words: “Adam owes Tristen …”, “Tristen owes Adam …”, or “All square”. Color supports the wording; a signed number alone is insufficient.
 - Each view has its own prominent Add button. Desktop uses compact, scannable tables; mobile uses stacked rows/cards with the same information and a reachable Add action. Mobile entry dialogs become full-height sheets with a visible Save/Cancel area above the keyboard.
 - New entries appear first even when the user enters an older event date. Editing does not move an entry. Maintain a deterministic addition order separate from event dates, with stable ties across devices. Seed historical Money in original ledger order and Golf in the note's existing order.
 - Provide optional year filtering and search. A saved entry must remain visible: reset a conflicting filter with a brief explanation rather than apparently losing it. Totals remain clearly labelled as all-time or filtered; the current amount owed is always all-time.
@@ -37,16 +37,16 @@ The appendix belongs in the existing private shared Notes content. Preserve its 
 
 ### Money
 
-- Quick form: event date (today), description, category, amount, and who should receive the money. Use explicit Adam/Tristan choices and a preview of the balance impact before saving. Optional detail text keeps the original explanations.
+- Quick form: event date (today), description, category, amount, and who should receive the money. Use explicit Adam/Tristen choices and a preview of the balance impact before saving. Optional detail text keeps the original explanations.
 - Distinguish “Add amount owed” from “Record repayment”. The original arrows represent amounts accrued toward the running balance, not evidence of cash already transferred. A repayment has the opposite effect: recording payment to the person owed reduces the debt.
-- Use integer cents everywhere. Derive balances from entries; never store an editable running total. Positive internal balance means money due to Adam, negative means money due to Tristan. Formatting converts that convention into plain language.
+- Use integer cents everywhere. Derive balances from entries; never store an editable running total. Positive internal balance means money due to Adam, negative means money due to Tristen. Formatting converts that convention into plain language.
 - Show each entry's direction, amount, date, description, and balance after that entry. Compute running balances oldest-added to newest-added, then display newest first. Label this as ledger addition order; a backdated entry does not silently rearrange history.
 - Offer a “Settle balance” shortcut that opens a prefilled repayment form for review; partial repayments remain possible. Nothing is settled until saved.
 - Edit/delete recalculates totals. Delete is recoverable through Undo and shared deletion markers; no silent history reset.
 
 ### Golf
 
-- Quick form: date, Adam's score, Tristan's score, optional course, holes (9/18/other/unknown), winnings recipient/amount or Even, and optional notes. Unknown historical dates remain year-only; do not invent a day or infer hole counts from scores.
+- Quick form: date, Adam's score, Tristen's score, optional course, holes (9/18/other/unknown), winnings recipient/amount or Even, and optional notes. Unknown historical dates remain year-only; do not invent a day or infer hole counts from scores.
 - Derive lower-score winner, tie, and stroke margin. Winnings are entered independently: a tied round can still have a bet winner, as in the source.
 - Annual summary: round count, wins/losses/ties, cumulative stroke advantage, and net golf winnings. Reproduce the note's annual calculations. Keep partial/unknown-hole rounds identifiable; do not present all scores as comparable 18-hole averages.
 - Saving a new round with nonzero winnings creates exactly one linked Money entry. A stable round ID determines the linked entry ID. Repeated saves, retries, imports, or syncing must not duplicate it.
@@ -68,7 +68,7 @@ The appendix belongs in the existing private shared Notes content. Preserve its 
 ## Data model and persistence
 
 - Add `workspace.moneyEntries` and `workspace.golfRounds`; keep the single Notes document. Add import provenance/review state only where needed.
-- Common fields: stable UUID, date or known year, deterministic addition-order key, creator/editor display name, creation/update metadata, and revision identity. Device-selected “I am Adam/Tristan” is attribution, not authorization.
+- Common fields: stable UUID, date or known year, deterministic addition-order key, creator/editor display name, creation/update metadata, and revision identity. Device-selected “I am Adam/Tristen” is attribution, not authorization.
 - Money fields: kind (amount owed/repayment), amount in cents, from/to participants, description/category/details, optional source round and link role (winnings/round payment), and import provenance.
 - Round fields: scores, date precision, holes, course, independent winnings result, optional reimbursement, linked money IDs, and import provenance/review status.
 - A round and its linked entries form one consistency unit for local changes, Undo, validation, and conflict resolution. Never accept a sync merge that updates only one half of the relationship.
@@ -81,7 +81,7 @@ The appendix belongs in the existing private shared Notes content. Preserve its 
 
 Target remains `themadat/data-t-a`, branch `main`, `data/t-a.json`.
 
-- Verify repository existence/access and privacy before loading personal history. The user chose two distinct tokens under Adam’s GitHub account. Adam labels them once in the app; shared fingerprints provide attribution. Tristan enters only his token. GitHub permissions still control repository access.
+- Verify repository existence/access and privacy before loading personal history. The user chose two distinct tokens under Adam’s GitHub account. Adam labels them once in the app; shared fingerprints provide attribution. Tristen enters only his token. GitHub permissions still control repository access.
 - Keep the public app code separate from private shared content. Confirm whether the data repository is private; do not change its visibility without a specific decision.
 - The current whole-Notes merge is insufficient. Implement a three-way merge against the last common snapshot: independent additions survive, one-sided edits/deletes apply, identical changes coalesce, and competing edits or edit-vs-delete produce a targeted conflict choice. Never resolve conflicts by whichever clock is later.
 - Display both versions of a conflicting entry with person, date, and changed fields. Resolve only that entry or linked round group; preserve unrelated changes. Conflicting Notes still require choosing or manually combining the text.
@@ -133,7 +133,7 @@ Target remains `themadat/data-t-a`, branch `main`, `data/t-a.json`.
 
 - Historical discrepancy decisions remain open. Default: preserve the supplied Money balance and Golf results separately, flag for review, and do not post missing historical winnings automatically.
 - Course names, hole counts, and exact dates for four rounds are unavailable. Default: leave unknown and allow later edits.
-- User confirmed the data repository is private and will issue two separate tokens under their own account. Adam/Tristan is display attribution; GitHub operations use the owner account. Tokens must be entered only in the app.
+- User confirmed the data repository is private and will issue two separate tokens under their own account. Adam/Tristen is display attribution; GitHub operations use the owner account. Tokens must be entered only in the app.
 - User confirmed privacy; personal SSH read access now succeeds. Repository initialization and both browser tokens remain outstanding. The earlier CLI 404 reflected a separate account/access path.
 
 ## Recommended implementation effort

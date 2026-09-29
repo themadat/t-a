@@ -4,6 +4,8 @@ Read this and WISHES at session start. Identity and release history live in `ass
 
 ## Current work
 
+Faster entry forms and Tristen spelling correction are ready locally. Money uses a hidden preserved entry kind, Date/Amount, one-click category (Bets default), swap-direction control, What and Notes. Golf uses Date/Course/numeric Holes (18 default), winner toggle/amount, scores and Notes, with historical/payment options below. Old person names and token-label keys normalize to Tristen; existing score-field names remain schema-compatible and import IDs stay stable across spelling variants. Summary wording, Results labels, linked-course descriptions and details spacing updated. All 67 tests pass; desktop/mobile forms, toggles and direction swap were checked. No commit or push performed.
+
 Compact Golf refinement is ready locally: half-size 18px Edit/Link controls, linked Money detail dialogs from Golf, separate Date/Course, three-part Results, parenthesized hole counts, compact two-line golf summary, and a single-line payment label aligned with In the Books. Desktop Golf rows measure about 30px; mobile columns stay aligned inside a horizontal scroller. Verified linked detail dialog and mobile containment; 65 tests passed. No commit/push performed.
 
 Ledger-column refinement is ready locally: dedicated What/Category columns, colored pills, full-width detail lines, short Balance labels, linked-round buttons, quick-payment icons inside In the Books, and golf statistics inside On the Course. Redundant table headings and golf summary removed. Money scrolls within its panel on narrow screens. Verified row geometry, linked-round opening, quick-button placement and mobile containment; 65 tests pass. No commit/push performed.
@@ -22,7 +24,7 @@ The approved [Money and Golf plan](PLAN-001-money-and-golf.md) is implemented lo
 - Keep one plain-text Notes modal, vertical Settings, separate What's New/Roadmap, top-bar search/Sync/Update, local backup/recovery, accessibility, and offline support.
 - Money, Golf, Notes, revisions, provenance, and deletion markers are cloud content. Preferences and UI remain device-local. Tokens never enter exports, diagnostics, or cloud files.
 - Sync is fixed to `themadat/data-t-a`, `main`, `data/t-a.json`. Imports cannot redirect it. Recovery is required before remote replacements. Three-way merges treat each round plus linked money as a group; same-group conflicts require review.
-- Token setup: Adam labels both tokens once in Data Sync; only domain-separated SHA-256 fingerprints are shared in workspace.tokenLabels. Tristan enters only his token and presses Connect. The name picker is removed; unknown tokens cannot attribute Money/Golf edits.
+- Token setup: Adam labels both tokens once in Data Sync; only domain-separated SHA-256 fingerprints are shared in workspace.tokenLabels. Tristen enters only his token and presses Connect. The name picker is removed; unknown tokens cannot attribute Money/Golf edits.
 - Auto Sync is enabled after successful Connect or owner setup, operates while open/visible, and does not choose conflicting versions. Browser tabs merge independent changes and retain conflicting drafts across reload.
 - Local schema v5 migrates old v4 Notes state. Cloud v2/schema v6 safely excludes old clients; old Notes-only payloads are readable without clearing Money/Golf.
 - Preserve `t-a` storage namespaces and the sole VERSION in config. Shell SVGs are self-contained in `assets/js/icons.js`.

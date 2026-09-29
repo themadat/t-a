@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   const App = window.LocalApp, u = App.utils;
-  const people = ["Adam", "Tristan"];
+  const people = ["Adam", "Tristen"];
   const MAX_CENTS = 100000000;
   function fail(message) { throw new Error(message); }
   function id() { return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : u.uid("entry"); }
@@ -15,8 +15,8 @@
     return amount;
   }
   function money(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value / 100); }
-  function balanceLabel(value) { return value === 0 ? "All square" : (value > 0 ? "Tristan owes Adam " : "Adam owes Tristan ") + money(Math.abs(value)); }
-  function person(value) { if (!people.includes(value)) fail("Choose Adam or Tristan."); return value; }
+  function balanceLabel(value) { return value === 0 ? "All square" : (value > 0 ? "Tristen owes Adam " : "Adam owes Tristen ") + money(Math.abs(value)); }
+  function person(value) { if (value === "Tristan") value = "Tristen"; if (!people.includes(value)) fail("Choose Adam or Tristen."); return value; }
   function date(value) {
     if (typeof value !== "string" || !/^\d{4}(?:-\d{2}-\d{2})?$/.test(value)) fail("Enter a date or a known four-digit year.");
     const year = Number(value.slice(0, 4));
@@ -30,7 +30,7 @@
   function common(raw) {
     if (!raw || typeof raw !== "object" || typeof raw.id !== "string" || !/^[\w:.-]{1,160}$/.test(raw.id)) fail("An entry has an invalid ID.");
     return { id: raw.id, date: date(raw.date), order: integer(raw.order, 0, Number.MAX_SAFE_INTEGER - 1, "Entry order"),
-      createdAt: text(raw.createdAt, 40), updatedAt: text(raw.updatedAt, 40), createdBy: text(raw.createdBy, 30), updatedBy: text(raw.updatedBy, 30),
+      createdAt: text(raw.createdAt, 40), updatedAt: text(raw.updatedAt, 40), createdBy: text(raw.createdBy, 30).replace(/^Tristan$/, "Tristen"), updatedBy: text(raw.updatedBy, 30).replace(/^Tristan$/, "Tristen"),
       rev: text(raw.rev, 160), deleted: raw.deleted === true,
       source: raw.source ? { batch: text(raw.source.batch, 100), line: text(raw.source.line, 3000), occurrence: integer(raw.source.occurrence, 0, 100000, "Source row") } : null };
   }
@@ -43,11 +43,11 @@
   }
   function normalizeRound(raw) {
     const item = common(raw);
-    if (!["unknown", "9", "18", "other"].includes(raw.holes)) fail("Choose the number of holes, or Unknown.");
+    if (!["unknown", "other"].includes(raw.holes) && !(/^[1-9][0-9]?$/.test(String(raw.holes)))) fail("Choose the number of holes, or Unknown.");
     const win = integer(raw.winningsCents, 0, MAX_CENTS, "Winnings");
     const payment = integer(raw.paymentCents || 0, 0, MAX_CENTS, "Round payment");
-    return Object.assign(item, { adam: integer(raw.adam, 1, 500, "Adam's score"), tristan: integer(raw.tristan, 1, 500, "Tristan's score"),
-      holes: raw.holes, course: text(raw.course, 200), details: text(raw.details), winningsCents: win,
+    return Object.assign(item, { adam: integer(raw.adam, 1, 500, "Adam's score"), tristan: integer(raw.tristan, 1, 500, "Tristen's score"),
+      holes: String(raw.holes), course: text(raw.course, 200), details: text(raw.details), winningsCents: win,
       winner: win ? person(raw.winner) : "", winningsEntryId: text(raw.winningsEntryId, 160),
       paymentCents: payment, payer: payment ? person(raw.payer) : "", paymentEntryId: text(raw.paymentEntryId, 160),
       review: text(raw.review, 1000) });
@@ -130,8 +130,8 @@
       if (amount && enabled) {
         const entry = normalizeMoney(Object.assign(stamp(workspace, oldEntry, actor), {
           id: oldEntry?.id || "golf:" + round.id + ":" + role, date: round.date, kind: "owed", amountCents: amount,
-          from: recipient === "Adam" ? "Tristan" : "Adam", to: recipient,
-          description: role === "winnings" ? "Golf winnings" : "Golf round payment", category: "Golf", details: round.course,
+          from: recipient === "Adam" ? "Tristen" : "Adam", to: recipient,
+          description: role === "winnings" ? "Golf Winnings" : "Golf round payment", category: "Golf", details: round.course,
           sourceRoundId: round.id, linkRole: role, rev: round.rev
         }));
         put(workspace.moneyEntries, entry); round[key] = entry.id;

@@ -50,6 +50,6 @@ Data Sync displays the exact local upload payload via textContent in a collapsib
 
 ## Token attribution
 
-`workspace.tokenLabels` contains exactly two distinct SHA-256 fingerprints keyed by Adam and Tristan, or is empty before setup. The hash input is domain-separated by `t-a:token-identity:v1:`. Raw tokens never enter the state; only the current device credential uses the separate secret store. Association changes are one atomic three-way-merge group, included in backups and cloud content. Earlier builds reject the new cloud key safely.
+`workspace.tokenLabels` contains exactly two distinct SHA-256 fingerprints keyed by Adam and Tristen, or is empty before setup. The hash input is domain-separated by `t-a:token-identity:v1:`. Raw tokens never enter the state; only the current device credential uses the separate secret store. Association changes are one atomic three-way-merge group, included in backups and cloud content. Earlier builds reject the new cloud key safely.
 
 The owner labels both tokens once and publishes. Connect validates remote access and matches the supplied token against shared labels before saving the credential. Fresh empty browsers initialize without a merge-choice prompt, then enable Auto Sync. Browsers with existing content still retain merge/conflict review. Money/Golf attribution derives from the current secret and current labels; stored person preferences are no longer trusted. Cached labels support offline identity. These labels are not a security boundary against repository writers.

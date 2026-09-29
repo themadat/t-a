@@ -10,5 +10,5 @@ export function domain() {
   }
   return window.LocalApp;
 }
-export const moneyFields = { date: '2026-01-01', kind: 'owed', amountCents: 1250, from: 'Adam', to: 'Tristan', description: 'Lunch', category: 'Food', details: '', sourceRoundId: '', linkRole: '' };
+export const moneyFields = { date: '2026-01-01', kind: 'owed', amountCents: 1250, from: 'Adam', to: 'Tristen', description: 'Lunch', category: 'Food', details: '', sourceRoundId: '', linkRole: '' };
 export const roundFields = { date: '2026-01-02', adam: 90, tristan: 94, winningsCents: 400, winner: 'Adam', paymentCents: 0, payer: '', holes: '18', course: 'Practice course', details: '', review: '' };

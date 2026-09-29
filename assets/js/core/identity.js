@@ -10,7 +10,7 @@
     return Array.from(new Uint8Array(bytes), value => value.toString(16).padStart(2, "0")).join("");
   }
   function personIn(state, hash) {
-    return ["Adam", "Tristan"].find(name => state.workspace.tokenLabels?.[name] === hash) || "";
+    return ["Adam", "Tristen"].find(name => state.workspace.tokenLabels?.[name] === hash) || "";
   }
   function person() {
     return credential && credential === storage.getSecret() ? personIn(storage.getState(), fingerprintValue) : "";
@@ -54,15 +54,15 @@
     if (storage.getState().workspace.tokenLabels.Adam && person() !== "Adam") throw new Error("Connect Adam’s token to change the labels.");
     busy = true; render();
     try {
-      const [Adam, Tristan] = await Promise.all([fingerprint(adamToken), fingerprint(tristanToken)]);
-      if (Adam === Tristan) throw new Error("Use two different tokens, one for Adam and one for Tristan.");
+      const [Adam, Tristen] = await Promise.all([fingerprint(adamToken), fingerprint(tristanToken)]);
+      if (Adam === Tristen) throw new Error("Use two different tokens, one for Adam and one for Tristen.");
       if (!storage.saveRecovery("Before assigning token names")) throw new Error("A recovery copy could not be saved. No labels were changed.");
-      // Only Adam's credential is retained on the setup device. Tristan's token is never persisted.
+      // Only Adam's credential is retained on the setup device. Tristen's token is never persisted.
       App.sync.saveConfiguration({ ...storage.getState().modules.cloudSync, token: String(adamToken).trim(), rememberToken });
-      storage.mutate(state => { state.workspace.tokenLabels = { Adam, Tristan }; }, { reason: "token-labels" });
+      storage.mutate(state => { state.workspace.tokenLabels = { Adam, Tristen }; }, { reason: "token-labels" });
       await refresh();
       if (!storage.saveNow()) throw new Error("Labels could not be saved. Resolve local storage before sharing the setup.");
-      return { Adam, Tristan };
+      return { Adam, Tristen };
     } finally { busy = false; render(); }
   }
   function render() {
@@ -89,7 +89,7 @@
         status.textContent = "Labels saved locally. Publishing the setup…";
         const synced = await App.sync.syncNow();
         if (synced) { storage.mutate(state => { state.modules.cloudSync.autoSync = true; }, { reason: "sync-auto", touch: false }); storage.saveNow(); }
-        status.textContent = synced ? "Both labels are shared. Tristan can now enter his token and press Connect." : "Labels are saved here but are not shared yet. Complete Sync Now before giving Tristan the app.";
+        status.textContent = synced ? "Both labels are shared. Tristen can now enter his token and press Connect." : "Labels are saved here but are not shared yet. Complete Sync Now before giving Tristen the app.";
       } catch (error) { status.textContent = error.message; }
     });
     refresh();
