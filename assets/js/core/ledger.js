@@ -14,7 +14,7 @@
     if (!Number.isSafeInteger(amount) || amount <= 0 || amount > MAX_CENTS) fail("Amount must be between $0.01 and $1,000,000.");
     return amount;
   }
-  function money(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value / 100); }
+  function money(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(value / 100); }
   function balanceLabel(value) { return value === 0 ? "All square" : (value > 0 ? "Tristen owes Adam " : "Adam owes Tristen ") + money(Math.abs(value)); }
   function person(value) { if (value === "Tristan") value = "Tristen"; if (!people.includes(value)) fail("Choose Adam or Tristen."); return value; }
   function date(value) {
@@ -66,6 +66,17 @@
         return item;
       });
     }
+    // Imported year-only winnings now participate in Money without inventing an event date.
+    for (const round of result.golfRounds) {
+      if (round.deleted || round.date.length !== 4 || !round.winningsCents || round.winningsEntryId || !round.source || !round.review.includes("Exact date unknown")) continue;
+      const entryId = "golf:" + round.id + ":winnings";
+      if (result.moneyEntries.some(entry => entry.id === entryId)) continue;
+      result.moneyEntries.push(normalizeMoney({ ...round, id: entryId, kind: "owed", amountCents: round.winningsCents,
+        from: round.winner === "Adam" ? "Tristen" : "Adam", to: round.winner, description: "Golf Winnings", category: "Wins", details: "",
+        sourceRoundId: round.id, linkRole: "winnings" }));
+      round.winningsEntryId = entryId;
+      round.review = "Exact date unknown; shown at January 1 for ordering.";
+    }
     validateLinks(result);
     return result;
   }
@@ -88,11 +99,16 @@
   }
   function active(rows) { return rows.filter(x => !x.deleted); }
   function ascending(a, b) { return a.order - b.order || a.id.localeCompare(b.id); }
-  function newest(rows) { return active(rows).slice().sort((a, b) => ascending(b, a)); }
+  function ordered(rows) {
+    const entries = active(rows), dated = entries.filter(entry => entry.date.length !== 4);
+    const rank = entry => entry.date.length !== 4 ? entry.order : Math.min(entry.order, ...dated.filter(other => other.date >= entry.date + "-01-01").map(other => other.order)) - 0.5;
+    return entries.slice().sort((a, b) => rank(a) - rank(b) || a.date.localeCompare(b.date) || ascending(a, b));
+  }
+  function newest(rows) { return ordered(rows).reverse(); }
   function delta(entry) { return (entry.to === "Adam" ? 1 : -1) * entry.amountCents * (entry.kind === "repayment" ? -1 : 1); }
   function totals(rows) {
     let balance = 0; const running = Object.create(null);
-    active(rows).slice().sort(ascending).forEach(entry => { balance += delta(entry); if (!Number.isSafeInteger(balance)) fail("Balance is too large."); running[entry.id] = balance; });
+    ordered(rows).forEach(entry => { balance += delta(entry); if (!Number.isSafeInteger(balance)) fail("Balance is too large."); running[entry.id] = balance; });
     return { balance, running };
   }
   function golfSummary(rows, year) {

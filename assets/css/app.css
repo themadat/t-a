@@ -1246,3 +1246,35 @@ html[data-theme="dark"] .category-other { background:#263e5e; color:#b7d5ff; }
   #moneyEntries .entry-row.money > .entry-running { grid-column:3 / 5; }
 }
 .golf-form-fields > .choice-toggle { align-self:end; }
+
+/* Header summaries and fixed result subcolumns. */
+.app-header { grid-template-areas:"title toolbar" "summaries summaries"; }
+.app-header > .ledger-overview { grid-area:summaries; width:100%; margin:0; }
+.entry-fields { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.entry-fields > label { min-width:0; }
+.entry-fields input { min-width:0; box-sizing:border-box; }
+.money-choice-row { justify-content:flex-start; gap:1.25rem; }
+.money-choice-row .payment-direction { flex-shrink:0; }
+.golf-results { display:grid; grid-template-columns:65px 75px 110px; gap:6px; }
+@media(max-width:600px) {
+  .app-header { grid-template-columns:auto minmax(0,1fr); grid-template-areas:"title toolbar" "summaries summaries"; padding:6px 8px; gap:6px; }
+  .app-header .title-cluster { gap:4px; }
+  .app-header .app-icon-button { width:30px; height:30px; }
+  .app-header .app-name { font-size:.75rem; }
+  .app-header .version-pill { font-size:.45rem; padding:2px 3px; min-height:16px; }
+  .app-header .top-toolbar { gap:2px; width:100%; justify-content:space-between; }
+  .app-header .toolbar-person { min-width:0; max-width:70px; padding:0; font-size:.5rem; }
+  .app-header .toolbar-person strong { font-size:.55rem; }
+  .app-header .top-toolbar .toolbar-status { width:30px; min-width:30px; padding:2px; min-height:34px; }
+  .app-header .top-toolbar .action-button { width:32px; min-width:32px; min-height:36px; padding:2px; }
+  .app-header .top-toolbar .button-label { font-size:.45rem; }
+  .app-header .top-toolbar .button-icon, .app-header .top-toolbar .button-icon .sf-symbol { width:19px; height:19px; }
+  .app-header > .ledger-overview { grid-template-columns:1fr; gap:5px; }
+  .app-header .overview-select { padding:8px; }
+  .money-choice-row { gap:.6rem; }
+  #golfEntries .entry-column-head.golf, #golfEntries .entry-row.golf { grid-template-columns:58px minmax(40px,1fr) 119px 36px 38px; gap:3px; }
+  #golfEntries .golf-results { display:grid; grid-template-columns:37px 39px 37px; gap:3px; font-size:.6rem; white-space:nowrap; }
+}
+@media(min-width:601px) {
+  .ledger-columns .entry-column-head.golf, .ledger-columns .entry-row.golf { grid-template-columns:90px minmax(85px,1fr) 262px 80px 40px; }
+}

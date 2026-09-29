@@ -101,3 +101,18 @@ test('category totals separate golf wins from bets and reverse by viewer', () =>
   assert.equal(adam.Bets, -100); assert.equal(adam.Wins, -400);
   for (const name of ['Wins','Bets']) assert.equal(tristen[name] || 0, -adam[name] || 0);
 });
+
+
+test('year-only imported winnings link once, sort below dated entries and preserve totals', () => {
+  const a = domain(), w = a.stateModel.createDefaultState().workspace;
+  a.ledger.saveMoney(w, {...moneyFields, date:'2025-05-01'}, 'Adam');
+  const r = a.ledger.saveRound(w, {...roundFields, date:'2025'}, 'Adam', '', false);
+  r.source = {batch:'test', line:'synthetic year-only round', occurrence:0};
+  r.review = 'Exact date unknown; winnings are not linked to Money.';
+  const migrated = a.ledger.collections(w);
+  assert.equal(migrated.moneyEntries.length, 2);
+  assert.equal(a.ledger.newest(migrated.moneyEntries).at(-1).date, '2025');
+  assert.equal(a.ledger.collections(migrated).moneyEntries.length, 2);
+  a.ledger.validateLinks(migrated);
+  assert.equal(a.ledger.money(400), '$4');
+});

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.12";
+  const VERSION = "0.0.1.13";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -70,7 +70,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-09-29T23:30:00.000Z", "title": "Compact mobile ledger", "summary": "Wins categories and compact phone layouts.", "features": ["Separate Wins category"], "improvements": ["Two-line mobile money rows", "Aligned category and payment controls", "Compact summaries and golf columns"], "fixes": ["Remove repeated course details"], "knownIssues": []},
+    {"version": VERSION, "date": "2026-09-29T23:45:00.000Z", "title": "Header summaries and aligned results", "summary": "Compact header summaries and year-only winnings in Money.", "features": ["Historical year-only winnings in Money"], "improvements": ["Aligned golf results", "Whole-dollar displays", "Single-row mobile toolbar"], "fixes": ["Equal money input sizes"], "knownIssues": []},
+    {"version": "0.0.1.12", "date": "2026-09-29T23:30:00.000Z", "title": "Compact mobile ledger", "summary": "Wins categories and compact phone layouts.", "features": ["Separate Wins category"], "improvements": ["Two-line mobile money rows", "Aligned category and payment controls", "Compact summaries and golf columns"], "fixes": ["Remove repeated course details"], "knownIssues": []},
     {"version": "0.0.1.11", "date": "2026-09-29T23:00:00.000Z", "title": "Personal balance views", "summary": "Balances and rows reflect your signed-in perspective.", "features": ["Developer identity preview", "Command–Enter saves entry forms"], "improvements": ["Category totals and compact quick payments", "Blue golf summary and outcome row shading", "Single entry search"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.10", "date": "2026-09-29T22:00:00.000Z", "title": "Faster entry forms", "summary": "One-click categories, payment direction, and winnings controls.", "features": [], "improvements": ["Compact Money and Golf forms", "Tristen name correction with legacy-data support", "Compact summary labels and linked course names"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.9", "date": "2026-09-29T21:00:00.000Z", "title": "Compact golf results", "summary": "Compact results and two-way entry links.", "features": ["Golf links to its Money entries"], "improvements": ["Separate Date and Course columns", "Three-part results and compact golf summary", "Half-size row controls"], "fixes": [], "knownIssues": []},
