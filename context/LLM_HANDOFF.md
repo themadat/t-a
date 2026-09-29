@@ -4,6 +4,8 @@ Read this and WISHES at session start. Identity and release history live in `ass
 
 ## Current work
 
+Table-controls update is ready locally: black favicon, colored top-bar identity, muted Money/Golf cards that select the view with separate Add controls, inline search count and period shortcut, matching input/select heights, and pencil-only edit controls. Verified both selectors/Add dialogs, shortcut focus, desktop/mobile overflow, and all 63 tests. Unrelated icon artwork remains untouched.
+
 Compact layout changes are ready locally: full-width Money/Golf, shorter summary cards and rows, and an 80vw × 80dvh Notes dialog with a filling editor. Verified desktop and 390px layouts without horizontal overflow, exact Notes proportions, and no browser errors; all 63 automated tests pass. No commit or push performed.
 
 The approved [Money and Golf plan](PLAN-001-money-and-golf.md) is implemented locally. Read its Resume block for remaining external setup. The prior Money/Golf work was committed by the user. The new token-identity changes are uncommitted. Preserve the unrelated untracked `assets/icons/t-a-wip.svg`.

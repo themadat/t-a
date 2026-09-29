@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.5";
+  const VERSION = "0.0.1.6";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -70,8 +70,9 @@
     "danger": "#a74747"
   },
   "releases": [
+    {"version": VERSION, "date": "2026-09-29T12:00:00.000Z", "title": "Table controls", "summary": "Choose Money or Golf directly from the summary cards.", "features": [], "improvements": ["Colored identity in the top bar", "Card Add controls and pencil edit icons", "Entry search count and period shortcut", "Black favicon background"], "fixes": [], "knownIssues": []},
     {
-      "version": VERSION,
+      "version": "0.0.1.5",
       "date": "2026-09-28T18:00:00.000Z",
       "title": "Compact layout",
       "summary": "More room for entries and Notes.",
