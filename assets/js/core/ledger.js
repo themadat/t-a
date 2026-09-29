@@ -38,7 +38,7 @@
     const item = common(raw);
     if (!["owed", "repayment"].includes(raw.kind)) fail("Money entry type is invalid.");
     return Object.assign(item, { kind: raw.kind, amountCents: integer(raw.amountCents, 1, MAX_CENTS, "Amount"),
-      from: person(raw.from), to: person(raw.to), description: text(raw.description, 200), category: text(raw.category, 40), details: text(raw.details),
+      from: person(raw.from), to: person(raw.to), description: text(raw.description, 200), category: raw.linkRole === "winnings" || /golf winnings|golf bets/i.test(raw.description) ? "Wins" : text(raw.category, 40), details: text(raw.details),
       sourceRoundId: text(raw.sourceRoundId, 160), linkRole: text(raw.linkRole, 30) });
   }
   function normalizeRound(raw) {
@@ -131,7 +131,7 @@
         const entry = normalizeMoney(Object.assign(stamp(workspace, oldEntry, actor), {
           id: oldEntry?.id || "golf:" + round.id + ":" + role, date: round.date, kind: "owed", amountCents: amount,
           from: recipient === "Adam" ? "Tristen" : "Adam", to: recipient,
-          description: role === "winnings" ? "Golf Winnings" : "Golf round payment", category: "Golf", details: round.course,
+          description: role === "winnings" ? "Golf Winnings" : "Golf round payment", category: role === "winnings" ? "Wins" : "Golf", details: oldEntry?.details && oldEntry.details !== old?.course ? oldEntry.details : "",
           sourceRoundId: round.id, linkRole: role, rev: round.rev
         }));
         put(workspace.moneyEntries, entry); round[key] = entry.id;
@@ -205,9 +205,10 @@
     return { data: result, conflicts };
   }
   function categoryTotals(entries, viewer) {
-    const result = { Golf: 0, Bets: 0, Food: 0, Other: 0 };
+    const result = { Wins: 0, Bets: 0 };
     for (const entry of active(entries)) {
-      const category = entry.linkRole === 'winnings' || /golf bets|golf winnings|dollar bets?/i.test(entry.description) ? 'Bets' : Object.hasOwn(result, entry.category) ? entry.category : 'Other';
+      const category = entry.linkRole === 'winnings' || /golf bets|golf winnings/i.test(entry.description) ? 'Wins' : entry.category;
+      if (!Object.hasOwn(result, category)) continue;
       result[category] += delta(entry) * (viewer === 'Tristen' ? -1 : 1);
     }
     return result;

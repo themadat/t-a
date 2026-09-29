@@ -23,6 +23,8 @@ test('round winnings stay linked without duplication through edit, Even, payment
   const a = domain(), w = a.stateModel.createDefaultState().workspace, l = a.ledger;
   const r = l.saveRound(w, roundFields, 'Adam', '', true);
   assert.equal(l.totals(w.moneyEntries).balance, 400);
+  assert.equal(w.moneyEntries[0].category, 'Wins');
+  assert.equal(w.moneyEntries[0].details, '');
   l.saveRound(w, { ...roundFields, winningsCents: 600 }, 'Tristen', r.id, true);
   assert.equal(l.active(w.moneyEntries).length, 1); assert.equal(l.totals(w.moneyEntries).balance, 600);
   l.saveRound(w, { ...roundFields, winningsCents: 0, winner: '', paymentCents: 2000, payer: 'Tristen' }, 'Adam', r.id, true);
@@ -89,13 +91,13 @@ test('legacy person spelling and numeric holes normalize without losing links', 
   App.ledger.validateLinks(result.workspace);
 });
 
-test('category totals combine golf and dollar bets and reverse by viewer', () => {
+test('category totals separate golf wins from bets and reverse by viewer', () => {
   const a = domain(), w = a.stateModel.createDefaultState().workspace;
   for (const [description, category, amountCents] of [['Golf Bets','Golf',400],['Dollar Bet','Bets',100],['Golf Round','Golf',2000],['Lunch','Food',700]]) {
     a.ledger.saveMoney(w, {...moneyFields, description, category, amountCents}, 'Adam');
   }
   const adam = a.ledger.categoryTotals(w.moneyEntries, 'Adam');
   const tristen = a.ledger.categoryTotals(w.moneyEntries, 'Tristen');
-  assert.equal(adam.Bets, -500); assert.equal(adam.Golf, -2000); assert.equal(adam.Food, -700);
-  for (const name of ['Golf','Bets','Food','Other']) assert.equal(tristen[name] || 0, -adam[name] || 0);
+  assert.equal(adam.Bets, -100); assert.equal(adam.Wins, -400);
+  for (const name of ['Wins','Bets']) assert.equal(tristen[name] || 0, -adam[name] || 0);
 });
