@@ -12,6 +12,7 @@ Next id: `WISH-002`
 - Follow-up implemented: Appearance layout choice, single Add, sticky quick actions/category chips, full mobile names, linked Golf Winnings in Expanded, inline cell details, and Payer/Payee labels.
 - Follow-up implemented: newest-date tables and chronological running balances, Compact identity below version, Expanded update in Settings, mobile search counts, separate Tags, and matching Amount/Balance styling.
 - Follow-up implemented: unknown scores, independent Golf/Bet winnings, combined Round/Golf rows with Bets above, Dollar Bet selected-winner actions, year-aware personalized summaries, grouped mobile toolbar, filter-only mobile stickiness, Pays label, and Title Case controls.
+- Follow-up implemented: distinct Golf/Wins/Bets/Food/Other Tags, no Rounds tag, per-person UNK and Course/Holes/result names, Hancock default, stable direction swap sizing, shorter inline details/right Edit, one-line mobile quick actions, date-line tags, row-opening scroll and empty-header return to top.
 - Scope/constraints: Static app, desktop/mobile, offline support, migration/import/recovery, no lost or duplicate edits. Preserve existing shell/Notes. Personal source data stays out of the public app repository.
 - Acceptance: Exact historical import/reconciliation; correct money and golf calculations; safe linked updates; two-account concurrent/offline synchronization; responsive accessible entry flows.
 - Priority/effort: Core product / High.

@@ -16,7 +16,7 @@
     return amount;
   }
   function money(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(value / 100); }
-  function balanceLabel(value) { return value === 0 ? "All Square" : (value > 0 ? "Tristen Owes Adam " : "Adam Owes Tristen ") + money(Math.abs(value)); }
+  function balanceLabel(value) { return value === 0 ? "All Square" : (value > 0 ? "Tristen owes Adam " : "Adam owes Tristen ") + money(Math.abs(value)); }
   function person(value) { if (value === "Tristan") value = "Tristen"; if (!people.includes(value)) fail("Choose Adam or Tristen."); return value; }
   function date(value) {
     if (typeof value !== "string" || !/^\d{4}(?:-\d{2}-\d{2})?$/.test(value)) fail("Enter a date or a known four-digit year.");

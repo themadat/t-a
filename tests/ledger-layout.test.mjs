@@ -48,7 +48,7 @@ test('category chips combine with year and search while preserving ledger totals
   const round = l.saveRound(w, { ...roundFields, course:'Willow course' }, 'Adam', '', true);
   const before = l.totals(w.moneyEntries).balance;
   const rows = App.ledgerUI.combinedEntries(w), filtered = () => rows.filter(row => App.ledgerUI.matchesFilters(row, row.entryType === 'golf'));
-  state.ui.ledgerCategories = ['Rounds'];
+  state.ui.ledgerCategories = ['Wins'];
   assert.equal(filtered().length, 1);
   assert.ok(filtered().some(row => row.id === round.id));
   assert.ok(!filtered().some(row => row.sourceRoundId === round.id && row.linkRole === 'winnings'));
@@ -62,7 +62,7 @@ test('category chips combine with year and search while preserving ledger totals
   assert.deepEqual(Array.from(filtered(), row => row.id), [bet.id]);
   assert.equal(l.totals(w.moneyEntries).balance, before);
   state.ui.ledgerCategories = ['Golf','Golf','invalid']; h.normalize();
-  assert.deepEqual(Array.from(h.state.ui.ledgerCategories), ['Rounds']);
+  assert.deepEqual(Array.from(h.state.ui.ledgerCategories), ['Golf']);
   assert.ok(!JSON.stringify(App.stateModel.syncPayload(h.state)).includes('ledgerCategories'));
 });
 
@@ -76,11 +76,11 @@ test('Expanded round balances include Golf Winnings once and keep a zero round a
   assert.ok(rows.indexOf(rows.find(row => row.id === round.betEntryId)) < rows.indexOf(rows.find(row => row.id === round.id)));
   assert.equal(total.running[round.winningsEntryId], 900);
   const html = App.ledgerUI.expandedRow(rows.find(row => row.id === round.id), total, balances);
-  assert.match(html, /expanded-amount[^]*?\$4[^]*?To Adam/);
-  assert.match(html, /expanded-balance[^]*?\$9[^]*?To Adam/);
-  assert.match(html, />Rounds<\/span>/);
+  assert.match(html, /expanded-amount[^]*?\$4[^]*?to Adam/);
+  assert.match(html, /expanded-balance[^]*?\$9[^]*?to Adam/);
+  assert.match(html, />Wins<\/span>/);
   const zeroHtml = App.ledgerUI.expandedRow(rows.find(row => row.id === zero.id), total, balances);
-  assert.match(zeroHtml, /Scores Unknown/); assert.match(zeroHtml, /expanded-amount[^]*?\$0/);
+  assert.match(zeroHtml, /Adam: UNK • Tristen: 94/); assert.match(zeroHtml, /expanded-amount[^]*?\$0/);
   assert.equal(w.moneyEntries.some(row => row.amountCents === 0), false);
 });
 
@@ -88,11 +88,31 @@ test('inline details render both winnings safely, including unknown scores and u
   const { App, state } = client('Tristen'), l = App.ledger, w = state.workspace;
   const round = l.saveRound(w, { ...roundFields, adam:null, betWinningsCents:200, betWinner:'Tristen', details:'<script>keep as text</script>' }, 'Adam', '', true);
   const html = App.ledgerUI.detailContent('golf', round);
-  assert.match(html, /Adam Score<\/dt><dd>Unknown/);
+  assert.match(html, /Adam Score<\/dt><dd>UNK/);
   assert.match(html, /Golf Winnings<\/dt><dd>Adam \+\$4/);
   assert.match(html, /Bet Winnings<\/dt><dd>Tristen \+\$2/);
   assert.match(html, /&lt;script&gt;keep as text&lt;\/script&gt;/);
-  assert.match(html, /Edit Round/); assert.match(html, /Edit Category And Notes/);
+  assert.match(html, />Edit<\/button>/); assert.ok(!html.includes('Close Details'));
   const bet = w.moneyEntries.find(x => x.id === round.betEntryId);
-  assert.match(App.ledgerUI.detailContent('money', bet), /Edit Money Entry/);
+  const betHtml = App.ledgerUI.detailContent('money', bet);
+  assert.match(betHtml, />Edit<\/button>/);
+  for (const name of ['Date','What','Type','Payer','Payee','Amount','Balance']) assert.ok(!betHtml.includes('<dt>'+name+'</dt>'));
+  assert.match(betHtml, /Tags<\/dt><dd>Bets/);
+});
+
+test('Golf, Wins, and Bets filters stay distinct and linked tag edits remain authoritative', () => {
+  const {App,state} = client('Tristen'), l = App.ledger, w = state.workspace;
+  const round = l.saveRound(w, {...roundFields,paymentCents:2000,payer:'Adam',betWinningsCents:100,betWinner:'Tristen'}, 'Adam', '', true);
+  const rows = () => App.ledgerUI.combinedEntries(w).filter(row => App.ledgerUI.matchesFilters(row,row.entryType === 'golf'));
+  state.ui.ledgerCategories=['Golf']; assert.deepEqual(Array.from(rows(),row=>row.id),[round.paymentEntryId]);
+  state.ui.ledgerCategories=['Wins']; assert.deepEqual(Array.from(rows(),row=>row.id),[round.id]);
+  state.ui.ledgerCategories=['Bets']; assert.deepEqual(Array.from(rows(),row=>row.id),[round.betEntryId]);
+  const winnings = w.moneyEntries.find(row=>row.id===round.winningsEntryId), balance = l.totals(w.moneyEntries).balance;
+  l.saveMoney(w,{...winnings,category:'Other'},'Adam',winnings.id);
+  state.ui.ledgerCategories=['Wins']; assert.equal(rows().length,0);
+  state.ui.ledgerCategories=['Other']; assert.deepEqual(Array.from(rows(),row=>row.id),[round.id]);
+  assert.equal(l.totals(w.moneyEntries).balance,balance);
+  state.ui.ledgerCategories=['Rounds','Golf','Wins','Bets','Food','Other'];
+  const normalized = App.stateModel.normalize(state);
+  assert.deepEqual(Array.from(normalized.ui.ledgerCategories),['Wins','Golf','Bets','Food','Other']);
 });
