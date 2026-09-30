@@ -44,6 +44,7 @@
         ledgerLayouts: {},
         appearance: {
           mode: "system",
+          skin: config.defaultSkin,
           accent: defaultTheme().accent,
           accent2: defaultTheme().accent2,
           success: defaultTheme().success,
@@ -167,6 +168,7 @@
         ledgerLayouts: Object.fromEntries(["Adam", "Tristen", "default"].filter(name => ["compact", "expanded"].includes(sourcePreferences.ledgerLayouts?.[name])).map(name => [name, sourcePreferences.ledgerLayouts[name]])),
         appearance: {
           mode: mode,
+          skin: ["masters", "basic"].includes(sourceAppearance.skin) ? sourceAppearance.skin : config.defaultSkin,
           accent: u.normalizeColor(sourceAppearance.accent, theme.accent),
           accent2: u.normalizeColor(sourceAppearance.accent2, theme.accent2),
           success: u.normalizeColor(sourceAppearance.success, theme.success),

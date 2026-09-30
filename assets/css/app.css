@@ -1547,3 +1547,195 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
   html[data-add-docked="true"] .ledger-category-filters { gap:.2rem; }
   html[data-add-docked="true"] .ledger-category-filters .filter-chip { font-size:.7rem; padding-inline:.1rem; }
 }
+
+/* Masters: course greens, clubhouse ivory, leaderboard yellow and azalea accents.
+   Skin selectors keep Basic and its saved color preferences intact. */
+:root[data-skin="masters"] {
+  --bg: #f6f1e7;
+  --surface: #fffdf5;
+  --surface-2: #eee5d5;
+  --surface-3: #e4d7c5;
+  --text: #292a2d;
+  --muted: #59644f;
+  --faint: #6f7466;
+  --line: #c9cbb5;
+  --line-strong: #99aa87;
+  --accent: #006747;
+  --accent-strong: #004f36;
+  --accent-soft: #dbe9de;
+  --accent-2: #704822;
+  --accent-2-soft: #f0e4d2;
+  --success: #006747;
+  --warning: #704822;
+  --danger: #a52b57;
+  --danger-soft: #f9e2eb;
+  --focus: #006747;
+  --sync-info: #326293;
+  --masters-green: #006747;
+  --masters-vibrant: #00a170;
+  --masters-meadow: #5f9e4b;
+  --masters-posy: #56a88a;
+  --masters-pink: #de5b8c;
+  --masters-orange: #e8683a;
+  --masters-yellow: #ffde6a;
+  --masters-lime: #d5d717;
+  --masters-chardonnay: #e7df99;
+  --masters-wool: #e5d0b1;
+  --masters-brown: #704822;
+  --masters-blue: #487ab7;
+  --masters-charcoal: #3b3d4a;
+  --masters-tag-golf: #006747;
+  --masters-tag-wins: #5b520f;
+  --masters-tag-bets: #942649;
+  --masters-tag-food: #8b3c18;
+  --masters-tag-other: #325b8c;
+  --shadow: 0 18px 50px rgba(0, 65, 44, .14);
+  --shadow-small: 0 5px 18px rgba(0, 65, 44, .1);
+}
+:root[data-skin="masters"][data-theme="dark"] {
+  --bg: #101e19;
+  --surface: #182c23;
+  --surface-2: #21382c;
+  --surface-3: #2c4434;
+  --text: #f5efdf;
+  --muted: #bacab4;
+  --faint: #9bac95;
+  --line: #435845;
+  --line-strong: #667d58;
+  --accent-strong: #8acdb0;
+  --accent-soft: #164333;
+  --accent-2: #ffde6a;
+  --accent-2-soft: #39402a;
+  --success: #56a88a;
+  --warning: #ffde6a;
+  --danger: #ef93b5;
+  --danger-soft: #462b38;
+  --focus: #ffde6a;
+  --sync-info: #99bde3;
+  --masters-tag-golf: #a3d7b5;
+  --masters-tag-wins: #ffde6a;
+  --masters-tag-bets: #f3abc6;
+  --masters-tag-food: #f5b18e;
+  --masters-tag-other: #afcbea;
+  --shadow: 0 20px 60px rgba(0, 0, 0, .4);
+  --shadow-small: 0 6px 22px rgba(0, 0, 0, .3);
+}
+html[data-skin="masters"] .app-header {
+  --bg: #004f36;
+  --surface: #075d42;
+  --surface-2: #0c543e;
+  --text: #fffdf5;
+  --muted: #dde8d1;
+  --faint: #bacab4;
+  --line: #52836a;
+  --line-strong: #89ac81;
+  --accent: #56a88a;
+  --accent-strong: #ffde6a;
+  --accent-soft: #216b50;
+  --focus: #ffde6a;
+  --danger: #f3abc6;
+  --masters-tag-bets: #f3abc6;
+  --masters-tag-golf: #a3d7b5;
+  --sync-success: #a3d7b5;
+  --sync-info: #afcbea;
+  --sync-warning: #ffde6a;
+  --sync-danger: #f3abc6;
+  background: var(--bg);
+  border-bottom-color: var(--masters-green);
+  box-shadow: 0 2px 0 var(--masters-yellow);
+}
+html[data-skin="masters"] :is(.app-name, .section-heading h3, .ledger-section-title) {
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--accent-strong);
+}
+html[data-skin="masters"] .app-name { letter-spacing: .035em; }
+html[data-skin="masters"] .app-icon-button { background: var(--masters-green); }
+html[data-skin="masters"] :is(.version-pill, .environment-pill) {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+html[data-skin="masters"] :is(.button.primary, .floating-button.primary):hover { background: #004f36; }
+html[data-skin="masters"] .filter-chip[aria-pressed="true"] {
+  background: var(--masters-yellow);
+  border-color: var(--masters-brown);
+  color: #292a2d;
+}
+html[data-skin="masters"] .segmented button[aria-pressed="true"] {
+  border-color: var(--line-strong);
+  background: var(--accent-soft);
+  box-shadow: inset 0 -2px 0 var(--masters-meadow);
+}
+html[data-skin="masters"] .ledger-overview .balance-card,
+html[data-skin="masters"] .ledger-overview .balance-card[data-outcome="negative"] {
+  background: color-mix(in srgb, var(--masters-pink) 18%, var(--surface));
+}
+html[data-skin="masters"] .ledger-overview .balance-card[data-outcome="positive"] {
+  background: color-mix(in srgb, var(--masters-meadow) 24%, var(--surface));
+}
+html[data-skin="masters"] .ledger-overview .balance-card[data-outcome="neutral"] {
+  background: color-mix(in srgb, var(--masters-wool) 16%, var(--surface));
+}
+html[data-skin="masters"] .ledger-overview .golf-overview {
+  background: color-mix(in srgb, var(--masters-green) 17%, var(--surface));
+}
+html[data-skin="masters"] :is(#ledgerEntries .entry-row, .expanded-row)[data-outcome="positive"] {
+  background: color-mix(in srgb, var(--masters-meadow) 10%, var(--surface));
+}
+html[data-skin="masters"] :is(#ledgerEntries .entry-row, .expanded-row)[data-outcome="negative"] {
+  background: color-mix(in srgb, var(--masters-pink) 10%, var(--surface));
+}
+html[data-skin="masters"] :is(#ledgerEntries .entry-row, .expanded-row)[data-outcome="tied"] {
+  background: color-mix(in srgb, var(--masters-chardonnay) 14%, var(--surface));
+}
+html[data-skin="masters"] :is(.category-golf, .identity-person-pill[data-person="Tristen"]) {
+  background: color-mix(in srgb, var(--masters-posy) 22%, var(--surface));
+  color: var(--masters-tag-golf);
+}
+html[data-skin="masters"] :is(.category-wins, .round-pill) {
+  background: color-mix(in srgb, var(--masters-yellow) 25%, var(--surface));
+  color: var(--masters-tag-wins);
+}
+html[data-skin="masters"] :is(.category-bets, .identity-person-pill[data-person="Adam"]) {
+  background: color-mix(in srgb, var(--masters-pink) 20%, var(--surface));
+  color: var(--masters-tag-bets);
+}
+html[data-skin="masters"] .category-food {
+  background: color-mix(in srgb, var(--masters-orange) 18%, var(--surface));
+  color: var(--masters-tag-food);
+}
+html[data-skin="masters"] .category-other {
+  background: color-mix(in srgb, var(--masters-blue) 20%, var(--surface));
+  color: var(--masters-tag-other);
+}
+html[data-skin="masters"] .toolbar-person[data-person="Adam"] { color: var(--masters-tag-bets); }
+html[data-skin="masters"] .toolbar-person[data-person="Tristan"] { color: var(--masters-tag-golf); }
+html[data-skin="masters"] .support-tabs button[aria-selected="true"] {
+  border-color: var(--line-strong);
+  box-shadow: inset 3px 0 0 var(--masters-meadow);
+}
+html[data-skin="masters"] [data-shortcut].shortcut-eligible::after {
+  background: var(--masters-yellow);
+  border-color: var(--masters-brown);
+  color: #292a2d;
+}
+html[data-skin="masters"] .developer-json { background: #101e19; color: #e4d7c5; }
+html[data-skin="masters"] dialog::backdrop { background: rgba(0, 38, 26, .62); }
+html[data-skin="masters"] .loading-overlay { background: rgba(0, 38, 26, .42); }
+
+html[data-skin="masters"] :is(.global-search-wrap input, .notes-textarea)::selection {
+  color: #fff;
+  background-color: var(--masters-green);
+}
+html[data-skin="masters"] #updateAppButton[data-update-available="true"] .button-icon { color: var(--danger); }
+html[data-skin="masters"] .beta-pill {
+  border-color: color-mix(in srgb, var(--masters-pink) 48%, var(--line));
+  background: color-mix(in srgb, var(--masters-pink) 13%, var(--surface));
+  color: var(--masters-tag-bets);
+}
+
+html[data-skin="masters"] .button.danger {
+  background: #a52b57;
+  border-color: #a52b57;
+  color: #fff;
+}
+html[data-skin="masters"] .button.danger:hover { background: #8b2349; }

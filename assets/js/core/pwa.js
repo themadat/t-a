@@ -40,7 +40,15 @@
     const apple = document.querySelector("link[rel='apple-touch-icon']");
     if (apple) apple.href = versionedAsset(variant === "dark" ? "assets/icons/apple-touch-icon-dark.png" : "assets/icons/apple-touch-icon.png");
     const theme = document.querySelector("meta[name='theme-color']:not([media])");
-    if (theme) theme.content = dark ? "#121616" : "#f5f3ed";
+    const skin = config.skins?.[storage.getState().preferences.appearance.skin];
+    const lightChrome = skin?.light.chrome || "#f5f3ed";
+    const darkChrome = skin?.dark.chrome || "#121616";
+    if (theme) theme.content = dark ? darkChrome : lightChrome;
+    document.querySelectorAll("meta[name='theme-color'][media]").forEach(function (meta) {
+      meta.content = meta.media.includes("dark") ? darkChrome : lightChrome;
+    });
+    const favicon = document.querySelector("link[rel='icon']");
+    if (favicon) favicon.href = versionedAsset(skin ? config.identity.assets.appIconMasters : config.identity.assets.favicon);
     document.documentElement.dataset.installIcon = variant;
   }
 

@@ -73,19 +73,23 @@
     const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const dark = appearance.mode === "dark" || (appearance.mode === "system" && systemDark);
     const root = document.documentElement;
+    const skin = config.skins[appearance.skin]?.[dark ? "dark" : "light"];
+    const colors = skin || appearance;
+    root.dataset.skin = appearance.skin;
     root.dataset.theme = dark ? "dark" : "light";
     root.dataset.buttonStyle = state().preferences.controls.buttonStyle;
     root.dataset.motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "reduce" : "full";
     root.style.setProperty("--text-scale", String(appearance.textScale));
-    root.style.setProperty("--accent", appearance.accent);
-    root.style.setProperty("--accent-strong", u.mixColor(appearance.accent, dark ? "#ffffff" : "#000000", dark ? 0.18 : 0.22));
-    root.style.setProperty("--accent-soft", u.mixColor(appearance.accent, dark ? "#161c1b" : "#ffffff", dark ? 0.76 : 0.86));
-    root.style.setProperty("--accent-2", appearance.accent2);
-    root.style.setProperty("--accent-2-soft", u.mixColor(appearance.accent2, dark ? "#161c1b" : "#ffffff", dark ? 0.78 : 0.86));
-    root.style.setProperty("--success", appearance.success);
-    root.style.setProperty("--warning", appearance.warning);
-    root.style.setProperty("--danger", appearance.danger);
-    $("#appIcon").src = versionedAsset(dark ? config.identity.assets.appIconDark : config.identity.assets.appIconLight);
+    root.style.setProperty("--accent", colors.accent);
+    root.style.setProperty("--accent-strong", skin?.accentStrong || u.mixColor(colors.accent, dark ? "#ffffff" : "#000000", dark ? 0.18 : 0.22));
+    const surface = skin ? (dark ? "#182c23" : "#fffdf5") : (dark ? "#161c1b" : "#ffffff");
+    root.style.setProperty("--accent-soft", u.mixColor(colors.accent, surface, dark ? 0.76 : 0.86));
+    root.style.setProperty("--accent-2", colors.accent2);
+    root.style.setProperty("--accent-2-soft", u.mixColor(colors.accent2, surface, dark ? 0.78 : 0.86));
+    root.style.setProperty("--success", colors.success);
+    root.style.setProperty("--warning", colors.warning);
+    root.style.setProperty("--danger", colors.danger);
+    $("#appIcon").src = versionedAsset(skin ? config.identity.assets.appIconMasters : (dark ? config.identity.assets.appIconDark : config.identity.assets.appIconLight));
     const iconButton = $("#appIconButton");
     const nextTheme = dark ? "light" : "dark";
     iconButton.setAttribute("aria-label", "Switch to " + nextTheme + " theme. Press and hold to toggle Developer Mode");
@@ -366,6 +370,7 @@
     const preferences = state().preferences;
     const appearance = preferences.appearance;
     $$('[data-theme-mode]').forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.themeMode === appearance.mode)); });
+    $$('[data-skin]', $("#supportDialog")).forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.skin === appearance.skin)); });
     renderTextSizeControl();
     setInputValue($("#whatsNewDismissSeconds"), preferences.controls.whatsNewDismissSeconds);
     $$('button[data-button-style]').forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.buttonStyle === preferences.controls.buttonStyle)); });
@@ -522,6 +527,7 @@
       ["Browser storage", usage.quota ? u.formatBytes(usage.usage) + " of " + u.formatBytes(usage.quota) : (usage.persistentStorageAvailable ? "Available" : "Unavailable")],
       ["Modules", Object.keys(config.features).filter(function (key) { return config.features[key]; }).join(", ")],
       ["Theme", document.documentElement.dataset.theme],
+      ["Skin", state().preferences.appearance.skin],
       ["Sync", info.title + (info.checkedAt ? " · checked " + u.relativeTime(info.checkedAt) : "")],
       ["Recovery", recovery ? u.dateLabel(recovery.createdAt) + " · " + recovery.reason : "None"]
     ];
@@ -700,6 +706,8 @@
       if (mode) {
         storage.mutate(function (next) { next.preferences.appearance.mode = mode.dataset.themeMode; }, { reason: "appearance" }); applyAppearance(); renderSettings(); return;
       }
+      const skin = event.target.closest("button[data-skin]");
+      if (skin) { storage.mutate(function (next) { next.preferences.appearance.skin = skin.dataset.skin; }, { reason: "appearance" }); applyAppearance(); renderSettings(); return; }
       const style = event.target.closest("button[data-button-style]");
       if (style) { storage.mutate(function (next) { next.preferences.controls.buttonStyle = style.dataset.buttonStyle; }, { reason: "button-style" }); applyAppearance(); renderSettings(); return; }
       const layout = event.target.closest("button[data-ledger-layout]");

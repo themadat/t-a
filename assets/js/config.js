@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.21";
+  const VERSION = "0.0.1.22";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -27,6 +27,7 @@
       "favicon": "assets/icons/favicon.svg",
       "appIconLight": "assets/icons/favicon.svg",
       "appIconDark": "assets/icons/favicon.svg",
+      "appIconMasters": "assets/icons/favicon-masters.svg",
       "manifestLight": "manifest.webmanifest",
       "manifestDark": "manifest-dark.webmanifest"
     }
@@ -62,6 +63,13 @@
     "maxTextLength": 20000,
     "maxDocumentHtmlLength": 250000
   },
+  "defaultSkin": "masters",
+  "skins": {
+    "masters": {
+      "light": { "accent": "#006747", "accentStrong": "#004f36", "accent2": "#704822", "success": "#006747", "warning": "#704822", "danger": "#a52b57", "chrome": "#004f36" },
+      "dark": { "accent": "#006747", "accentStrong": "#8acdb0", "accent2": "#FFDE6A", "success": "#56A88A", "warning": "#FFDE6A", "danger": "#ef93b5", "chrome": "#004f36" }
+    }
+  },
   "themeDefaults": {
     "accent": "#315f73",
     "accent2": "#b86b4b",
@@ -70,7 +78,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-09-30T21:18:00.000Z", "title": "Sticky Add And Table Headers", "summary": "Add joins the pinned controls, desktop table headers stay visible, and Compact shows zero Golf Winnings.", "features": ["Add moves from the search row into the sticky quick-action/filter bar while scrolling", "Sticky desktop headers in Compact and Expanded"], "improvements": ["Larger quick-action labels", "Mobile filters share their pinned row with Add when scrolled", "$0 Golf Winnings rows in Compact align with Expanded without changing stored Money or balances"], "fixes": ["Zero-winnings row Edit opens its Golf round", "Sticky Compact headers stay aligned during horizontal table scrolling"], "knownIssues": []},
+    {"version": VERSION, "date": "2026-09-30T21:40:00.000Z", "title": "Masters Golf Skin", "summary": "A default Masters-inspired skin with a one-click return to Basic.", "features": ["Appearance > Skin beneath Theme: Masters and Basic with supplied icons", "Masters course greens, warm ivory, yellow accents, and floral tags in light and dark themes"], "improvements": ["Coordinated header, summaries, tables, forms, Notes, Settings, sync states, and browser chrome", "Device-local skin choice persists through reload and sync; existing users default to Masters", "Basic restores the original appearance and color preferences"], "fixes": [], "knownIssues": []},
+    {"version": "0.0.1.21", "date": "2026-09-30T21:18:00.000Z", "title": "Sticky Add And Table Headers", "summary": "Add joins the pinned controls, desktop table headers stay visible, and Compact shows zero Golf Winnings.", "features": ["Add moves from the search row into the sticky quick-action/filter bar while scrolling", "Sticky desktop headers in Compact and Expanded"], "improvements": ["Larger quick-action labels", "Mobile filters share their pinned row with Add when scrolled", "$0 Golf Winnings rows in Compact align with Expanded without changing stored Money or balances"], "fixes": ["Zero-winnings row Edit opens its Golf round", "Sticky Compact headers stay aligned during horizontal table scrolling"], "knownIssues": []},
     {"version": "0.0.1.20", "date": "2026-09-30T20:34:00.000Z", "title": "Quick Actions And Form Alignment", "summary": "Clearer quick actions, aligned Money fields, and desktop Edit beside entry facts.", "features": [], "improvements": ["Bold quick-action labels with space around them; person buttons use regular weight", "Desktop Money forms place Date, Amount, and payment direction on the first line", "Mobile payment direction and Tags are centered", "Desktop inline Edit sits at the upper right beside entry facts", "Compact counts explicitly identify Money Entries; Expanded counts combined rows including zero-winnings rounds"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.19", "date": "2026-09-30T20:10:00.000Z", "title": "Roomier Entries And Focused Details", "summary": "More room for entry titles, aligned Golf columns, and simpler inline details.", "features": [], "improvements": ["Centered quick-action labels and mobile name buttons that fill available space", "Payer, Pays, and Payee before Tags in Money forms", "Expanded gives the former Result column space to Entry", "Full-width mobile entry titles with actions below", "Golf details show scores, Winnings, and attribution on one desktop line with a single Edit button", "Compact Golf keeps Results and Winnings in aligned columns without Wins tags"], "fixes": ["Inline details omit repeated Tags, Course, Holes, and linked-entry sections", "Empty Expanded search and filter results render correctly"], "knownIssues": []},
     {"version": "0.0.1.18", "date": "2026-09-30T19:19:00.000Z", "title": "Mobile Details And Tags", "summary": "Golf, Wins, and Bets filters, clearer round names, and focused mobile details.", "features": ["Mobile row expansion scrolls the row beneath the sticky header and tags", "Tap empty mobile header space to return to the top"], "improvements": ["All five Tags in quick select: Golf, Wins, Bets, Food, Other", "Round names include Course (Holes) and who won by how many strokes", "Per-person UNK scores and Hancock as the new-round default", "Mobile tags align right on the date line", "Both quick-action groups fit on one mobile line with two-line labels", "Inline details omit repeated fields and use a right-aligned Edit button", "Lowercase owes, is up, for, in, to, and won by"], "fixes": ["Payer and Payee keep equal widths when swapping names", "Golf payments, Golf Winnings, and Bet Winnings remain separate filters", "Linked tag edits remain authoritative without changing financial totals"], "knownIssues": []},

@@ -18,6 +18,7 @@ Use Node.js 18 or later for the test runner.
 Serve with `python3 -m http.server 8000`; stop afterward.
 
 - Desktop and 390px/mobile: no horizontal overflow, reachable controls, visible focus, labelled icons, Escape/focus return, touch-sized controls, theme and reduced motion.
+- Skins: Masters defaults on fresh and pre-skin states; Appearance > Skin sits beneath Theme and uses the supplied flag/square icons. Masters/Basic selection persists through reload and backup restore, stays local through sync, and resets to Masters with Reset Preferences. Basic restores original colors; both skins follow System/Light/Dark Theme. Check both ledger layouts, Notes, forms, Settings, tags/status, favicon, browser chrome, focus and text selection. Cached offline reload must allow either skin with its app icon loaded.
 - Notes: plain text, autosave/reload, selection contrast. Settings: tabs, one mobile scroller, appearance, Roadmap, release notes, developer diagnostics and hints.
 - Data: backup/export/import, recovery, malformed input rejection; Reset Preferences retains content; Erase All confirms.
 - Sync: fixed target links, masked token after Test/Save/reload, dirty fields preserved, tab/device storage, failed storage handling; JSON preview contains only upload data.

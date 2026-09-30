@@ -3,27 +3,28 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import vm from 'node:vm';
 
-function harness({ online = true, saved = true, layout = 'compact' } = {}) {
+function harness({ online = true, saved = true, layout = 'compact', skin = 'basic', mode = 'light' } = {}) {
   const events = [], timers = [], listeners = {};
   const label = { textContent:'Update' };
   const button = { dataset: {}, setAttribute(name, value) { this[name] = value; }, removeAttribute(name) { delete this[name]; }, querySelector(selector) { return selector === '.button-label' ? label : {}; }, addEventListener() {} };
   const worker = { postMessage(message) { events.push(message.type); } };
   const registration = { waiting: worker, async update() { events.push('check'); }, addEventListener() {} };
+  const chrome = { content: '' }, lightChrome = { media: '(prefers-color-scheme: light)' }, darkChrome = { media: '(prefers-color-scheme: dark)' }, favicon = {};
   const App = {
-    config: { identity: { buildId: 'test', assets: {} } },
-    storage: { saveNow() { events.push('save'); return saved; }, getState() { return { preferences: { appearance: { mode: 'light' } } }; } },
+    config: { identity: { buildId: 'test', assets: { favicon: 'basic.svg', appIconMasters: 'masters.svg' } }, skins: { masters: { light: { chrome: '#004f36' }, dark: { chrome: '#004f36' } } } },
+    storage: { saveNow() { events.push('save'); return saved; }, getState() { return { preferences: { appearance: { mode, skin } } }; } },
     icons: { set(_element, name) { events.push(name); } },
     components: { toast(message) { events.push(message); } }
   };
   const context = vm.createContext({
     window: { LocalApp: App, setTimeout(fn) { timers.push(fn); }, clearTimeout() {}, addEventListener() {}, matchMedia() { return { matches: false, addEventListener() {} }; } },
-    document: { querySelector(selector) { return selector === '#updateAppButton' ? button : null; }, documentElement: { dataset: { ledgerLayout:layout } } },
+    document: { querySelectorAll() { return [lightChrome, darkChrome]; }, querySelector(selector) { return selector === '#updateAppButton' ? button : selector === "meta[name='theme-color']:not([media])" ? chrome : selector === "link[rel='icon']" ? favicon : null; }, documentElement: { dataset: { ledgerLayout:layout } } },
     navigator: { onLine: online, serviceWorker: { controller: {}, async register() { return registration; }, async getRegistration() { return registration; }, addEventListener(name, fn) { listeners[name] = fn; } } },
     location: { protocol: 'https:', href: 'https://example.com/app/', replace(url) { events.push(url); } },
     URL, console
   });
   vm.runInContext(readFileSync(new URL('../assets/js/core/pwa.js', import.meta.url), 'utf8'), context);
-  return { App, events, timers, button, label, listeners };
+  return { App, events, timers, button, label, listeners, chrome, lightChrome, darkChrome, favicon };
 }
 
 test('available update changes the toolbar indicator without a pop-up', async () => {
@@ -61,5 +62,15 @@ for (const options of [{ online: false }, { saved: false }]) {
     assert.equal(h.timers.length, 0);
     assert.ok(!h.events.includes('check'));
     assert.match(h.events.at(-1), /internet|could not be saved/);
+  });
+}
+
+for (const [skin, mode, expected, icon] of [['masters', 'light', '#004f36', 'masters.svg'], ['masters', 'dark', '#004f36', 'masters.svg'], ['basic', 'light', '#f5f3ed', 'basic.svg'], ['basic', 'dark', '#121616', 'basic.svg']]) {
+  test(`browser chrome and favicon follow ${skin} in ${mode} mode`, () => {
+    const h = harness({ skin, mode }); h.App.pwa.applyAppearanceAssets();
+    assert.equal(h.chrome.content, expected);
+    assert.equal(h.favicon.href, icon + '?v=test');
+    assert.equal(h.lightChrome.content, skin === 'masters' ? '#004f36' : '#f5f3ed');
+    assert.equal(h.darkChrome.content, skin === 'masters' ? '#004f36' : '#121616');
   });
 }
