@@ -238,9 +238,11 @@
     $('#swapMoneyDirection').disabled = Boolean(row?.sourceRoundId);
     c.openDialog($('#moneyDialog'), { trigger: document.activeElement, focus: '[name=description]' }); moneyImpact();
   }
-  function quickRound(payer) {
+  async function quickRound(payer) {
     try {
       const name = actor();
+      const accepted = await c.confirm({ title: 'Record Round Payment?', message: payer + ' Paid For The Round. ' + (payer === 'Adam' ? 'Tristen' : 'Adam') + ' owes ' + payer + ' $20. Add This Golf Entry?', confirmLabel: 'Add $20 Entry', trigger: document.activeElement });
+      if (!accepted) return;
       storage.mutate(next => {
         l.saveMoney(next.workspace, { date: today(), kind: 'owed', description: 'Golf Round', category: 'Golf', amountCents: 2000, from: payer === 'Adam' ? 'Tristen' : 'Adam', to: payer, details: payer + ' bought the round', sourceRoundId: '', linkRole: '' }, name);
         next.ui.activeModule = 'money'; next.ui.ledgerYear = ''; next.ui.ledgerSearch = ''; next.ui.ledgerCategories = [];

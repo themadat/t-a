@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.23";
+  const VERSION = "0.0.1.24";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -78,7 +78,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-09-30T21:44:00.000Z", "title": "Pinned Add Alignment", "summary": "Add stays at the far right when it joins the pinned controls.", "features": [], "improvements": [], "fixes": ["Right-aligned sticky Add in Compact and Expanded on desktop and mobile"], "knownIssues": []},
+    {"version": VERSION, "date": "2026-09-30T21:48:00.000Z", "title": "Round Paid Confirmation", "summary": "Confirm the payer and $20 owed before adding a Round Paid entry.", "features": [], "improvements": ["Round Paid quick actions show a confirmation dialog with Add $20 Entry and Cancel"], "fixes": [], "knownIssues": []},
+    {"version": "0.0.1.23", "date": "2026-09-30T21:44:00.000Z", "title": "Pinned Add Alignment", "summary": "Add stays at the far right when it joins the pinned controls.", "features": [], "improvements": [], "fixes": ["Right-aligned sticky Add in Compact and Expanded on desktop and mobile"], "knownIssues": []},
     {"version": "0.0.1.22", "date": "2026-09-30T21:40:00.000Z", "title": "Masters Golf Skin", "summary": "A default Masters-inspired skin with a one-click return to Basic.", "features": ["Appearance > Skin beneath Theme: Masters and Basic with supplied icons", "Masters course greens, warm ivory, yellow accents, and floral tags in light and dark themes"], "improvements": ["Coordinated header, summaries, tables, forms, Notes, Settings, sync states, and browser chrome", "Device-local skin choice persists through reload and sync; existing users default to Masters", "Basic restores the original appearance and color preferences"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.21", "date": "2026-09-30T21:18:00.000Z", "title": "Sticky Add And Table Headers", "summary": "Add joins the pinned controls, desktop table headers stay visible, and Compact shows zero Golf Winnings.", "features": ["Add moves from the search row into the sticky quick-action/filter bar while scrolling", "Sticky desktop headers in Compact and Expanded"], "improvements": ["Larger quick-action labels", "Mobile filters share their pinned row with Add when scrolled", "$0 Golf Winnings rows in Compact align with Expanded without changing stored Money or balances"], "fixes": ["Zero-winnings row Edit opens its Golf round", "Sticky Compact headers stay aligned during horizontal table scrolling"], "knownIssues": []},
     {"version": "0.0.1.20", "date": "2026-09-30T20:34:00.000Z", "title": "Quick Actions And Form Alignment", "summary": "Clearer quick actions, aligned Money fields, and desktop Edit beside entry facts.", "features": [], "improvements": ["Bold quick-action labels with space around them; person buttons use regular weight", "Desktop Money forms place Date, Amount, and payment direction on the first line", "Mobile payment direction and Tags are centered", "Desktop inline Edit sits at the upper right beside entry facts", "Compact counts explicitly identify Money Entries; Expanded counts combined rows including zero-winnings rounds"], "fixes": [], "knownIssues": []},

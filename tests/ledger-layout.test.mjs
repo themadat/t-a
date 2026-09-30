@@ -6,11 +6,32 @@ import { domain, moneyFields, roundFields } from './domain-harness.mjs';
 
 function client(person) {
   const App = domain(); let state = App.stateModel.createDefaultState();
-  App.icons = { markup: () => "" }; App.identity = { person: () => person }; App.storage = { getState: () => state };
-  const source = readFileSync(new URL('../assets/js/ledger-ui.js', import.meta.url), 'utf8').replace('App.ledgerUI = { init,', 'App.ledgerUI = { layout, compactMoneyEntries, moneyRow, golfRow, combinedEntries, withLedgerStart, filterCategory, matchesFilters, roundBalances, expandedRow, detailContent, init,');
+  App.icons = { markup: () => "" }; App.components = {}; App.identity = { person: () => person }; App.storage = { getState: () => state };
+  const source = readFileSync(new URL('../assets/js/ledger-ui.js', import.meta.url), 'utf8').replace('App.ledgerUI = { init,', 'App.ledgerUI = { quickRound, layout, compactMoneyEntries, moneyRow, golfRow, combinedEntries, withLedgerStart, filterCategory, matchesFilters, roundBalances, expandedRow, detailContent, init,');
   vm.runInNewContext(source, { window: { LocalApp: App, matchMedia: () => ({ matches: false }) }, document: {}, Date });
   return { App, get state() { return state; }, normalize() { state = App.stateModel.normalize(state); } };
 }
+test('Round Paid waits for confirmation and cancellation leaves the ledger unchanged', async () => {
+  for (const payer of ['Adam', 'Tristen']) {
+    for (const accepted of [false, true]) {
+      const { App, state } = client('Adam'); let resolve, prompt, saves = 0;
+      App.components.confirm = options => { prompt = options; return new Promise(done => { resolve = done; }); };
+      App.components.toast = () => {};
+      App.storage.mutate = change => change(state);
+      App.storage.saveNow = () => { saves++; return true; };
+      const pending = App.ledgerUI.quickRound(payer);
+      assert.match(prompt.message, new RegExp((payer === 'Adam' ? 'Tristen' : 'Adam') + ' owes ' + payer + ' \\$20'));
+      assert.equal(state.workspace.moneyEntries.length, 0);
+      resolve(accepted); await pending;
+      assert.equal(state.workspace.moneyEntries.length, accepted ? 1 : 0);
+      assert.equal(saves, accepted ? 1 : 0);
+      if (accepted) {
+        const entry = state.workspace.moneyEntries[0];
+        assert.equal(entry.to, payer); assert.equal(entry.amountCents, 2000); assert.equal(entry.category, 'Golf');
+      }
+    }
+  }
+});
 test('layout defaults are personal and overrides remain local through sync', () => {
   for (const [person, expected] of [['Adam', 'compact'], ['Tristen', 'expanded'], ['', 'expanded']]) {
     const h = client(person); assert.equal(h.App.ledgerUI.layout(), expected);
