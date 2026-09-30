@@ -10,6 +10,7 @@ Next id: `WISH-002`
 - Follow-up: Settings provides a private Info tab sourced from synced Notes for the golf rules and Adam's contacts.
 - Follow-up implemented: personal Compact/Expanded views, combined Round-tagged table/details, token startup screen, desktop header placement, category save fixes, and the May 2025 ledger boundary with year-only category history.
 - Follow-up implemented: Appearance layout choice, single Add, sticky quick actions/category chips, full mobile names, linked Golf Winnings in Expanded, inline cell details, and Payer/Payee labels.
+- Follow-up implemented: newest-date tables and chronological running balances, Compact identity below version, Expanded update in Settings, mobile search counts, separate Tags, and matching Amount/Balance styling.
 - Scope/constraints: Static app, desktop/mobile, offline support, migration/import/recovery, no lost or duplicate edits. Preserve existing shell/Notes. Personal source data stays out of the public app repository.
 - Acceptance: Exact historical import/reconciliation; correct money and golf calculations; safe linked updates; two-account concurrent/offline synchronization; responsive accessible entry flows.
 - Priority/effort: Core product / High.

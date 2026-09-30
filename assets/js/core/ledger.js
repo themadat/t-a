@@ -101,9 +101,8 @@
   function active(rows) { return rows.filter(x => !x.deleted); }
   function ascending(a, b) { return a.order - b.order || a.id.localeCompare(b.id); }
   function ordered(rows) {
-    const entries = active(rows), dated = entries.filter(entry => entry.date.length !== 4);
-    const rank = entry => entry.date.length !== 4 ? entry.order : Math.min(entry.order, ...dated.filter(other => other.date >= entry.date + "-01-01").map(other => other.order)) - 0.5;
-    return entries.slice().sort((a, b) => rank(a) - rank(b) || a.date.localeCompare(b.date) || ascending(a, b));
+    // A year-only date precedes exact dates in that year without inventing a day.
+    return active(rows).sort((a, b) => a.date.localeCompare(b.date) || ascending(a, b));
   }
   function newest(rows) { return ordered(rows).reverse(); }
   function delta(entry) { return (entry.to === "Adam" ? 1 : -1) * entry.amountCents * (entry.kind === "repayment" ? -1 : 1); }

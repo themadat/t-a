@@ -46,9 +46,9 @@
         <span id="appName" class="app-name">T&amp;A</span>
         <div class="identity-pill-row">
           <button id="versionButton" class="version-pill" type="button" aria-label="Open release notes" aria-keyshortcuts="V Control+Alt+Shift+V" data-shortcut="V">Version</button>
-          <button type="button" id="ledgerIdentity" class="identity-person-pill" aria-label="Connected identity" hidden><span id="ledgerPerson" role="status"></span></button>
           <span id="betaPill" class="environment-pill beta-pill" title="This is the beta application" hidden>BETA</span>
         </div>
+        <button type="button" id="ledgerIdentity" class="identity-person-pill" aria-label="Connected identity" hidden><span id="ledgerPerson" role="status"></span></button>
       </div>
     </div>
 
@@ -147,6 +147,11 @@
               <div class="setting-row"><label class="setting-label" for="whatsNewDismissSeconds">What’s New dismissal (seconds)</label><input id="whatsNewDismissSeconds" type="number" min="1" max="300" step="1" required value="20" aria-describedby="whatsNewDismissHelp"></div><p id="whatsNewDismissHelp" class="setting-note">Automatically dismiss after 1–300 seconds. Default: 20 seconds.</p>
               <div class="setting-row"><span class="setting-label">Hints</span><div class="segmented appearance-segmented" aria-label="Contextual hints"><button type="button" data-hints-enabled="true" aria-pressed="true"><span aria-hidden="true" data-symbol="hintsOn"></span><span>On</span></button><button type="button" data-hints-enabled="false" aria-pressed="false"><span aria-hidden="true" data-symbol="hintsOff"></span><span>Off</span></button></div></div>
               <div class="appearance-footer"><span class="setting-note">Turning Hints off hides all guidance. Restoring brings back dismissed hints.</span><button id="restoreHintsButton" class="button small" type="button"><span class="setting-button-icon" aria-hidden="true" data-symbol="restore"></span><span>Restore Hints</span></button></div>
+            </div>
+
+            <div id="settingsUpdatesSection" class="settings-section" hidden>
+              <div class="section-heading compact-section-heading"><h3>Updates</h3></div>
+              <div id="settingsUpdateActions" class="button-row"></div>
             </div>
 
             <div class="settings-section">

@@ -6,6 +6,7 @@
   const expandedEntries = new Set();
   const viewer = () => state().preferences.controls.developerMode && simulatedPerson ? simulatedPerson : App.identity.person();
   const portrait = window.matchMedia('(max-width:600px)');
+  const mobileSearch = window.matchMedia('(max-width:760px)');
   const desktop = window.matchMedia('(min-width:1100px)');
   const state = () => storage.getState();
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
@@ -26,7 +27,7 @@
     const hasStartYear = rows.some(row => row.date.startsWith('2025'));
     if (!hasStartYear) boundary = -1;
     else if (boundary < 0) boundary = rows.map(row => row.date.slice(0, 4)).lastIndexOf('2025') + 1;
-    const marker = table ? '<tr class="ledger-start-row"><td colspan="6"><div class="ledger-start"><strong>Ledger Begins</strong><span>May 2025</span></div></td></tr>' : '<li class="ledger-start"><strong>Ledger Begins</strong><span>May 2025</span></li>';
+    const marker = table ? '<tr class="ledger-start-row"><td colspan="7"><div class="ledger-start"><strong>Ledger Begins</strong><span>May 2025</span></div></td></tr>' : '<li class="ledger-start"><strong>Ledger Begins</strong><span>May 2025</span></li>';
     return rows.map((row, index) => (index === boundary ? marker : '') + renderRow(row)).join('') + (boundary === rows.length ? marker : '');
   }
   function shell() {
@@ -59,12 +60,18 @@
     $('#balanceAmount').textContent = l.balanceLabel(total.balance);
     const categories = l.categoryTotals(w.moneyEntries, person);
     $('#balanceWords').textContent = Object.entries(categories).map(([name, value]) => (value > 0 ? '+' : value < 0 ? '−' : '±') + l.money(Math.abs(value)) + ' ' + name).join(' • ');
-    $('#balanceWords').title = 'All-time category totals from ' + (person || 'Adam') + '’s perspective, including year-only history. Money balance begins May 2025 and includes only exact dates.';
+    $('#balanceWords').title = 'Wins includes all Money entries categorized Wins, even without a linked round. On the Course totals recorded rounds. All-time category totals from ' + (person || 'Adam') + '’s perspective, including year-only history. Money balance begins May 2025 and includes only exact dates.';
     $('.balance-card').dataset.outcome = !person || !total.balance ? 'neutral' : total.balance * (person === 'Adam' ? 1 : -1) > 0 ? 'positive' : 'negative';
     $('#golfCount').textContent = ((golf.margin ? (golf.margin > 0 ? 'Adam' : 'Tristen') + ' -' + Math.abs(golf.margin) + ' strokes' : 'Even -0 strokes') + ' • ' + (golf.winnings ? (golf.winnings > 0 ? 'Adam' : 'Tristen') + ' +$' + Math.round(Math.abs(golf.winnings) / 100) : 'Even +$0'));
     $('#golfOverview').textContent = (golf.count + ' Rounds: ' + golf.adamWins + ' Adam • ' + golf.tristanWins + ' Tristen • ' + golf.ties + ' Ties');
     $('#ledgerPerson').textContent = person ? person + (simulatedPerson ? ' (Preview)' : '') : 'Unassigned';
-    $('#ledgerIdentity').hidden = !expanded;
+    $('#ledgerIdentity').hidden = expanded;
+    const updateButton = $('#updateAppButton'), updateTarget = expanded ? $('#settingsUpdateActions') : $('.top-toolbar');
+    if (updateButton.parentElement !== updateTarget) {
+      if (expanded) updateTarget.append(updateButton); else updateTarget.insertBefore(updateButton, $('#notesButton'));
+    }
+    $('#settingsUpdatesSection').hidden = !expanded;
+    App.pwa.renderUpdateControl();
     $('#ledgerIdentity').setAttribute('aria-label', (simulatedPerson ? 'Previewing ' : 'Connected as ') + (person || 'unassigned'));
     $('#ledgerIdentity').dataset.person = person || '';
     $('#ledgerIdentity').disabled = !s.preferences.controls.developerMode;
@@ -78,6 +85,7 @@
     const rows = l.newest(w[view === 'money' ? 'moneyEntries' : 'golfRounds']);
     const years = [...new Set((expanded || desktop.matches ? [...l.active(w.moneyEntries), ...l.active(w.golfRounds)] : rows).map(x => x.date.slice(0, 4)))].sort().reverse();
     $('#ledgerYear').innerHTML = '<option value="">All years</option>' + years.map(year => `<option value="${year}">${year}</option>`).join(''); $('#ledgerYear').value = s.ui.ledgerYear;
+    $('#ledgerSearch').placeholder = mobileSearch.matches ? 'Search...' : 'Search entries…';
     if (document.activeElement !== $('#ledgerSearch')) $('#ledgerSearch').value = s.ui.ledgerSearch;
     if (expanded) {
       $('#moneyEntries').innerHTML = ''; $('#golfEntries').innerHTML = '';
@@ -100,15 +108,19 @@
     const s = state(), rows = combinedEntries(s.workspace);
     const filtered = rows.filter(row => matchesFilters(row, row.entryType === 'golf'));
     $('#ledgerCount').textContent = filtered.length + ' entries';
-    $('#combinedEntries').innerHTML = filtered.length ? '<table class="expanded-table"><caption class="visually-hidden">Money and Golf, newest first. Open an entry for details.</caption><thead><tr><th scope="col">Date</th><th scope="col">Entry</th><th scope="col">Result</th><th scope="col">Amount</th><th scope="col">Balance</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead><tbody>' + withLedgerStart(filtered, row => expandedRow(row, total), true) + '</tbody></table>' : '<div class="ledger-empty"><h3>' + (rows.length ? 'No matching entries' : 'Your ledger starts here') + '</h3><p>' + (rows.length ? 'Try another search or year.' : 'Use Add above to record money or a round.') + '</p>' + (rows.length ? '<button class="button" data-clear-ledger type="button">Clear filters</button>' : '') + '</div>';
+    $('#combinedEntries').innerHTML = filtered.length ? '<table class="expanded-table"><caption class="visually-hidden">Money and Golf, newest date first. Open an entry for details.</caption><thead><tr><th scope="col">Date</th><th scope="col">Entry</th><th scope="col">Tags</th><th scope="col">Result</th><th scope="col">Amount</th><th scope="col">Balance</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead><tbody>' + withLedgerStart(filtered, row => expandedRow(row, total), true) + '</tbody></table>' : '<div class="ledger-empty"><h3>' + (rows.length ? 'No matching entries' : 'Your ledger starts here') + '</h3><p>' + (rows.length ? 'Try another search or year.' : 'Use Add above to record money or a round.') + '</p>' + (rows.length ? '<button class="button" data-clear-ledger type="button">Clear filters</button>' : '') + '</div>';
+  }
+  function expandedValue(value, label, direction) {
+    return '<span class="mobile-column-label">' + label + '</span><strong>' + (value === null ? '—' : l.money(Math.abs(value))) + '</strong>' + (direction ? '<small>' + esc(direction) + '</small>' : value === 0 ? '<small>even</small>' : '');
   }
   function expandedRow(row, total) {
     const round = row.entryType === 'golf', amount = round ? 0 : l.delta(row), difference = round ? row.tristan - row.adam : 0;
     const title = round ? row.course || 'Golf round' : moneyTitle(row);
-    const result = round ? difference ? (difference > 0 ? 'Adam' : 'Tristen') + ' won by ' + Math.abs(difference) + ' strokes' : 'Tied round' : row.kind === 'repayment' ? row.from + ' repaid ' + row.to : row.from + ' owes ' + row.to;
+    const result = round ? difference ? (difference > 0 ? 'Adam' : 'Tristen') + ' won by ' + Math.abs(difference) + ' strokes' : 'Tied round' : '';
     const value = round ? difference : amount, outcome = !viewer() || !value ? 'neutral' : value * (viewer() === 'Tristen' ? -1 : 1) > 0 ? 'positive' : 'negative';
-    const open = expandedEntries.has(row.entryType + ':' + row.id);
-    return `<tr id="row-${esc(row.id)}" class="expanded-row" data-entry-id="${esc(row.id)}" data-entry-type="${row.entryType}" data-inline-open="${open}" data-outcome="${outcome}"><td class="expanded-date"><time>${esc(row.date.length === 4 ? row.date + ' · date unknown' : dateLabel(row.date))}</time></td><td class="expanded-entry"><strong>${esc(title)}</strong><span class="entry-tags"><span class="category-pill ${round ? 'round-pill' : 'money-pill'}">${round ? 'Round' : 'Money'}</span>${round ? '' : `<span class="category-pill category-${categoryName(row).toLowerCase()}">${esc(categoryName(row))}</span>`}</span></td><td class="expanded-result">${esc(result)}</td><td class="expanded-amount"><strong>${round ? '—' : l.money(row.amountCents)}</strong>${amount ? '<small>to ' + (amount > 0 ? 'Adam' : 'Tristen') + '</small>' : ''}</td><td class="expanded-balance"><span class="mobile-column-label">Balance </span>${esc(balanceText(round ? null : total.running[row.id]))}</td><td class="expanded-open"><button type="button" class="button" data-inline-toggle="${esc(row.id)}" data-entry-type="${row.entryType}" aria-expanded="${open}" aria-controls="inline-${row.entryType}-${esc(row.id)}" aria-label="Details for ${esc(title)} on ${esc(row.date)}">${App.icons.markup(open ? 'chevronDown' : 'chevronRight')}</button></td></tr><tr id="inline-${row.entryType}-${esc(row.id)}" class="inline-detail-row" ${open ? '' : 'hidden'}><td colspan="6"><section class="inline-entry-details" aria-label="${esc(title)} details">${open ? detailContent(row.entryType, row) : ''}</section></td></tr>`;
+    const balance = round ? null : total.running[row.id], open = expandedEntries.has(row.entryType + ':' + row.id);
+    const tags = '<span class="category-pill ' + (round ? 'round-pill' : 'money-pill') + '">' + (round ? 'Round' : 'Money') + '</span>' + (round ? '' : '<span class="category-pill category-' + categoryName(row).toLowerCase() + '">' + esc(categoryName(row)) + '</span>');
+    return `<tr id="row-${esc(row.id)}" class="expanded-row" data-entry-id="${esc(row.id)}" data-entry-type="${row.entryType}" data-inline-open="${open}" data-outcome="${outcome}"><td class="expanded-date"><time>${esc(row.date.length === 4 ? row.date + ' · date unknown' : dateLabel(row.date))}</time></td><td class="expanded-entry"><strong>${esc(title)}</strong></td><td class="expanded-tags"><span class="entry-tags">${tags}</span></td><td class="expanded-result">${esc(result)}</td><td class="expanded-amount">${expandedValue(round ? null : row.amountCents, 'Amount', round ? '' : (row.kind === 'repayment' ? 'repaid to ' : 'to ') + row.to)}</td><td class="expanded-balance">${expandedValue(balance ?? null, 'Balance', balance ? 'to ' + (balance > 0 ? 'Adam' : 'Tristen') : '')}</td><td class="expanded-open"><button type="button" class="button" data-inline-toggle="${esc(row.id)}" data-entry-type="${row.entryType}" aria-expanded="${open}" aria-controls="inline-${row.entryType}-${esc(row.id)}" aria-label="Details for ${esc(title)} on ${esc(row.date)}">${App.icons.markup(open ? 'chevronDown' : 'chevronRight')}</button></td></tr><tr id="inline-${row.entryType}-${esc(row.id)}" class="inline-detail-row" ${open ? '' : 'hidden'}><td colspan="7"><section class="inline-entry-details" aria-label="${esc(title)} details">${open ? detailContent(row.entryType, row) : ''}</section></td></tr>`;
   }
   function moneyTitle(row) {
     const linked = state().workspace.golfRounds.find(round => round.id === row.sourceRoundId);
@@ -308,6 +320,7 @@
     });
     document.querySelectorAll('[data-ledger-view]').forEach(button => { button.addEventListener('click', () => setView(button.dataset.ledgerView)); button.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight'].includes(event.key)) { event.preventDefault(); const next = button.dataset.ledgerView === 'money' ? 'golf' : 'money'; setView(next); $('#' + next + 'Tab').focus(); } }); });
     desktop.addEventListener('change', render);
+    mobileSearch.addEventListener('change', render);
     portrait.addEventListener('change', () => { render(); moneyImpact(); });
     document.addEventListener('keydown', event => {
       if (event.key.toLowerCase() !== 'e' || event.repeat || event.isComposing || event.metaKey || event.ctrlKey || event.altKey || document.querySelector('dialog[open]') || u.isEditableTarget(event.target)) return;

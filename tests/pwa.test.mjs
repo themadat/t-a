@@ -3,9 +3,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import vm from 'node:vm';
 
-function harness({ online = true, saved = true } = {}) {
+function harness({ online = true, saved = true, layout = 'compact' } = {}) {
   const events = [], timers = [], listeners = {};
-  const button = { dataset: {}, setAttribute(name, value) { this[name] = value; }, removeAttribute(name) { delete this[name]; }, querySelector() { return {}; }, addEventListener() {} };
+  const label = { textContent:'Update' };
+  const button = { dataset: {}, setAttribute(name, value) { this[name] = value; }, removeAttribute(name) { delete this[name]; }, querySelector(selector) { return selector === '.button-label' ? label : {}; }, addEventListener() {} };
   const worker = { postMessage(message) { events.push(message.type); } };
   const registration = { waiting: worker, async update() { events.push('check'); }, addEventListener() {} };
   const App = {
@@ -16,13 +17,13 @@ function harness({ online = true, saved = true } = {}) {
   };
   const context = vm.createContext({
     window: { LocalApp: App, setTimeout(fn) { timers.push(fn); }, clearTimeout() {}, addEventListener() {}, matchMedia() { return { matches: false, addEventListener() {} }; } },
-    document: { querySelector(selector) { return selector === '#updateAppButton' ? button : null; }, documentElement: { dataset: {} } },
+    document: { querySelector(selector) { return selector === '#updateAppButton' ? button : null; }, documentElement: { dataset: { ledgerLayout:layout } } },
     navigator: { onLine: online, serviceWorker: { controller: {}, async register() { return registration; }, async getRegistration() { return registration; }, addEventListener(name, fn) { listeners[name] = fn; } } },
     location: { protocol: 'https:', href: 'https://example.com/app/', replace(url) { events.push(url); } },
     URL, console
   });
   vm.runInContext(readFileSync(new URL('../assets/js/core/pwa.js', import.meta.url), 'utf8'), context);
-  return { App, events, timers, button, listeners };
+  return { App, events, timers, button, label, listeners };
 }
 
 test('available update changes the toolbar indicator without a pop-up', async () => {
@@ -43,6 +44,14 @@ test('update saves before checking and activates the waiting worker before refre
   assert.match(h.events.at(-1), /force-refresh=/);
   assert.equal(h.button.disabled, false);
   assert.equal(h.button['aria-busy'], undefined);
+});
+test('Expanded labels its Settings action Force update and retains update availability', async () => {
+  const h = harness({layout:'expanded'}); h.App.pwa.init();
+  await new Promise(setImmediate);
+  h.App.pwa.renderUpdateControl();
+  assert.equal(h.label.textContent, 'Force update');
+  assert.match(h.button['aria-label'], /^Force update.*new version available/);
+  assert.equal(h.button.dataset.updateAvailable, 'true');
 });
 
 for (const options of [{ online: false }, { saved: false }]) {

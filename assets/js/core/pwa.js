@@ -94,9 +94,11 @@
   function renderUpdateReady(ready) {
     const button=document.querySelector('#updateAppButton');
     if (!button) return;
+    const label = document.documentElement.dataset.ledgerLayout === 'expanded' ? 'Force update' : 'Update';
     button.dataset.updateAvailable=String(ready);
     button.title=ready ? 'Update available — install and refresh' : 'Check for updates and force refresh';
-    button.setAttribute('aria-label',ready ? 'Update — new version available' : 'Update — check for updates and force refresh');
+    button.querySelector('.button-label').textContent = label;
+    button.setAttribute('aria-label',label + (ready ? ' — new version available' : ' — check for updates and force refresh'));
     App.icons.set(button.querySelector('.button-icon'),ready ? 'updateReady' : 'updateApp');
   }
 
@@ -157,6 +159,7 @@
     applyAppearanceAssets: applyAppearanceAssets,
     forceRefresh: forceRefresh,
     checkForUpdates: checkForUpdates,
+    renderUpdateControl: function () { renderUpdateReady(document.querySelector('#updateAppButton')?.dataset.updateAvailable === 'true'); },
     getRegistration: function () { return registration; }
   };
 })();

@@ -12,12 +12,21 @@ test('integer cents, repayments, edits, deletion and Undo recalculate the ledger
   assert.equal(l.totals(w.moneyEntries).balance, 500);
   l.undo(w, undo, 'Adam'); assert.equal(l.totals(w.moneyEntries).balance, -750);
 });
-test('backdated additions sort first and editing preserves their position', () => {
+test('dates determine display order and running balances, with stable same-date ties', () => {
   const a = domain(), w = a.stateModel.createDefaultState().workspace, l = a.ledger;
-  const first = l.saveMoney(w, moneyFields, 'Adam');
-  const second = l.saveMoney(w, { ...moneyFields, date: '2025-01-01' }, 'Tristen');
-  l.saveMoney(w, { ...moneyFields, description: 'Corrected' }, 'Adam', first.id);
-  assert.equal(l.newest(w.moneyEntries)[0].id, second.id);
+  const first = l.saveMoney(w, { ...moneyFields, date:'2026-01-05' }, 'Adam');
+  const second = l.saveMoney(w, { ...moneyFields, date:'2025-06-01', amountCents:500, from:'Tristen', to:'Adam' }, 'Tristen');
+  const third = l.saveMoney(w, { ...moneyFields, date:'2026-01-05', amountCents:250, from:'Tristen', to:'Adam' }, 'Adam');
+  assert.deepEqual(Array.from(l.newest(w.moneyEntries), row => row.id), [third.id, first.id, second.id]);
+  assert.equal(w.moneyEntries[0].id, first.id);
+  assert.equal(l.totals(w.moneyEntries).running[second.id], 500);
+  assert.equal(l.totals(w.moneyEntries).running[first.id], -750);
+  assert.equal(l.totals(w.moneyEntries).balance, -500);
+  l.saveMoney(w, { ...moneyFields, date:'2025-05-01', description:'Corrected' }, 'Adam', first.id);
+  assert.deepEqual(Array.from(l.newest(w.moneyEntries), row => row.id), [third.id, second.id, first.id]);
+  assert.equal(l.totals(w.moneyEntries).running[first.id], -1250);
+  assert.equal(l.totals(w.moneyEntries).running[second.id], -750);
+  assert.equal(l.totals(w.moneyEntries).balance, -500);
 });
 test('round winnings stay linked without duplication through edit, Even, payment and Undo', () => {
   const a = domain(), w = a.stateModel.createDefaultState().workspace, l = a.ledger;
