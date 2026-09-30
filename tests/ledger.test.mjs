@@ -93,13 +93,61 @@ test('legacy person spelling and numeric holes normalize without losing links', 
 
 test('category totals separate golf wins from bets and reverse by viewer', () => {
   const a = domain(), w = a.stateModel.createDefaultState().workspace;
-  for (const [description, category, amountCents] of [['Golf Bets','Golf',400],['Dollar Bet','Bets',100],['Golf Round','Golf',2000],['Lunch','Food',700]]) {
+  for (const [description, category, amountCents] of [['Golf Bets','Wins',400],['Dollar Bet','Bets',100],['Golf Round','Golf',2000],['Lunch','Food',700]]) {
     a.ledger.saveMoney(w, {...moneyFields, description, category, amountCents}, 'Adam');
   }
   const adam = a.ledger.categoryTotals(w.moneyEntries, 'Adam');
   const tristen = a.ledger.categoryTotals(w.moneyEntries, 'Tristen');
   assert.equal(adam.Bets, -100); assert.equal(adam.Wins, -400);
   for (const name of ['Wins','Bets']) assert.equal(tristen[name] || 0, -adam[name] || 0);
+});
+
+test('chosen categories survive editing, normalization and cloud roundtrips', () => {
+  const a = domain(), s = a.stateModel.createDefaultState(), l = a.ledger;
+  const entry = l.saveMoney(s.workspace, { ...moneyFields, description: 'Golf Bets', category: 'Wins' }, 'Adam');
+  l.saveMoney(s.workspace, { ...entry, category: 'Bets' }, 'Tristen', entry.id);
+  let result = a.stateModel.prepareSync(a.stateModel.syncPayload(s)).state;
+  assert.equal(result.workspace.moneyEntries[0].category, 'Bets');
+  assert.equal(l.categoryTotals(result.workspace.moneyEntries, 'Adam').Bets, -1250);
+  assert.equal(l.categoryTotals(result.workspace.moneyEntries, 'Adam').Wins, 0);
+  l.saveMoney(result.workspace, { ...result.workspace.moneyEntries[0], category: 'Wins' }, 'Adam', entry.id);
+  result = a.stateModel.normalize(result);
+  assert.equal(result.workspace.moneyEntries[0].category, 'Wins');
+  assert.equal(l.categoryTotals(result.workspace.moneyEntries, 'Adam').Wins, -1250);
+});
+
+test('linked entry category edits retain their financial link through round edits', () => {
+  const a = domain(), w = a.stateModel.createDefaultState().workspace, l = a.ledger;
+  const round = l.saveRound(w, roundFields, 'Adam', '', true), entry = w.moneyEntries[0];
+  l.saveMoney(w, { ...entry, category: 'Bets', details: 'Reviewed bet', sourceRoundId: '', linkRole: '' }, 'Tristen', entry.id);
+  assert.equal(w.moneyEntries[0].sourceRoundId, round.id);
+  assert.throws(() => l.saveMoney(w, { ...w.moneyEntries[0], amountCents: 900 }, 'Adam', entry.id), /linked golf round/);
+  l.saveRound(w, { ...roundFields, winningsCents: 600 }, 'Adam', round.id, true);
+  const normalized = l.collections(w);
+  l.validateLinks(normalized);
+  assert.equal(normalized.moneyEntries[0].category, 'Bets');
+  assert.equal(normalized.moneyEntries[0].details, 'Reviewed bet');
+  assert.equal(l.totals(normalized.moneyEntries).balance, 600);
+});
+
+test('May 2025 starts the money ledger; unknown dates only affect category breakdowns', () => {
+  const a = domain(), w = a.stateModel.createDefaultState().workspace, l = a.ledger;
+  const before = l.saveMoney(w, { ...moneyFields, date: '2025-04-30', category: 'Wins', amountCents: 900 }, 'Adam');
+  const first = l.saveMoney(w, { ...moneyFields, date: '2025-05-01', category: 'Bets', amountCents: 100 }, 'Adam');
+  const history = l.saveMoney(w, { ...moneyFields, date: '2025', category: 'Wins', amountCents: 300 }, 'Adam');
+  const second = l.saveMoney(w, { ...moneyFields, date: '2026-01-01', category: 'Bets', amountCents: 200, to: 'Adam', from: 'Tristen' }, 'Tristen');
+  const total = l.totals(w.moneyEntries);
+  assert.equal(total.balance, 100);
+  assert.equal(total.running[before.id], null); assert.equal(total.running[history.id], null);
+  assert.equal(total.running[first.id], -100); assert.equal(total.running[second.id], 100);
+  assert.equal(l.categoryTotals(w.moneyEntries, 'Adam').Wins, -1200);
+  assert.equal(l.categoryTotals(w.moneyEntries, 'Adam').Bets, 100);
+  const round = l.saveRound(w, { ...roundFields, date: '2025' }, 'Adam', '', true);
+  assert.equal(l.totals(w.moneyEntries).balance, 100);
+  assert.equal(l.categoryTotals(w.moneyEntries, 'Adam').Wins, -800);
+  assert.equal(l.golfSummary(w.golfRounds, '2025').count, 1);
+  l.saveRound(w, { ...roundFields, date: '2025-05-02' }, 'Adam', round.id, true);
+  assert.equal(l.totals(w.moneyEntries).balance, 500);
 });
 
 

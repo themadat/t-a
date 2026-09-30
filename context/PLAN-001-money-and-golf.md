@@ -5,6 +5,7 @@ Wish: WISH-001.
 
 ## Resume
 
+- Latest follow-up implemented: personal Compact/Expanded toggle, combined Expanded table with Round tags/details, 80% token startup dialog that waits for sync, central desktop header summaries, persistent editable categories (including linked Money), and May 2025 ledger boundary. Year-only history remains in category totals and is excluded from Money balances. All 78 tests pass; synthetic browser checks cover token loading, saves/sync/reload, layout persistence and responsive containment. No commit/push; real shared sync/physical-phone acceptance remains unverified. The external setup notes below describe earlier checks and were not reverified during this UI task.
 - User requested a plan to turn the supplied T&A note into a money ledger and golf history, with easy entry, new additions at the top, shared editing, and desktop/mobile layouts.
 - Follow-up implemented: owner labels both tokens once; shared fingerprints identify either person on any device. A fresh friend browser needs only token + Connect. Automated coverage includes the full mocked setup flow.
 - Confirmed: new golf winnings automatically create linked money entries. Keep the existing GitHub Sync approach.

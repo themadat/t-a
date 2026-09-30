@@ -270,7 +270,7 @@
         const dialog = dialogs[dialogs.length - 1];
         if (dialog && dialog.id !== "confirmDialog" && dialog.id !== "choiceDialog") {
           event.preventDefault();
-          closeDialog(dialog, "cancel");
+          if (dialog.dataset.required !== "true") closeDialog(dialog, "cancel");
         }
         return;
       }

@@ -823,6 +823,7 @@
   }
 
   function handleGlobalKeydown(event) {
+    if (document.body.classList.contains("token-required")) return;
     updateShortcutHints(event, false);
     if (event.key === "Escape") {
       $("#globalSearchResults").hidden = true;

@@ -13,16 +13,32 @@
   const amountValue = value => value ? String(value / 100) : '';
   const actor = () => { const name = App.identity.person(); if (!l.people.includes(name)) throw new Error('Connect your assigned token in Settings before saving.'); return name; };
   const notifyError = error => c.toast(error.message, { title: 'Please review', kind: 'warning', duration: 6000 });
+  const layoutPerson = () => viewer() || 'default';
+  const layout = () => state().preferences.ledgerLayouts[layoutPerson()] || (layoutPerson() === 'Adam' ? 'compact' : 'expanded');
+  const categoryName = row => ['Golf', 'Bets', 'Wins', 'Food', 'Other'].includes(row.category) ? row.category : 'Other';
+  const balanceText = balance => balance === null || balance === undefined ? '—' : l.money(Math.abs(balance)) + (balance ? ' to ' + (balance > 0 ? 'Adam' : 'Tristen') : ' · even');
+  const linkedMoney = round => l.active(state().workspace.moneyEntries).filter(row => row.sourceRoundId === round.id);
+  function combinedEntries(workspace) {
+    return l.newest([...workspace.moneyEntries.filter(row => !row.sourceRoundId).map(row => ({ ...row, entryType: 'money' })), ...workspace.golfRounds.map(row => ({ ...row, entryType: 'golf' }))]);
+  }
+  function withLedgerStart(rows, renderRow, table) {
+    let boundary = rows.findIndex(row => row.date < l.LEDGER_START);
+    const hasStartYear = rows.some(row => row.date.startsWith('2025'));
+    if (!hasStartYear) boundary = -1;
+    else if (boundary < 0) boundary = rows.map(row => row.date.slice(0, 4)).lastIndexOf('2025') + 1;
+    const marker = table ? '<tr class="ledger-start-row"><td colspan="6"><div class="ledger-start"><strong>Ledger Begins</strong><span>May 2025</span></div></td></tr>' : '<li class="ledger-start"><strong>Ledger Begins</strong><span>May 2025</span></li>';
+    return rows.map((row, index) => (index === boundary ? marker : '') + renderRow(row)).join('') + (boundary === rows.length ? marker : '');
+  }
   function shell() {
     return `<section class="ledger-workspace" aria-label="Money and Golf">
       <div class="ledger-overview"><section class="balance-card"><button class="overview-select" type="button" id="moneyTab" data-ledger-view="money" aria-controls="ledgerPanel"><span class="eyebrow">In the Books</span><strong id="balanceAmount"></strong><span id="balanceWords" role="status"></span></button><div class="quick-round"><span>Round Paid By ($20)</span><button type="button" class="button" data-round-payer="Tristen" aria-label="Tristen bought a golf round: Adam owes Tristen $20"><span data-symbol="payerT"></span></button><button type="button" class="button" data-round-payer="Adam" aria-label="Adam bought a golf round: Tristen owes Adam $20"><span data-symbol="payerA"></span></button></div><button type="button" id="addMoney" class="button overview-add" aria-label="Add money entry"><span data-symbol="add"></span><span>Add</span></button></section><section class="golf-overview"><button class="overview-select" type="button" id="golfTab" data-ledger-view="golf" aria-controls="ledgerPanel"><span class="eyebrow">On the Course</span><strong id="golfCount"></strong><span id="golfOverview"></span></button><button type="button" id="addGolf" class="button overview-add" aria-label="Add golf round"><span data-symbol="add"></span><span>Add</span></button></section></div>
-      <section id="ledgerPanel" aria-labelledby="moneyTab"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search this list</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Find Entry (Newest First)..."><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter year</label><select id="ledgerYear"><option value="">All years</option></select></div><div id="ledgerEntries" class="ledger-columns"><section id="moneyColumn" aria-label="Money"><div id="moneyEntries"></div></section><section id="golfColumn" aria-label="Golf"><div id="golfEntries"></div></section></div></section>
+      <section id="ledgerPanel" aria-labelledby="moneyTab"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search this list</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Find Entry (Newest First)..."><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter year</label><select id="ledgerYear"><option value="">All years</option></select></div><div id="ledgerEntries" class="ledger-columns"><section id="moneyColumn" aria-label="Money"><div id="moneyEntries"></div></section><section id="golfColumn" aria-label="Golf"><div id="golfEntries"></div></section><section id="combinedColumn" aria-label="Money and Golf" hidden><div id="combinedEntries"></div></section></div></section>
       <p class="ledger-footer" id="ledgerSyncStatus" role="status"></p>
     </section>`;
   }
   function dialogs() {
     return `<dialog id="moneyDialog" class="app-dialog entry-dialog" aria-labelledby="moneyTitle"><form id="moneyForm" class="dialog-shell"><header class="dialog-header"><h2 id="moneyTitle">Add money entry</h2><button type="button" class="icon-button" data-close-dialog="moneyDialog" aria-label="Close money entry"><span data-symbol="close"></span></button></header><div class="dialog-body entry-fields">
-      <p class="form-error wide" id="moneyError" role="alert" hidden></p><input type="hidden" name="kind" value="owed"><label>Date<input type="date" name="date" required></label><label>Amount ($)<input name="amount" inputmode="decimal" required placeholder="0"></label><div class="wide money-choice-row"><fieldset class="choice-toggle"><legend>Category</legend>${['Bets','Wins','Golf','Food','Other'].map(name => `<label><input type="radio" name="category" value="${name}" ${name === 'Bets' ? 'checked' : ''}><span>${name}</span></label>`).join('')}</fieldset><div class="payment-direction"><input type="hidden" name="from" value="Adam"><input type="hidden" name="to" value="Tristen"><strong id="moneyFromName">Adam</strong><button type="button" id="swapMoneyDirection" class="button" aria-label="Swap who owes whom"><span data-symbol="swapPayment"></span></button><strong id="moneyToName">Tristen</strong></div></div><label class="wide">What<input name="description" maxlength="200" required></label><label class="wide">Notes<textarea name="details" rows="3" maxlength="2000"></textarea></label><p class="entry-impact wide" id="moneyImpact" aria-live="polite"></p></div><footer class="dialog-footer"><button id="deleteMoney" type="button" class="button danger" hidden>Delete entry</button><button type="button" class="button" data-close-dialog="moneyDialog">Cancel</button><button type="submit" class="button primary">Save entry</button></footer></form></dialog>
+      <p class="form-error wide" id="moneyError" role="alert" hidden></p><p id="moneyLinkedNotice" class="inline-status wide" hidden>Linked to a round. Category, description and notes can be changed here; edit the round to change its date, amount or direction.</p><input type="hidden" name="kind" value="owed"><label>Date<input name="date" required placeholder="YYYY-MM-DD or YYYY" maxlength="10"></label><label>Amount ($)<input name="amount" inputmode="decimal" required placeholder="0"></label><div class="wide money-choice-row"><fieldset class="choice-toggle"><legend>Category</legend>${['Bets','Wins','Golf','Food','Other'].map(name => `<label><input type="radio" name="category" value="${name}" ${name === 'Bets' ? 'checked' : ''}><span>${name}</span></label>`).join('')}</fieldset><div class="payment-direction"><input type="hidden" name="from" value="Adam"><input type="hidden" name="to" value="Tristen"><strong id="moneyFromName">Adam</strong><button type="button" id="swapMoneyDirection" class="button" aria-label="Swap who owes whom"><span data-symbol="swapPayment"></span></button><strong id="moneyToName">Tristen</strong></div></div><label class="wide">What<input name="description" maxlength="200" required></label><label class="wide">Notes<textarea name="details" rows="3" maxlength="2000"></textarea></label><p class="entry-impact wide" id="moneyImpact" aria-live="polite"></p></div><footer class="dialog-footer"><button id="deleteMoney" type="button" class="button danger" hidden>Delete entry</button><button type="button" class="button" data-close-dialog="moneyDialog">Cancel</button><button type="submit" class="button primary">Save entry</button></footer></form></dialog>
       <dialog id="golfDialog" class="app-dialog entry-dialog" aria-labelledby="golfTitle"><form id="golfForm" class="dialog-shell"><header class="dialog-header"><h2 id="golfTitle">Add golf round</h2><button type="button" class="icon-button" data-close-dialog="golfDialog" aria-label="Close golf round"><span data-symbol="close"></span></button></header><div class="dialog-body entry-fields golf-form-fields"><p class="form-error wide" id="golfError" role="alert" hidden></p><div class="wide golf-date-row"><label>Date<input name="date" required placeholder="YYYY-MM-DD or YYYY" maxlength="10"></label><label>Course<input name="course" maxlength="200"></label><label>Holes<input type="number" name="holes" min="1" max="99" step="1" value="18" placeholder="??"></label></div><fieldset class="choice-toggle"><legend>Bet Winnings</legend><label><input type="radio" name="winner" value="Adam" checked><span>Adam</span></label><label><input type="radio" name="winner" value="Tristen"><span>Tristen</span></label></fieldset><label>Winnings ($)<input name="winnings" inputmode="decimal" placeholder="0"></label><label>Adam Score<input type="number" name="adam" min="1" max="500" required></label><label>Tristen Score<input type="number" name="tristan" min="1" max="500" required></label><label class="wide">Notes<textarea name="details" rows="3" maxlength="2000"></textarea></label><p class="entry-impact wide">New winnings appear in Money automatically. Enter 0 for an even bet.</p><div id="historicalRoundOptions" class="wide review-box" hidden><p id="roundReview"></p><label><input type="checkbox" name="postWinnings"> Post these historical winnings to Money</label><label>Or link an existing money entry<select name="existingMoney"><option value="">Keep separate</option></select></label><label><input type="checkbox" name="reviewed"> Mark reviewed and keep original values</label></div><details class="wide"><summary>Track round payment</summary><div class="entry-fields"><label>Who paid?<select name="payer"><option value="">No reimbursement</option><option>Adam</option><option>Tristen</option></select></label><label>Other person’s share owed ($)<input name="payment" inputmode="decimal" placeholder="0"></label></div></details></div><footer class="dialog-footer"><button id="deleteGolf" type="button" class="button danger" hidden>Delete round</button><button type="button" class="button" data-close-dialog="golfDialog">Cancel</button><button type="submit" class="button primary">Save round</button></footer></form></dialog>
       <dialog id="noteImportDialog" class="app-dialog entry-dialog" aria-labelledby="noteImportTitle"><div class="dialog-shell"><header class="dialog-header"><h2 id="noteImportTitle">Review running-note import</h2><button class="icon-button" type="button" data-close-dialog="noteImportDialog" aria-label="Close import"><span data-symbol="close"></span></button></header><div class="dialog-body"><div id="noteImportPreview"></div><label class="import-option"><input type="checkbox" id="importLinkMatches" checked> Link exact historical matches without adding any money</label><label class="import-option"><input type="checkbox" id="importAcceptOverlap"> I reviewed this edited note for possible duplicates; allow additional rows</label><p class="form-error" id="noteImportError" hidden role="alert"></p><p>The current data will be saved as a recovery copy. Personal content stays on this device until you sync.</p></div><footer class="dialog-footer"><button class="button" type="button" data-close-dialog="noteImportDialog">Cancel</button><button class="button primary" id="confirmNoteImport" type="button">Import reviewed entries</button></footer></div></dialog>`;
   }
@@ -33,11 +49,18 @@
     const s = state(), view = s.ui.activeModule === 'golf' ? 'golf' : 'money', w = s.workspace;
     const total = l.totals(w.moneyEntries), golf = l.golfSummary(w.golfRounds, s.ui.ledgerYear);
     const person = viewer();
+    const expanded = layout() === 'expanded';
+    document.documentElement.dataset.ledgerLayout = expanded ? 'expanded' : 'compact';
+    const layoutButton = $('#ledgerLayoutButton'), layoutName = expanded ? 'Expanded' : 'Compact', nextLayout = expanded ? 'Compact' : 'Expanded';
+    layoutButton.querySelector('.button-label').textContent = layoutName;
+    App.icons.set(layoutButton.querySelector('.button-icon'), expanded ? 'expandedView' : 'compactView');
+    layoutButton.setAttribute('aria-label', layoutName + ' view. Switch to ' + nextLayout);
+    layoutButton.setAttribute('aria-pressed', String(expanded)); layoutButton.title = 'Switch to ' + nextLayout + ' view';
     if (!s.preferences.controls.developerMode) simulatedPerson = '';
     $('#balanceAmount').textContent = shortNames(l.balanceLabel(total.balance));
     const categories = l.categoryTotals(w.moneyEntries, person);
     $('#balanceWords').textContent = Object.entries(categories).map(([name, value]) => (value > 0 ? '+' : value < 0 ? '−' : '±') + l.money(Math.abs(value)) + ' ' + name).join(' • ');
-    $('#balanceWords').title = 'All-time net amounts from ' + (person || 'Adam') + '’s perspective; Wins tracks golf winnings; Bets tracks other bets.';
+    $('#balanceWords').title = 'All-time category totals from ' + (person || 'Adam') + '’s perspective, including year-only history. Money balance begins May 2025 and includes only exact dates.';
     $('.balance-card').dataset.outcome = !person || !total.balance ? 'neutral' : total.balance * (person === 'Adam' ? 1 : -1) > 0 ? 'positive' : 'negative';
     $('#golfCount').textContent = shortNames((golf.margin ? (golf.margin > 0 ? 'Adam' : 'Tristen') + ' -' + Math.abs(golf.margin) + ' strokes' : 'Even -0 strokes') + ' • ' + (golf.winnings ? (golf.winnings > 0 ? 'Adam' : 'Tristen') + ' +$' + Math.round(Math.abs(golf.winnings) / 100) : 'Even +$0'));
     $('#golfOverview').textContent = shortNames(golf.count + ' Rounds: ' + golf.adamWins + ' Adam • ' + golf.tristanWins + ' Tristen • ' + golf.ties + ' Ties');
@@ -46,31 +69,72 @@
     $('#ledgerIdentity').disabled = !s.preferences.controls.developerMode;
     $('#ledgerIdentity').title = s.preferences.controls.developerMode ? 'Click to preview Adam, Tristen, or your signed-in view. Entries keep your real token identity.' : 'Adding as ' + (person || 'unassigned');
     document.querySelectorAll('[data-ledger-view]').forEach(button => { const selected = button.dataset.ledgerView === view; button.setAttribute('aria-pressed', String(selected)); button.closest('section').classList.toggle('is-selected', selected); });
-    $('#ledgerPanel').setAttribute('aria-label', desktop.matches ? 'Money and Golf' : view === 'money' ? 'Money' : 'Golf');
+    $('#ledgerPanel').setAttribute('aria-label', expanded || desktop.matches ? 'Money and Golf' : view === 'money' ? 'Money' : 'Golf');
     $('#ledgerPanel').removeAttribute('aria-labelledby');
-    $('#moneyColumn').hidden = !desktop.matches && view !== 'money';
-    $('#golfColumn').hidden = !desktop.matches && view !== 'golf';
+    $('#moneyColumn').hidden = expanded || (!desktop.matches && view !== 'money');
+    $('#golfColumn').hidden = expanded || (!desktop.matches && view !== 'golf');
+    $('#combinedColumn').hidden = !expanded;
     const rows = l.newest(w[view === 'money' ? 'moneyEntries' : 'golfRounds']);
-    const years = [...new Set((desktop.matches ? [...l.active(w.moneyEntries), ...l.active(w.golfRounds)] : rows).map(x => x.date.slice(0, 4)))].sort().reverse();
+    const years = [...new Set((expanded || desktop.matches ? [...l.active(w.moneyEntries), ...l.active(w.golfRounds)] : rows).map(x => x.date.slice(0, 4)))].sort().reverse();
     $('#ledgerYear').innerHTML = '<option value="">All years</option>' + years.map(year => `<option value="${year}">${year}</option>`).join(''); $('#ledgerYear').value = s.ui.ledgerYear;
     if (document.activeElement !== $('#ledgerSearch')) $('#ledgerSearch').value = s.ui.ledgerSearch;
+    if (expanded) {
+      $('#moneyEntries').innerHTML = ''; $('#golfEntries').innerHTML = '';
+      renderCombined(total);
+      renderStatus(); return;
+    }
+    $('#combinedEntries').innerHTML = '';
     let counts = {};
     for (const view of ['money', 'golf']) {
     const rows = l.newest(w[view === 'money' ? 'moneyEntries' : 'golfRounds']);
     const filtered = rows.filter(row => (!s.ui.ledgerYear || row.date.startsWith(s.ui.ledgerYear)) && (!s.ui.ledgerSearch || entryText(row).includes(s.ui.ledgerSearch.toLowerCase())));
     counts[view] = filtered.length;
     if (!filtered.length) $('#' + view + 'Entries').innerHTML = `<div class="ledger-empty"><span aria-hidden="true">${view === 'money' ? '↔' : '⚑'}</span><h3>${rows.length ? 'No matching entries' : view === 'money' ? 'Start your running tally' : 'Your next round starts here'}</h3><p>${rows.length ? 'Try another search or year.' : 'Add your first entry above, or import your existing note in Settings.'}</p>${rows.length ? '<button class="button" data-clear-ledger type="button">Clear filters</button>' : '<button class="button" data-import-shortcut type="button">Import existing note</button>'}</div>`;
-    else $('#' + view + 'Entries').innerHTML = `<div class="entry-column-head ${view}" aria-hidden="true">${view === 'money' ? '<span>Date</span><span>What</span><span>Category</span><span>Direction</span><span>Amount</span><span>Balance</span><span></span>' : '<span>Date</span><span>Course</span><span>Results</span><span>Wins</span><span></span>'}</div><ol class="entry-list">` + filtered.map(row => view === 'money' ? moneyRow(row, total.running[row.id]) : golfRow(row)).join('') + '</ol>';
+    else $('#' + view + 'Entries').innerHTML = `<div class="entry-column-head ${view}" aria-hidden="true">${view === 'money' ? '<span>Date</span><span>What</span><span>Category</span><span>Direction</span><span>Amount</span><span>Balance</span><span></span>' : '<span>Date</span><span>Course</span><span>Results</span><span>Wins</span><span></span>'}</div><ol class="entry-list">` + (view === 'money' ? withLedgerStart(filtered, row => moneyRow(row, total.running[row.id]), false) : filtered.map(golfRow).join('')) + '</ol>';
     }
     $('#ledgerCount').textContent = desktop.matches ? counts.money + ' entries · ' + counts.golf + ' rounds' : counts[view] + (view === 'money' ? ' entries' : ' rounds');
     renderStatus();
+  }
+  function renderCombined(total) {
+    const s = state(), rows = combinedEntries(s.workspace);
+    const filtered = rows.filter(row => (!s.ui.ledgerYear || row.date.startsWith(s.ui.ledgerYear)) && (!s.ui.ledgerSearch || [entryText(row), ...(row.entryType === 'golf' ? linkedMoney(row).map(entryText) : [])].join(' ').includes(s.ui.ledgerSearch.toLowerCase())));
+    $('#ledgerCount').textContent = filtered.length + ' entries';
+    $('#combinedEntries').innerHTML = filtered.length ? '<table class="expanded-table"><caption class="visually-hidden">Money and Golf, newest first. Open an entry for details.</caption><thead><tr><th scope="col">Date</th><th scope="col">Entry</th><th scope="col">Result</th><th scope="col">Amount</th><th scope="col">Balance</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead><tbody>' + withLedgerStart(filtered, row => expandedRow(row, total), true) + '</tbody></table>' : '<div class="ledger-empty"><h3>' + (rows.length ? 'No matching entries' : 'Your ledger starts here') + '</h3><p>' + (rows.length ? 'Try another search or year.' : 'Add money or a round using the buttons above.') + '</p>' + (rows.length ? '<button class="button" data-clear-ledger type="button">Clear filters</button>' : '') + '</div>';
+  }
+  function expandedRow(row, total) {
+    const round = row.entryType === 'golf', entries = round ? l.newest(linkedMoney(row)) : [row];
+    const amount = entries.reduce((value, entry) => value + l.delta(entry), 0);
+    const difference = round ? row.tristan - row.adam : 0;
+    const title = round ? row.course || 'Golf round' : row.description;
+    const result = round ? difference ? (difference > 0 ? 'Adam' : 'Tristen') + ' won by ' + Math.abs(difference) + ' strokes' : 'Tied round' : row.kind === 'repayment' ? row.from + ' repaid ' + row.to : row.from + ' owes ' + row.to;
+    const outcome = !viewer() || !amount ? 'neutral' : amount * (viewer() === 'Tristen' ? -1 : 1) > 0 ? 'positive' : 'negative';
+    const balance = l.inLedger(row) && entries.length ? total.running[entries[0].id] : null;
+    return `<tr id="row-${esc(row.id)}" class="expanded-row" data-outcome="${outcome}"><td class="expanded-date"><time>${esc(row.date.length === 4 ? row.date + ' · date unknown' : dateLabel(row.date))}</time></td><td class="expanded-entry"><strong>${esc(title)}</strong><span class="entry-tags"><span class="category-pill ${round ? 'round-pill' : 'money-pill'}">${round ? 'Round' : 'Money'}</span>${round ? '' : `<span class="category-pill category-${categoryName(row).toLowerCase()}">${esc(categoryName(row))}</span>`}</span></td><td class="expanded-result">${esc(result)}</td><td class="expanded-amount"><strong>${entries.length ? l.money(Math.abs(amount)) : '—'}</strong>${amount ? '<small>to ' + (amount > 0 ? 'Adam' : 'Tristen') + '</small>' : ''}</td><td class="expanded-balance"><span class="mobile-column-label">Balance </span>${esc(balanceText(balance))}</td><td class="expanded-open"><button type="button" class="button" data-view-entry="${esc(row.id)}" data-entry-type="${row.entryType}" aria-label="Open ${esc(title)} on ${esc(row.date)}">${App.icons.markup('chevronRight')}</button></td></tr>`;
+  }
+  function detailsDialog() {
+    return '<dialog id="entryDetailsDialog" class="app-dialog entry-dialog" aria-labelledby="entryDetailsTitle"><div class="dialog-shell"><header class="dialog-header"><h2 id="entryDetailsTitle">Entry details</h2><button type="button" class="icon-button" data-close-dialog="entryDetailsDialog" aria-label="Close entry details"><span data-symbol="close"></span></button></header><div id="entryDetailsBody" class="dialog-body entry-detail-body"></div><footer class="dialog-footer"><button type="button" class="button" data-close-dialog="entryDetailsDialog">Close</button><button type="button" id="editEntryDetails" class="button primary">Edit entry</button></footer></div></dialog>';
+  }
+  function openDetails(type, entryId) {
+    const row = state().workspace[type === 'money' ? 'moneyEntries' : 'golfRounds'].find(entry => entry.id === entryId && !entry.deleted);
+    if (!row) return;
+    const round = type === 'golf';
+    $('#entryDetailsTitle').textContent = round ? row.course || 'Golf round' : row.description;
+    const detail = (label, value) => '<div><dt>' + esc(label) + '</dt><dd>' + esc(String(value)) + '</dd></div>';
+    let facts = detail('Date', dateLabel(row.date));
+    if (round) facts += detail('Holes', row.holes === 'unknown' ? 'Unknown' : row.holes) + detail('Adam score', row.adam) + detail('Tristen score', row.tristan) + detail('Winnings', row.winningsCents ? row.winner + ' +' + l.money(row.winningsCents) : 'Even');
+    else facts += detail('Category', row.category) + detail('Type', row.kind === 'repayment' ? 'Repayment' : 'Owed') + detail('Direction', row.from + ' → ' + row.to) + detail('Amount', l.money(row.amountCents)) + detail('Balance', balanceText(l.totals(state().workspace.moneyEntries).running[row.id]));
+    facts += detail('Added by', row.createdBy || 'Unknown') + detail('Last edited by', row.updatedBy || 'Unknown');
+    $('#entryDetailsBody').innerHTML = '<dl class="entry-facts">' + facts + '</dl>' + (!l.inLedger(row) ? '<p class="inline-status">Historical entry · excluded from the money balance. Wins and Bets still include it.</p>' : '') + (row.details ? '<h3>Notes</h3><p class="entry-detail-notes">' + esc(row.details) + '</p>' : '') + (round && row.review ? '<p class="inline-status">' + esc(row.review) + '</p>' : '') + (round ? linkedMoney(row).map(entry => '<section class="linked-entry-detail"><h3>' + esc(entry.description) + '</h3><p>' + esc(entry.category + ' · ' + entry.from + ' → ' + entry.to + ' · ' + l.money(entry.amountCents)) + '</p>' + (entry.details ? '<p class="entry-detail-notes">' + esc(entry.details) + '</p>' : '') + '<button type="button" class="button" data-edit-linked-money="' + esc(entry.id) + '">Edit category and notes</button></section>').join('') : '');
+    $('#editEntryDetails').dataset.entryType = type; $('#editEntryDetails').dataset.entryId = row.id;
+    $('#editEntryDetails').textContent = round ? 'Edit round' : 'Edit money entry';
+    c.openDialog($('#entryDetailsDialog'), { trigger: document.activeElement, focus: '#editEntryDetails' });
   }
   function moneyRow(row, balance) {
     const linked = state().workspace.golfRounds.find(round => round.id === row.sourceRoundId);
     const what = linked && row.linkRole === 'winnings' ? 'Golf Winnings [' + (linked.course || 'Golf round') + ' (' + (linked.holes === 'unknown' ? '??' : linked.holes) + ')]' : row.description;
     const details = linked && row.details.trim() === linked.course.trim() ? '' : row.details;
     const category = ['Golf', 'Bets', 'Wins', 'Food', 'Other'].includes(row.category) ? row.category : 'Other';
-    return `<li id="row-${esc(row.id)}" class="entry-row money" data-outcome="${!viewer() ? 'neutral' : row.to === viewer() ? 'positive' : 'negative'}"><time title="${esc(dateLabel(row.date))}">${esc(row.date.length === 4 ? row.date : dateLabel(row.date))}</time><strong class="entry-what" title="${esc(what)}">${esc(what)}</strong><span class="category-pill category-${category.toLowerCase()}">${esc(category)}</span><span class="entry-direction" title="${row.kind === 'repayment' ? 'Repayment' : 'Owed'}">${esc(row.from)} → ${esc(row.to)}</span><strong class="entry-amount">${l.money(row.amountCents)}</strong><span class="entry-running">${l.money(Math.abs(balance))}${balance ? ' (to ' + (balance > 0 ? 'Adam' : 'Tristen') + ')' : ' (even)'}</span><div class="entry-actions">${row.sourceRoundId ? `<button type="button" class="button row-link" data-linked-round="${esc(row.sourceRoundId)}" aria-label="Open linked golf round on ${esc(row.date)}" title="Open linked golf round">${App.icons.markup('roundLink')}</button>` : ''}<button type="button" class="button small row-edit" title="Edit · hover this row and press E" aria-keyshortcuts="E" data-edit-money="${esc(row.id)}" aria-label="Edit ${esc(row.description)} on ${esc(row.date)}">${App.icons.markup('entryEdit')}</button></div>${details ? '<p class="entry-details">' + esc(details) + '</p>' : ''}</li>`;
+    return `<li id="row-${esc(row.id)}" class="entry-row money" data-outcome="${!viewer() ? 'neutral' : l.delta(row) * (viewer() === 'Tristen' ? -1 : 1) > 0 ? 'positive' : 'negative'}"><time title="${esc(dateLabel(row.date))}">${esc(row.date.length === 4 ? row.date : dateLabel(row.date))}</time><strong class="entry-what" title="${esc(what)}">${esc(what)}</strong><span class="category-pill category-${category.toLowerCase()}">${esc(category)}</span><span class="entry-direction" title="${row.kind === 'repayment' ? 'Repayment' : 'Owed'}">${esc(row.from)} → ${esc(row.to)}</span><strong class="entry-amount">${l.money(row.amountCents)}</strong><span class="entry-running">${esc(balanceText(balance))}</span><div class="entry-actions">${row.sourceRoundId ? `<button type="button" class="button row-link" data-linked-round="${esc(row.sourceRoundId)}" aria-label="Open linked golf round on ${esc(row.date)}" title="Open linked golf round">${App.icons.markup('roundLink')}</button>` : ''}<button type="button" class="button small row-edit" title="Edit · hover this row and press E" aria-keyshortcuts="E" data-edit-money="${esc(row.id)}" aria-label="Edit ${esc(row.description)} on ${esc(row.date)}">${App.icons.markup('entryEdit')}</button></div>${details ? '<p class="entry-details">' + esc(details) + '</p>' : ''}</li>`;
   }
 
   function golfRow(row) {
@@ -91,12 +155,15 @@
   }
   function openMoney(entryId, repayment) {
     const row = state().workspace.moneyEntries.find(x => x.id === entryId);
-    if (row?.sourceRoundId) return openGolf(row.sourceRoundId);
+
     editing = row ? { id: row.id, rev: row.rev } : null;
     const form = $('#moneyForm'); form.reset(); $('#moneyError').hidden = true;
     const balance = l.totals(state().workspace.moneyEntries).balance;
     fields(form, row ? { ...row, amount: amountValue(row.amountCents) } : { date: today(), kind: repayment ? 'repayment' : 'owed', description: repayment ? 'Repayment' : '', amount: repayment ? amountValue(Math.abs(balance)) : '', from: repayment ? balance > 0 ? 'Tristen' : 'Adam' : App.identity.person() || 'Adam', to: repayment ? balance > 0 ? 'Adam' : 'Tristen' : App.identity.person() === 'Tristen' ? 'Adam' : 'Tristen' });
-    $('#moneyTitle').textContent = row ? 'Edit money entry' : repayment ? 'Record repayment' : 'Add money entry'; $('#deleteMoney').hidden = !row;
+    $('#moneyTitle').textContent = row ? 'Edit money entry' : repayment ? 'Record repayment' : 'Add money entry'; $('#deleteMoney').hidden = !row || Boolean(row.sourceRoundId);
+    $('#moneyLinkedNotice').hidden = !row?.sourceRoundId;
+    for (const key of ['date', 'amount']) form.elements[key].readOnly = Boolean(row?.sourceRoundId);
+    $('#swapMoneyDirection').disabled = Boolean(row?.sourceRoundId);
     c.openDialog($('#moneyDialog'), { trigger: document.activeElement, focus: '[name=description]' }); moneyImpact();
   }
   function quickRound(payer) {
@@ -117,8 +184,8 @@
     try {
       if (f.from.value === f.to.value) throw new Error('Choose two different people.');
       const amount = l.cents(f.amount.value), old = state().workspace.moneyEntries.find(x => x.id === editing?.id);
-      const balance = l.totals(state().workspace.moneyEntries).balance - (old ? l.delta(old) : 0) + l.delta({ kind: f.kind.value, to: f.to.value, amountCents: amount });
-      $('#moneyImpact').textContent = 'After saving: ' + l.balanceLabel(balance);
+      const balance = l.totals(state().workspace.moneyEntries).balance - (old ? l.ledgerDelta(old) : 0) + l.ledgerDelta({ date: f.date.value, kind: f.kind.value, to: f.to.value, amountCents: amount });
+      $('#moneyImpact').textContent = 'After saving: ' + l.balanceLabel(balance) + (l.inLedger({date: f.date.value}) ? '' : ' · Historical entry, excluded from the money balance.');
     } catch (error) { $('#moneyImpact').textContent = f.amount.value ? error.message : 'Enter an amount to preview the new balance.'; }
   }
   function openGolf(roundId) {
@@ -201,7 +268,7 @@
     return [['money', state().workspace.moneyEntries], ['golf', state().workspace.golfRounds]].flatMap(([type, rows]) => l.newest(rows).filter(row => entryText(row).includes(needle)).slice(0, 4).map(row => ({ type, id: row.id, title: row.description || row.course || 'Golf round', meta: (type === 'money' ? 'Money · ' : 'Golf · ') + dateLabel(row.date) })));
   }
   function init() {
-    $('#mainContent').innerHTML = shell(); $('.app-header').append($('.ledger-overview'));  $('#mainContent').setAttribute('aria-label', 'Money and Golf'); document.body.insertAdjacentHTML('beforeend', dialogs());
+    $('#mainContent').innerHTML = shell(); $('.app-header').insertBefore($('.ledger-overview'), $('.top-toolbar'));  $('#mainContent').setAttribute('aria-label', 'Money and Golf'); document.body.insertAdjacentHTML('beforeend', dialogs() + detailsDialog());
     const file = document.createElement('input'); file.type = 'file'; file.accept = '.txt,text/plain'; file.id = 'runningNoteFile'; file.hidden = true; document.body.appendChild(file);
     file.addEventListener('change', () => { previewNote(file.files[0]); file.value = ''; });
     $('#ledgerSearch').addEventListener('input', event => { storage.mutate(next => { next.ui.ledgerSearch = event.target.value; }, { reason: 'ledger-view', touch: false }); render(); });
@@ -217,6 +284,19 @@
       const dialog = document.querySelector('#moneyDialog[open], #golfDialog[open]');
       if (!dialog) return;
       event.preventDefault(); dialog.querySelector('form').requestSubmit();
+    });
+    $('#ledgerLayoutButton').addEventListener('click', () => {
+      const key = layoutPerson(), nextLayout = layout() === 'compact' ? 'expanded' : 'compact';
+      storage.mutate(next => { next.preferences.ledgerLayouts[key] = nextLayout; }, { reason: 'ledger-layout', touch: false });
+      render();
+    });
+    $('#editEntryDetails').addEventListener('click', event => {
+      const button = event.currentTarget; c.closeDialog($('#entryDetailsDialog'));
+      if (button.dataset.entryType === 'golf') openGolf(button.dataset.entryId); else openMoney(button.dataset.entryId);
+    });
+    $('#entryDetailsBody').addEventListener('click', event => {
+      const button = event.target.closest('[data-edit-linked-money]'); if (!button) return;
+      c.closeDialog($('#entryDetailsDialog')); openMoney(button.dataset.editLinkedMoney);
     });
     $('#addMoney').addEventListener('click', () => openMoney());
     $('#addGolf').addEventListener('click', () => openGolf());
@@ -236,7 +316,7 @@
       event.preventDefault(); row.querySelector('[data-edit-money], [data-edit-golf]')?.click();
     });
     $('.quick-round').addEventListener('click', event => { const button = event.target.closest('[data-round-payer]'); if (button) quickRound(button.dataset.roundPayer); });
-    $('#ledgerEntries').addEventListener('click', event => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.linkedMoney) { const row = state().workspace.moneyEntries.find(entry => entry.id === button.dataset.linkedMoney && !entry.deleted); if (row) c.message('Linked Money entry', [dateLabel(row.date), row.description, row.category, row.from + ' → ' + row.to + ': ' + l.money(row.amountCents), row.details].filter(Boolean).join(' · '), { trigger: button }); } else if (button.dataset.linkedRound) openGolf(button.dataset.linkedRound); else if (button.dataset.editMoney) openMoney(button.dataset.editMoney); else if (button.dataset.editGolf) openGolf(button.dataset.editGolf); else if (button.hasAttribute('data-clear-ledger')) setView(state().ui.activeModule); else if (button.hasAttribute('data-import-shortcut')) file.click(); });
+    $('#ledgerEntries').addEventListener('click', event => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.viewEntry) openDetails(button.dataset.entryType, button.dataset.viewEntry); else if (button.dataset.linkedMoney) { const row = state().workspace.moneyEntries.find(entry => entry.id === button.dataset.linkedMoney && !entry.deleted); if (row) c.message('Linked Money entry', [dateLabel(row.date), row.description, row.category, row.from + ' → ' + row.to + ': ' + l.money(row.amountCents), row.details].filter(Boolean).join(' · '), { trigger: button }); } else if (button.dataset.linkedRound) openGolf(button.dataset.linkedRound); else if (button.dataset.editMoney) openMoney(button.dataset.editMoney); else if (button.dataset.editGolf) openGolf(button.dataset.editGolf); else if (button.hasAttribute('data-clear-ledger')) setView(state().ui.activeModule); else if (button.hasAttribute('data-import-shortcut')) file.click(); });
     $('#moneyForm').addEventListener('submit', saveMoney); $('#moneyForm').addEventListener('input', moneyImpact); $('#golfForm').addEventListener('submit', saveGolf);
     $('#deleteMoney').addEventListener('click', () => deleteEntry('moneyEntries')); $('#deleteGolf').addEventListener('click', () => deleteEntry('golfRounds')); $('#confirmNoteImport').addEventListener('click', confirmImport);
     document.addEventListener('click', event => { if (event.target.closest('[data-import-running-note]')) file.click(); });

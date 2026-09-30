@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.13";
+  const VERSION = "0.0.1.14";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -70,7 +70,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-09-29T23:45:00.000Z", "title": "Header summaries and aligned results", "summary": "Compact header summaries and year-only winnings in Money.", "features": ["Historical year-only winnings in Money"], "improvements": ["Aligned golf results", "Whole-dollar displays", "Single-row mobile toolbar"], "fixes": ["Equal money input sizes"], "knownIssues": []},
+    {"version": VERSION, "date": "2026-09-30T14:56:00.000Z", "title": "Personal layouts and ledger history", "summary": "Expanded and Compact views, token-first loading, and a May 2025 ledger boundary.", "features": ["Expanded combined table with Round tags and entry details", "Personal layout toggle: Compact for Adam, Expanded for everyone else", "Token entry fills 80% of the screen and loads shared data before opening the app"], "improvements": ["Desktop summaries between app identity and toolbar", "Ledger Begins divider at May 2025", "Larger Expanded text and controls"], "fixes": ["Saved categories survive editing, reload and sync", "Year-only history counts toward Wins and Bets without changing the money balance", "Linked category edits preserve round amounts and links"], "knownIssues": []},
+    {"version": "0.0.1.13", "date": "2026-09-29T23:45:00.000Z", "title": "Header summaries and aligned results", "summary": "Compact header summaries and year-only winnings in Money.", "features": ["Historical year-only winnings in Money"], "improvements": ["Aligned golf results", "Whole-dollar displays", "Single-row mobile toolbar"], "fixes": ["Equal money input sizes"], "knownIssues": []},
     {"version": "0.0.1.12", "date": "2026-09-29T23:30:00.000Z", "title": "Compact mobile ledger", "summary": "Wins categories and compact phone layouts.", "features": ["Separate Wins category"], "improvements": ["Two-line mobile money rows", "Aligned category and payment controls", "Compact summaries and golf columns"], "fixes": ["Remove repeated course details"], "knownIssues": []},
     {"version": "0.0.1.11", "date": "2026-09-29T23:00:00.000Z", "title": "Personal balance views", "summary": "Balances and rows reflect your signed-in perspective.", "features": ["Developer identity preview", "Command–Enter saves entry forms"], "improvements": ["Category totals and compact quick payments", "Blue golf summary and outcome row shading", "Single entry search"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.10", "date": "2026-09-29T22:00:00.000Z", "title": "Faster entry forms", "summary": "One-click categories, payment direction, and winnings controls.", "features": [], "improvements": ["Compact Money and Golf forms", "Tristen name correction with legacy-data support", "Compact summary labels and linked course names"], "fixes": [], "knownIssues": []},

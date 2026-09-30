@@ -34,7 +34,7 @@
   <script type="application/x-app-script" data-app-src="assets/js/ledger-ui.js"></script>
   <script type="application/x-app-script" data-app-src="assets/js/app.js"></script>
 </head>
-<body>
+<body class="token-required">
   <a class="skip-link" href="#mainContent">Skip to main content</a>
 
   <header class="app-header">
@@ -70,6 +70,9 @@
       <button id="notesButton" class="button action-button" type="button" aria-haspopup="dialog" aria-controls="notesDialog" aria-keyshortcuts="N Control+Alt+Shift+N" data-shortcut="N">
         <span class="button-icon" aria-hidden="true" data-symbol="notes"></span><span class="button-label">Notes</span>
       </button>
+      <button id="ledgerLayoutButton" class="button action-button" type="button" aria-label="Expanded view. Switch to Compact" title="Switch to Compact view" aria-pressed="true">
+        <span class="button-icon" aria-hidden="true" data-symbol="expandedView"></span><span class="button-label">Expanded</span>
+      </button>
       <button id="supportButton" class="button icon-button action-button" type="button" aria-label="Open settings" title="Open settings" aria-keyshortcuts=", Control+Alt+Shift+," data-shortcut=",">
         <span class="button-icon" aria-hidden="true" data-symbol="support"></span><span class="button-label">Settings</span>
         <span id="releaseUnreadDot" class="unread-dot" aria-label="Unread release notes" hidden></span>
@@ -98,6 +101,18 @@
   </aside>
 
   <main id="mainContent" tabindex="-1" aria-label="T&amp;A workspace"></main>
+  <dialog id="tokenDialog" class="app-dialog token-dialog" aria-labelledby="tokenTitle" aria-describedby="tokenIntro" data-backdrop-close="false" data-required="true">
+    <form id="tokenForm" class="dialog-shell">
+      <div class="dialog-body token-content">
+        <span class="eyebrow">T&amp;A</span><h1 id="tokenTitle">Connect your ledger</h1>
+        <p id="tokenIntro">Enter your GitHub token to load the latest shared Money and Golf entries.</p>
+        <label for="startupToken">Your token</label><input id="startupToken" type="password" autocomplete="off" spellcheck="false" required maxlength="500" placeholder="Paste your token" autofocus>
+        <label class="token-remember"><input id="startupRememberToken" type="checkbox" checked> Remember on this device</label>
+        <p id="startupTokenStatus" role="status" aria-live="polite"></p>
+        <button id="startupTokenSave" type="submit" class="button primary">Save and load ledger</button>
+      </div>
+    </form>
+  </dialog>
 
 
   <dialog id="notesDialog" class="app-dialog notes-dialog" aria-labelledby="notesDialogTitle">

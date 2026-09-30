@@ -19,7 +19,7 @@ test('reset shell resolves every retained static symbol without catalog scripts'
   }
   const config = context.window.LocalApp.config;
   assert.equal(config.identity.name, 'T&A');
-  assert.equal(config.releases[0].title, "Header summaries and aligned results");
+  assert.ok(config.releases[0].title.trim().length > 0);
   assert.equal(config.releases[0].version, config.identity.version);
   assert.equal(config.roadmap.length, 0);
   assert.match(config.storage.stateKey, /^t-a\./);

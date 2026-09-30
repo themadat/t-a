@@ -3,6 +3,7 @@
   const App = window.LocalApp, u = App.utils;
   const people = ["Adam", "Tristen"];
   const MAX_CENTS = 100000000;
+  const LEDGER_START = "2025-05-01";
   function fail(message) { throw new Error(message); }
   function id() { return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : u.uid("entry"); }
   function text(value, max) { return u.cleanText(value || "", max || 2000); }
@@ -38,7 +39,7 @@
     const item = common(raw);
     if (!["owed", "repayment"].includes(raw.kind)) fail("Money entry type is invalid.");
     return Object.assign(item, { kind: raw.kind, amountCents: integer(raw.amountCents, 1, MAX_CENTS, "Amount"),
-      from: person(raw.from), to: person(raw.to), description: text(raw.description, 200), category: raw.linkRole === "winnings" || /golf winnings|golf bets/i.test(raw.description) ? "Wins" : text(raw.category, 40), details: text(raw.details),
+      from: person(raw.from), to: person(raw.to), description: text(raw.description, 200), category: text(raw.category, 40) || (raw.linkRole === "winnings" ? "Wins" : "Other"), details: text(raw.details),
       sourceRoundId: text(raw.sourceRoundId, 160), linkRole: text(raw.linkRole, 30) });
   }
   function normalizeRound(raw) {
@@ -106,9 +107,11 @@
   }
   function newest(rows) { return ordered(rows).reverse(); }
   function delta(entry) { return (entry.to === "Adam" ? 1 : -1) * entry.amountCents * (entry.kind === "repayment" ? -1 : 1); }
+  function inLedger(entry) { return entry.date.length === 10 && entry.date >= LEDGER_START; }
+  function ledgerDelta(entry) { return inLedger(entry) ? delta(entry) : 0; }
   function totals(rows) {
     let balance = 0; const running = Object.create(null);
-    ordered(rows).forEach(entry => { balance += delta(entry); if (!Number.isSafeInteger(balance)) fail("Balance is too large."); running[entry.id] = balance; });
+    ordered(rows).forEach(entry => { balance += ledgerDelta(entry); if (!Number.isSafeInteger(balance)) fail("Balance is too large."); running[entry.id] = inLedger(entry) ? balance : null; });
     return { balance, running };
   }
   function golfSummary(rows, year) {
@@ -128,7 +131,10 @@
   function put(rows, item) { const index = rows.findIndex(x => x.id === item.id); if (index < 0) rows.push(item); else rows[index] = item; }
   function saveMoney(workspace, fields, actor, entryId) {
     const old = workspace.moneyEntries.find(x => x.id === entryId);
-    if (old?.sourceRoundId) fail("Edit the linked golf round to change this entry.");
+    if (old?.sourceRoundId) {
+      if (["date", "kind", "amountCents", "from", "to"].some(key => fields[key] !== old[key])) fail("Edit the linked golf round to change its date, amount or direction.");
+      fields = Object.assign({}, fields, { sourceRoundId: old.sourceRoundId, linkRole: old.linkRole });
+    }
     const entry = normalizeMoney(Object.assign(stamp(workspace, old, actor), fields));
     if (entry.from === entry.to) fail("Choose two different people.");
     put(workspace.moneyEntries, entry); return entry;
@@ -147,7 +153,7 @@
         const entry = normalizeMoney(Object.assign(stamp(workspace, oldEntry, actor), {
           id: oldEntry?.id || "golf:" + round.id + ":" + role, date: round.date, kind: "owed", amountCents: amount,
           from: recipient === "Adam" ? "Tristen" : "Adam", to: recipient,
-          description: role === "winnings" ? "Golf Winnings" : "Golf round payment", category: role === "winnings" ? "Wins" : "Golf", details: oldEntry?.details && oldEntry.details !== old?.course ? oldEntry.details : "",
+          description: oldEntry?.description || (role === "winnings" ? "Golf Winnings" : "Golf round payment"), category: oldEntry?.category || (role === "winnings" ? "Wins" : "Golf"), details: oldEntry?.details && oldEntry.details !== old?.course ? oldEntry.details : "",
           sourceRoundId: round.id, linkRole: role, rev: round.rev
         }));
         put(workspace.moneyEntries, entry); round[key] = entry.id;
@@ -223,11 +229,11 @@
   function categoryTotals(entries, viewer) {
     const result = { Wins: 0, Bets: 0 };
     for (const entry of active(entries)) {
-      const category = entry.linkRole === 'winnings' || /golf bets|golf winnings/i.test(entry.description) ? 'Wins' : entry.category;
+      const category = entry.category;
       if (!Object.hasOwn(result, category)) continue;
       result[category] += delta(entry) * (viewer === 'Tristen' ? -1 : 1);
     }
     return result;
   }
-  App.ledger = { categoryTotals, people, id, cents, money, balanceLabel, date, collections, validateLinks, active, newest, delta, totals, golfSummary, nextOrder, saveMoney, saveRound, remove, undo, mergeData };
+  App.ledger = { LEDGER_START, inLedger, ledgerDelta, categoryTotals, people, id, cents, money, balanceLabel, date, collections, validateLinks, active, newest, delta, totals, golfSummary, nextOrder, saveMoney, saveRound, remove, undo, mergeData };
 })();

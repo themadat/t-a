@@ -2,6 +2,7 @@
   "use strict";
   const App = window.LocalApp, storage = App.storage;
   let credential = "", fingerprintValue = "", sequence = 0, busy = false;
+  let tokenRequired = false, connectingAtStartup = false;
   async function fingerprint(token) {
     const clean = String(token || "").trim();
     if (!clean || clean.length > 500 || /\s/.test(clean)) throw new Error("Enter a valid token without spaces.");
@@ -74,6 +75,37 @@
     document.querySelector("#saveTokenLabels").disabled = busy || App.sync.getInfo().busy;
     document.querySelector("#saveSyncButton").disabled = busy || App.sync.getInfo().busy;
   }
+  function updateTokenGate() {
+    const dialog = document.querySelector("#tokenDialog");
+    if (!dialog) return;
+    if (!storage.getSecret()) tokenRequired = true;
+    document.body.classList.toggle("token-required", tokenRequired);
+    if (tokenRequired && !dialog.open) App.components.openDialog(dialog, { focus: "#startupToken" });
+    else if (!tokenRequired && dialog.open) App.components.closeDialog(dialog);
+  }
+  function initTokenGate() {
+    const form = document.querySelector("#tokenForm"), dialog = document.querySelector("#tokenDialog");
+    if (!form || !dialog) return;
+    tokenRequired = !storage.getSecret();
+    dialog.addEventListener("cancel", event => event.preventDefault());
+    window.addEventListener("app:identitychange", updateTokenGate);
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (connectingAtStartup) return;
+      const input = document.querySelector("#startupToken"), button = document.querySelector("#startupTokenSave"), status = document.querySelector("#startupTokenStatus");
+      connectingAtStartup = true; button.disabled = true; input.readOnly = true;
+      form.setAttribute("aria-busy", "true"); status.textContent = "Connecting and loading the latest entries…";
+      try {
+        await connect({ ...storage.getState().modules.cloudSync, token: input.value, rememberToken: document.querySelector("#startupRememberToken").checked });
+        input.value = ""; tokenRequired = false; updateTokenGate();
+      } catch (error) {
+        status.textContent = error.message || "Could not load your ledger. Check your token and try again.";
+      } finally {
+        connectingAtStartup = false; button.disabled = false; input.readOnly = false; form.removeAttribute("aria-busy");
+      }
+    });
+    updateTokenGate();
+  }
   function init() {
     window.addEventListener("app:statechange", refresh);
     window.addEventListener("app:identitychange", render);
@@ -92,7 +124,7 @@
         status.textContent = synced ? "Both labels are shared. Tristen can now enter his token and press Connect." : "Labels are saved here but are not shared yet. Complete Sync Now before giving Tristen the app.";
       } catch (error) { status.textContent = error.message; }
     });
-    refresh();
+    initTokenGate(); refresh();
   }
   App.identity = { fingerprint, person, refresh, connect, associate, canInitializeFrom, init };
 })();

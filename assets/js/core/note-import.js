@@ -36,7 +36,7 @@
         const details = match[8].replace(/^\s*to\s+(?:Adam|Trist[ae]n)/i, "").trim();
         const fields = { date: match[1], description, amountCents: amount, from, to, details };
         const entry = Object.assign(await common("money", fields, line, match[1], moneyEntries.length + 1), fields,
-          { kind: "owed", category: /golf|range/i.test(description) ? "Golf" : /food|pizza|sub|coldstone/i.test(description) ? "Food" : /bet/i.test(description) ? "Bets" : "Other", sourceRoundId: "", linkRole: "" });
+          { kind: "owed", category: /golf bets|golf winnings/i.test(description) ? "Wins" : /golf|range/i.test(description) ? "Golf" : /food|pizza|sub|coldstone/i.test(description) ? "Food" : /bet/i.test(description) ? "Bets" : "Other", sourceRoundId: "", linkRole: "" });
         moneyEntries.push(entry); running += ledger.delta(entry);
         const expected = Number(match[7]) * 100 * (match[6] === "-" ? -1 : 1);
         if (Math.abs(running - expected) > 0.001) warnings.push("Money line " + lineNumber + ": the written running total differs from the entries.");
@@ -67,7 +67,7 @@
       if (actual.margin !== Number(match[3]) * (person(match[2]) === "Adam" ? 1 : -1) || actual.winnings !== Number(match[5]) * 100 * (person(match[4]) === "Adam" ? 1 : -1)) warnings.push("The " + match[1] + " summary differs from its rounds.");
     });
     ledger.collections({ moneyEntries, golfRounds });
-    return { batch, moneyEntries, golfRounds, matches, warnings, appendix: appendix.join("\n").trim(), balance: ledger.totals(moneyEntries).balance };
+    return { batch, moneyEntries, golfRounds, matches, warnings, appendix: appendix.join("\n").trim(), balance: running };
   }
   function apply(workspace, parsed, linkMatches, acceptOverlap) {
     const existingBatches = new Set([...workspace.moneyEntries, ...workspace.golfRounds].map(x => x.source?.batch).filter(Boolean));

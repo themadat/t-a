@@ -29,6 +29,9 @@ For a copied-app reset, also complete [Reset acceptance](RESET.md#verify).
 
 ## Money and Golf acceptance
 
+- Fresh token-less visit: only the 80% token dialog is visible; Escape/backdrop cannot dismiss it, errors permit retry, and the app appears only after assigned-token connection and sync. A stored token opens the app directly.
+- Personal layouts: Adam defaults Compact, others Expanded; the Notes/Settings toggle persists locally per person through reload/sync. Expanded combines Money and rounds once with Round tags and complete detail/edit access; layout switching keeps DOM IDs unique.
+- Ledger boundary/categories: exact dates on/after May 1, 2025 affect the balance; earlier/year-only entries show no running balance but remain in Wins/Bets breakdowns. Verify the centered double-line Ledger Begins marker. Categories persist after save/reload/sync and linked category edits survive subsequent round changes.
 - Domain tests cover cents, repayments, newest-addition ordering, linked winnings/payment updates, deletion/Undo, year-only dates, ties, migration, and malformed data.
 - Import tests use synthetic fixtures and cover repeated rows, stable IDs, historical mismatches, exact links, appendix retention, and edited-source duplicate review. Never add the actual private note as a repository fixture.
 - Sync tests use independent clients and a mocked GitHub file store: stale-SHA retry, concurrent additions, in-flight edits, targeted conflicts, opt-in Auto Sync, authorization/network failures, and recovery guards. Storage tests cover simultaneous browser tabs, transactional mutations, conflicting drafts across reload, and failed disk writes.

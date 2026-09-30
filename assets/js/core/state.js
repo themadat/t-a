@@ -41,6 +41,7 @@
       workspace: { title: config.identity.name, documents: documents, moneyEntries: [], golfRounds: [], tokenLabels: {} },
       preferences: {
         person: "",
+        ledgerLayouts: {},
         appearance: {
           mode: "system",
           accent: defaultTheme().accent,
@@ -162,6 +163,7 @@
       },
       preferences: {
         person: ["Adam", "Tristen"].includes(sourcePreferences.person) ? sourcePreferences.person : "",
+        ledgerLayouts: Object.fromEntries(["Adam", "Tristen", "default"].filter(name => ["compact", "expanded"].includes(sourcePreferences.ledgerLayouts?.[name])).map(name => [name, sourcePreferences.ledgerLayouts[name]])),
         appearance: {
           mode: mode,
           accent: u.normalizeColor(sourceAppearance.accent, theme.accent),
