@@ -1537,8 +1537,8 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
 /* Add keeps its original slot, then joins the pinned controls when that slot leaves view. */
 .ledger-workspace .ledger-add-slot { display:flex; flex:0 0 48px; width:48px; height:var(--ledger-control-height); margin-left:0; }
 .ledger-add-slot .ledger-add { width:100%; }
-.ledger-pinned-controls { display:flex; align-items:center; gap:.65rem; min-width:0; }
-.ledger-add-dock { display:flex; flex:0 0 48px; width:48px; }
+.ledger-pinned-controls { display:flex; flex:1; align-items:center; gap:.65rem; min-width:0; }
+.ledger-add-dock { display:flex; flex:0 0 48px; width:48px; margin-left:auto; }
 .ledger-pinned-controls .ledger-category-filters { min-width:0; }
 @media(max-width:760px) {
   .compact-table-head { display:none; }

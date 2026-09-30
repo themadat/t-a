@@ -17,6 +17,7 @@ Next id: `WISH-002`
 - Follow-up implemented: bold/spaced quick-action labels with regular-weight names, one desktop Money first row, centered mobile direction/Tags, desktop Edit beside facts, and explicit Money versus combined-row counts.
 - Follow-up implemented: derived $0 Golf Winnings in Compact, larger quick-action labels, sticky desktop table headers with aligned horizontal scrolling, and Add moving into pinned controls on scroll with narrower mobile filters.
 - Follow-up implemented: default Masters Golf skin with a device-local Masters/Basic selector beneath Theme, supplied icons, coordinated light/dark surfaces, green/yellow branding, floral tags, browser chrome, and offline skin switching; Basic restores the original saved appearance.
+- Follow-up implemented: Add stays at the far right after joining the pinned controls in both layouts and device sizes.
 - Scope/constraints: Static app, desktop/mobile, offline support, migration/import/recovery, no lost or duplicate edits. Preserve existing shell/Notes. Personal source data stays out of the public app repository.
 - Acceptance: Exact historical import/reconciliation; correct money and golf calculations; safe linked updates; two-account concurrent/offline synchronization; responsive accessible entry flows.
 - Priority/effort: Core product / High.
