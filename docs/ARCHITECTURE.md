@@ -1,57 +1,11 @@
 # Architecture
 
-## Startup and versions
+Modules attach to `window.LocalApp`. `config.js` owns identity/releases; `boot.js` loads ordered scripts and versions assets. `ledger-ui.js` renders Money/Golf; `app.js` owns the shell. `core/` contains domain, state, storage, identity, sync, import/export, and shared controls. The worker caches the static shell; GitHub requests remain network-only.
 
-`index.html` declares ordered scripts as inert `data-app-src` entries. Deferred `assets/js/boot.js` loads config with a freshness nonce, stamps marked stylesheet/install links with `config.identity.version`, then loads scripts in order. This works on static hosts and direct file URLs. A load failure produces a visible alert.
-
-The sole release literal is `VERSION` in config. Identity version/buildId and the newest release derive from it. Older release entries keep their own numbers. There are no current-version literals in HTML, manifests, workflow names, or documentation.
-
-`core/pwa.js` registers `sw.js?v=<buildId>` with `updateViaCache: none`. The worker derives its cache name from that URL, caches the shell, and serves network-first with revalidation. Boot's config nonce is stripped from its cache key. Offline asset lookup ignores query strings within the active worker's cache, so unversioned manifest icons and fresh config nonces resolve. Navigation falls back to cached index. GitHub requests remain network-only.
-
-The toolbar Update control saves local changes before checking/installing and refreshing. A waiting worker changes its symbol/accessible label. Offline or failed saves prevent refresh. Appearance swaps manifest, touch, and app icons. Deployment is plain static GitHub Pages; its workflow name is stable and the run title comes from the commit message.
-
-## Code map
-
-All runtime modules attach to `window.LocalApp`.
-- `config.js`: identity, flags, help, releases, Roadmap, fixed sync target.
-- `icons.js`: shared interface SVGs, including cloud state symbols.
-- `core/utils.js`: sanitization, URLs, dates, hashing, search utilities.
-- `core/ledger.js`: cents, running balances, annual golf results, linked mutations and grouped merge.
-- `core/note-import.js`: local reviewed source import with stable occurrence IDs.
-- `ledger-ui.js`: responsive Money/Golf lists, entry forms, import review.
-- `core/state.js`: defaults, normalization, backup/cloud formats.
-- `core/storage.js`: local autosave, separate credentials, recovery.
-- `core/components.js`: dialogs, menus, toasts, focus.
-- `core/portability.js`: validated JSON import/export.
-- `core/identity.js`: owner token labeling, SHA-256 fingerprints, credential-derived attribution and one-step connection.
-- `core/info.js`: extracts the golf-rules and contacts sections from private Notes for the Settings Info tab.
-- `core/sync.js`: cloud comparisons, choices, upload/download/merge.
-- `app.js`: rendering, event handlers, search, keyboard commands.
-
-## Persistence
-
-Local state/full backups use schema v6; migration from v4/v5 preserves Notes, preferences, and existing Money/Golf history. New Bet winnings default to zero; missing scores normalize to null. Notes use stable `app-notes` in a single-item documents collection; editing is plain text escaped into the internal html field. Old template records and catalog state are not part of T&A.
-
-Startup normalizes T&A state and can recover from a snapshot. Imports validate before replacing. Preserve storage keys across normal releases. New state shapes require migration tests. Preferences and UI stay device-local. Reset Preferences preserves content; Erase All requires confirmation.
-
-## Cloud contract
-
-The `local-first-app-data` v2 envelope declares schema v7 so older builds reject it rather than dropping Bet winnings or converting unknown scores. Previous schema v6 envelopes remain readable and are upgraded on sync. Its allowlist contains plain-text Notes, money entries, and golf rounds. Entry IDs, addition order, revisions, attribution, import provenance, and deletion markers travel with content. Empty collections may be omitted. Local preferences/UI and credentials are excluded. Full backups include device preferences.
-
-`syncPayload`, `syncHash`, `prepareSync`, and `applySync` centralize this contract. Hashes use `data-v2:`. Old Notes-only cloud envelopes remain readable without clearing new collections; Sync Now upgrades them. All amounts use integer cents; balances are derived in date order with stable addition order as a same-date tie. Four-digit dates preserve unknown historical days. A round and linked Golf winnings, Bet winnings, and payment rows form an atomic conflict group. Existing `winningsCents`/`winner` fields retain their Golf meaning and stable links. New `betWinningsCents`/`betWinner`/`betEntryId` fields describe independent Bets. Null scores count as a round but do not affect stroke totals, wins, or ties. Expanded hides the linked Golf winnings Money row and renders its amount and running balance with the Round, tagged Wins by default; zero-winnings rounds use a derived zero-effect balance marker without persisting a zero-dollar Money entry. Bet order follows the Round/Golf winnings, so it appears above the Round in newest-first views.
-
-Target owner/repo/branch/path always come from config. Tokens use separate local/session storage and never enter state, backups, diagnostics, or sync JSON. Save and successful Test keep a masked value and visible storage label; background renders preserve dirty fields.
-
-Baseline target/SHA/hash and the exact common content snapshot enable a three-way merge. Each sync fetches the latest file, merges independent groups, requires review for same-group conflicts, and writes against the fetched SHA. A 409/422 refetches and retries at most three times. The baseline acknowledges only the actual uploaded snapshot, so edits made during a request remain pending. Recovery is required before applying remote content. First connection and file creation require interactive review. Explicit Restore confirms replacement.
-
-Auto Sync is off until opted in and requires an established baseline. It debounces edits, checks while visible, retries on reconnect with bounded backoff, and never resolves conflicts automatically. A browser lock serializes cooperating tabs when available; SHA checks protect remote writes regardless. Local storage merges tab content against a common snapshot and retains conflicting drafts in session storage across reload. Mutations are transactional; failed validation does not partially change the live state.
-
-Data Sync displays the exact local upload payload via textContent in a collapsible preview. Fourteen centralized cloud states are shared by Settings and the toolbar; only the active arrow modifier rotates, respecting reduced motion.
-
-## Token attribution
-
-`workspace.tokenLabels` contains exactly two distinct SHA-256 fingerprints keyed by Adam and Tristen, or is empty before setup. The hash input is domain-separated by `t-a:token-identity:v1:`. Raw tokens never enter the state; only the current device credential uses the separate secret store. Association changes are one atomic three-way-merge group, included in backups and cloud content. Earlier builds reject the new cloud key safely.
-
-The owner labels both tokens once and publishes. Connect validates remote access and matches the supplied token against shared labels before saving the credential. Fresh empty browsers initialize without a merge-choice prompt, then enable Auto Sync. Browsers with existing content still retain merge/conflict review. Money/Golf attribution derives from the current secret and current labels; stored person preferences are no longer trusted. Cached labels support offline identity. These labels are not a security boundary against repository writers.
-
-The UI calls categories Tags while retaining the stored `category` property for compatibility. Golf, Wins, Bets, Food, and Other filters stay separate. A Round inherits any explicitly edited tag from its linked Golf winnings; an unlinked/zero-winnings Round defaults to Wins. Old local Rounds filters normalize to Wins. Mobile expanded rows align tags right beside the date. The Expanded table has six columns: Date, Entry, Tags, Amount, Balance, and Details. Inline details omit repeated financial fields, Tags, Course, and Holes; keep escaped Notes/attribution and round scores/Winnings; and offer one Edit on the right. Golf details edit the round, with no linked Money sections. Desktop round facts use one six-column line. Mobile titles span the card with actions below; Compact Golf Results/Winnings use aligned columns and omit Wins pills. Desktop Money direction controls share the first row with Date/Amount; mobile centers direction and Tags. Desktop Edit shares the facts row at the upper right; mobile keeps it after content. Quick-action labels are centered and bold with horizontal padding; names use regular weight and share available mobile width. Compact derives $0 Golf Winnings display rows from active zero-winnings rounds without linked Money; these edit the original round and use its zero-effect chronological balance marker. They are never persisted or included again in financial totals. Compact Golf renders $0 in its Winnings column. Expanded still replaces linked Golf Winnings with rounds. The same Add element moves between a reserved search-row slot and a dock beside quick filters as the slot leaves view; mobile filters narrow while action groups scroll away. Resize/scroll observations update sticky heights. Desktop Expanded uses sticky table headers; Compact headers sit outside horizontal scrolling containers and follow their row widths and scroll offsets. Mobile opening scrolls below the sticky header/filter heights; temporary bottom spacing also permits the last row to reach the top. Empty header taps return to the page top without intercepting controls.
+- Money uses integer cents. Running balances follow date/order; the ledger begins May 2025. Year-only history affects category totals, not balances.
+- Golf has independent Golf/Bet winnings and nullable scores. Unknown scores do not imply ties. Rounds and linked Money merge atomically; deletion markers prevent resurrection.
+- Expanded combines rounds with Golf Winnings. Compact derives $0 display rows without persisting zero Money.
+- Local state/backups use schema v6; cloud uses the `local-first-app-data` v2 envelope, schema v7. Preserve migrations and storage namespaces.
+- Notes is one plain-text document. Preferences/UI/credentials stay local; full backups include preferences but never tokens. Token fingerprints provide attribution, not access control.
+- Sync performs three-way merges against a common snapshot and fetched SHA. Same-group conflicts require review; SHA races retry. Acknowledge only the uploaded snapshot so in-flight edits survive.
+- Use shared dialogs for focus/Escape/confirmation. Update saves before refreshing; failed saves/offline prevent refresh. Deployment stages only referenced runtime files.

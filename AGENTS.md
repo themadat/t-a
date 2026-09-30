@@ -1,25 +1,11 @@
-# T&A — Agent Instructions
+# T&A Agent Rules
 
-Static, local-first HTML/CSS/JavaScript; no runtime dependencies or required build step.
+Static, local-first HTML/CSS/JavaScript; no dependencies or build step.
 
-## Start and resume
-
-Run `git status --short`, then read `context/LLM_HANDOFF.md` and `context/WISHES.md`. Preserve existing edits. Read relevant files, recent commits, and any active plan's Resume block before continuing unfinished work. `continue` resumes that work; do not create a separate status file.
-
-## Working rules
-
-- Search with `rg`; keep changes scoped. Read task-specific docs only as needed.
-- The reusable foundation is the top bar, search, Notes, vertical Settings/Roadmap, local recovery, optional GitHub Sync, and offline support. Do not reintroduce Records or a rich-text/multi-note workspace.
-- Identity, configuration, release history, and the sole `VERSION` literal live in `assets/js/config.js`. Use `major.minor.patch.build`: increment build for app changes; reset build to 1 for a requested major/minor/patch change. Update the newest release entry in this file; its version uses `VERSION`. Freeze the previous release's version as a literal when adding another entry. No version edits in HTML, manifests, worker, workflow, or docs. Documentation-only changes do not bump the app.
-- Use semantic, labelled controls, visible focus, escaped text, safe URLs, and shared SVG controls.
-- Verify proportionally using `docs/TESTING.md`. Stop preview servers before finishing.
-- No commits or pushes without explicit authorization. Preserve computer-independent Git remotes.
-
-## Workflows
-
-`wish`: capture only in WISHES. `plan`: investigate and write a plan with Resume, scope, decisions, files, tests, and open questions; do not implement. `start`: implement the approved plan, maintain Resume, verify, update version. `cut`: finalize release and close its wish.
-`reset`: read `docs/RESET.md` first; confirm the intended copied checkout, app identity, and replacement icon before transforming it. Never reset the canonical template accidentally.
-
-## Handoff
-
-Give a concise outcome and verification result, then exactly one command to stage task files, commit `Version - Text`, and push the current branch. Use `git add .` only when all changes belong to the request; otherwise name task files and mention unrelated edits. Do not suggest an empty commit or execute the command unless asked.
+- Start with `git status --short` and `context/LLM_HANDOFF.md`. Preserve unrelated edits and private data.
+- Search with `rg`; read source and docs only as needed. Keep changes scoped and controls accessible; escape user text and use shared SVGs.
+- Identity, releases, and the sole `VERSION` live in `assets/js/config.js`. Use major.minor.patch.build; increment build for app changes, reset it to 1 for a major/minor/patch change. New releases use VERSION; freeze the previous release. Do not bump for docs alone.
+- Preserve storage keys, migrations, linked-entry integrity, and credential isolation. Keep personal data out of source and deployment.
+- Verify proportionally using `docs/TESTING.md`; stop preview servers afterward.
+- Do not commit/push without explicit authorization or change computer-independent remotes.
+- Finish with the outcome, verification, and one command to stage task files, commit `Version - Text`, and push. Exclude unrelated changes.

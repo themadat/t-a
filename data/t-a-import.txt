@@ -1,0 +1,86 @@
+T&A
+
+Money
+
+Date          What              Amount                     Running Total
+2025-05-17    Driving Range     Adam => Tristan: $10                -$10
+2025-05-19    Golf Round        Tristan => Adam: $18                 +$8
+2025-05-19    Golf Bets         Adam => Tristan: $1                  +$7
+2025-05-28    Pizza             Adam => Tristan: $8                  -$1
+2025-06-04    Golf Round        Tristan => Adam: $18                +$17
+2025-06-04    Golf Bets         Tristan => Adam: $2                 +$19
+2025-06-25    Golf Round        Adam => Tristan: $18                 +$1
+2025-06-25    Golf Bets         Adam => Tristan: $5                  -$4
+2025-07-18    Golf Round        Tristan => Adam: $18                +$14
+2025-07-18    Golf Bets         Adam => Tristen: $5                  +$9
+2025-07-22    Dollar Bet        Adam => Tristen: $1                  +$8
+2025-08-05    Game Night Bet    Tristan => Adam: $1                  +$9
+2025-08-08    Golf Round        Adam => Tristan: $18                 -$9
+2025-08-08    Golf Bets         Adam => Tristan: $5                 -$14
+2025-09-03    Golf Round        Tristan => Adam: $18                  $4
+2025-09-03    Golf Bets         Adam => Tristan: $2                   $2
+2025-09-17    Golf Round        Adam => Tristan: $18                -$16
+2025-09-17    Golf Bets         Tristan => Adam: $2                 -$14
+2025-09-23    Game Night Bets   Adam => Tristan $1                  -$15
+2025-11-14    Golf Round        Adam Paid: Tristan => Adam: $20      +$5 to Adam
+2025-11-14    Golf Bets         Tristan Won: Adam => Tristan: $5      $0
+2025-12-14    Golf Bets         Adam Won: Tristan => Adam: $4        +$4 to Adam
+2025-12-27    Mini Golf Bets    Tristan Won: Adam => Tristan: $4      $0
+2026-01-13    Dollar Bet        Adam Won: Tristan => Adam: $1        +$1 to Adam (Chick more or less 1 pound)
+2026-02-11    Golf Round        Tristan Paid: Adam => Tristan: $20  -$19 to Tristan
+2026-03-17    Game Night Bet    Adam Won: Tristan => Adam: $1       -$18 to Tristan (Adam win by more or less than 12 points)
+2026-03-18    Golf Round        Adam Paid: Tristan => Adam: $20      +$2 to Adam
+2026-03-18    Golf Bets         Adam Won: Tristan => Adam: $3        +$5 to Adam
+2026-03-30    Dollar Bet        Adam Won: Tristan => Adam: $1        +$6 to Adam (Adam was correct on how risk dice rolls work)
+2026-03-30    Dollar Bet        Adam Won: Tristan => Adam: $1        +$7 to Adam (Adam won castle battle)
+2026-03-30    Dollar Bet        Tristan Won: Adam => Tristan: $1     +$6 to Adam (Taco game took less than 30 minutes)
+2026-05-05    Dollar Bet        Adam Won: Tristan => Adam: $1        +$7 to Adam (How many host nights do the Baileys miss? 1 : Adam 1, Tristan 2, Kathleen 4)
+2026-05-12    Dollar Bet        Adam Won: Tristan => Adam: $1        +$8 to Adam (Ticket To Ride Dollar a Game)
+2026-05-12    Dollar Bet        Adam Won: Tristan => Adam: $1        +$9 to Adam (Ticket To Ride Dollar a Game)
+2026-05-12    Dollar Bet        Adam Won: Tristan => Adam: $1        +$10 to Adam (O/U 4.5 oz whiskey; under at 4 oz)
+2026-05-12    Dollar Bet        Adam Won: Tristan => Adam: $1        +$11 to Adam (O/U 4.5 oz whiskey; under at 4 oz; Kathleen won a dollar from Tristan and this pays off one from Ticket to Ride game)
+2026-05-12    Dollar Bet        Adam Won: Tristan => Adam: $1        +$12 to Adam (Do God Move up or Down in Cyclades? Move up)
+2026-07-13    Golf Round        Tristan Paid: Adam => Tristan: $20   -$8 to Tristan
+2026-07-13    Golf Bets         Adam Won: Tristan => Adam: $6        -$2 to Tristan
+2026-07-18    Food Jersey Mike Sub: Adam => Tristan: $24             -$26 to Tristan
+2026-07-18    Food Coldstone for K&T: Tristen => Adam: $16           -$10 to Tristan
+2026-07-27    Golf Round        Adam Paid: Tristan => Adam: $20      +$10 to Adam
+2026-07-27    Golf Bets         Tristan Won: Adam => Tristan: $1     +$9 to Adam
+2026-08-10    Golf Round        Tristan Paid: Adam => Tristan: $20   -$11 to Tristan
+2026-08-10    Golf Bets         Tristan Won: Adam => Tristan: $4     -$15 to Tristan
+2026-09-04    Greek Food        Adam => Tristan: $30                 -$45 to Tristan
+2026-09-21    Golf Round        Adam Paid: Tristan => Adam: $20      -$25 to Tristan
+
+Rounds
+2026: Adam-36 | Adam +$8
+
+2026-09-21: Adam  89 | Tristan 103 | A-14 | Adam +$4
+2026-08-10: Adam 101 | Tristan 101 | X-0  | Tristan +$4
+2026-07-27: Adam  97 | Tristan  96 | T-1  | Tristan +$1
+2026-07-13: Adam  92 | Tristan 110 | A-18 | Adam +$6
+2026-03-18: Adam 103 | Tristan 106 | A- 3 | Adam +$3
+2026-02-11: Adam 107 | Tristan 109 | A- 2 | EVEN +$0
+
+2025: Tristan-8 | Tristan +$4
+2025-12-14: Adam 102 | Tristan 110 | A  8 | A +$4
+2025-11-14: Adam 56  | Tristan 46  | T 10 | T +$2
+2025-09-17: Adam 100 | Tristan 101 | A  1 | A +$2
+2025-09-03: Adam 106 | Tristan 103 | T  3 | T +$2
+2025-07-18: Adam 104 | Tristan 96  | T  8 | T +$5
+2025-06-25: Adam 70  | Tristan 59  | T 11 | T +$5
+2025-06-04: Adam 96  | Tristan 96  | EVEN | A +$2
+2025-05-19: Adam 102 | Tristan 102 | EVEN | T +$1
+2025-??-??: Adam 68  | Tristan 66  | T  2 | T +$2
+2025-??-??: Adam 81  | Tristan 92  | A 11 | A +$8
+2025-??-??: Adam 107 | Tristan 111 | A  4 | T +$1
+2025-??-??: Adam 50  | Tristan 52  | A  2 | T +$2
+
+Bad (drunk) golf rules
+1. Any player to make a triple bogey finishes their drink
+2. A player may “buy” one mulligan by doing a Jell-O shot
+3. If a player gets a birdie, they choose someone to finish their drink
+4. Any player that makes a max score (double par +1) shotguns a beer 
+
+Adam Lauer Contacts:
+Seth Lauer :: Brother :: (301) 606-4725 :: seth.j.lauer@gmail.com
+Melanie Lauer :: Mother :: (301) 606-1971 :: mml927@aol.com
