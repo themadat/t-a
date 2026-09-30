@@ -7,7 +7,7 @@ import { domain, moneyFields, roundFields } from './domain-harness.mjs';
 function client(person) {
   const App = domain(); let state = App.stateModel.createDefaultState();
   App.icons = { markup: () => "" }; App.identity = { person: () => person }; App.storage = { getState: () => state };
-  const source = readFileSync(new URL('../assets/js/ledger-ui.js', import.meta.url), 'utf8').replace('App.ledgerUI = { init,', 'App.ledgerUI = { layout, combinedEntries, withLedgerStart, filterCategory, matchesFilters, roundBalances, expandedRow, detailContent, init,');
+  const source = readFileSync(new URL('../assets/js/ledger-ui.js', import.meta.url), 'utf8').replace('App.ledgerUI = { init,', 'App.ledgerUI = { layout, compactMoneyEntries, moneyRow, golfRow, combinedEntries, withLedgerStart, filterCategory, matchesFilters, roundBalances, expandedRow, detailContent, init,');
   vm.runInNewContext(source, { window: { LocalApp: App, matchMedia: () => ({ matches: false }) }, document: {}, Date });
   return { App, get state() { return state; }, normalize() { state = App.stateModel.normalize(state); } };
 }
@@ -42,7 +42,7 @@ test('combined entries combine Golf Winnings with rounds while retaining payment
   assert.ok(marked.indexOf(round.id) < marked.indexOf('Ledger Begins'));
 });
 
-test('Expanded counts a zero-winnings round without adding a Money entry or changing the balance', () => {
+test('Compact and Expanded show zero-winnings rounds without persisting zero Money entries', () => {
   const { App, state } = client('Tristen'), l = App.ledger, w = state.workspace;
   for (let i = 0; i < 35; i++) l.saveMoney(w, moneyFields, 'Adam');
   for (let i = 0; i < 17; i++) l.saveRound(w, roundFields, 'Adam', '', true);
@@ -55,6 +55,19 @@ test('Expanded counts a zero-winnings round without adding a Money entry or chan
   assert.equal(rows.filter(row => row.id === zero.id).length, 1);
   assert.equal(w.moneyEntries.some(row => row.sourceRoundId === zero.id), false);
   assert.equal(l.totals(w.moneyEntries).balance, before);
+  const compact = App.ledgerUI.compactMoneyEntries(w);
+  assert.equal(compact.length, rows.length);
+  const zeroMoney = compact.find(row => row.zeroRound?.id === zero.id);
+  assert.ok(zeroMoney && zeroMoney.amountCents === 0);
+  const html = App.ledgerUI.moneyRow(zeroMoney, App.ledgerUI.roundBalances(w)[zero.id]);
+  assert.match(html, /entry-amount[^]*?\$0/);
+  assert.ok(html.includes('data-edit-golf="' + zero.id + '"'));
+  assert.ok(!html.includes('data-edit-money="' + zeroMoney.id + '"'));
+  assert.match(App.ledgerUI.golfRow(zero), /golf-winnings">\$0</);
+  l.saveRound(w, { ...zero, winningsCents:400, winner:'Adam' }, 'Adam', zero.id, true);
+  assert.equal(App.ledgerUI.compactMoneyEntries(w).filter(row => row.zeroRound?.id === zero.id).length, 0);
+  assert.equal(App.ledgerUI.compactMoneyEntries(w).length, App.ledgerUI.combinedEntries(w).length);
+
 });
 test('category chips combine with year and search while preserving ledger totals', () => {
   const h = client('Tristen'), { App, state } = h, l = App.ledger, w = state.workspace;

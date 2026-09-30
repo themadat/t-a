@@ -15,6 +15,7 @@ Next id: `WISH-002`
 - Follow-up implemented: distinct Golf/Wins/Bets/Food/Other Tags, no Rounds tag, per-person UNK and Course/Holes/result names, Hancock default, stable direction swap sizing, shorter inline details/right Edit, one-line mobile quick actions, date-line tags, row-opening scroll and empty-header return to top.
 - Follow-up implemented: centered quick actions with wider mobile names, reordered Money direction controls, more Entry space without Expanded Result, full-width mobile titles, focused Golf details with one Edit, and aligned Compact Results/Winnings without Wins pills.
 - Follow-up implemented: bold/spaced quick-action labels with regular-weight names, one desktop Money first row, centered mobile direction/Tags, desktop Edit beside facts, and explicit Money versus combined-row counts.
+- Follow-up implemented: derived $0 Golf Winnings in Compact, larger quick-action labels, sticky desktop table headers with aligned horizontal scrolling, and Add moving into pinned controls on scroll with narrower mobile filters.
 - Scope/constraints: Static app, desktop/mobile, offline support, migration/import/recovery, no lost or duplicate edits. Preserve existing shell/Notes. Personal source data stays out of the public app repository.
 - Acceptance: Exact historical import/reconciliation; correct money and golf calculations; safe linked updates; two-account concurrent/offline synchronization; responsive accessible entry flows.
 - Priority/effort: Core product / High.

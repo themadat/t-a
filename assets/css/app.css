@@ -1396,7 +1396,7 @@ html[data-ledger-layout="expanded"] .ledger-workspace { --ledger-control-height:
 .ledger-add svg { width:18px; height:18px; }
 .ledger-quick-actions { position:sticky; top:var(--app-header-height,0px); z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:.6rem 1rem; padding:.65rem 0; margin-bottom:.75rem; background:var(--bg); border-bottom:1px solid var(--line); }
 .ledger-quick-actions .quick-round { display:flex; align-items:center; gap:.4rem; border:1px solid var(--line); border-radius:10px; padding:.3rem .4rem .3rem .65rem; background:var(--surface); }
-.ledger-quick-actions .quick-round > span { font-size:.75rem; font-weight:700; color:var(--text); margin-right:.25rem; text-align:center; }
+.ledger-quick-actions .quick-round > span { font-size:.9rem; font-weight:700; color:var(--text); margin-right:.25rem; text-align:center; }
 .ledger-quick-actions .quick-round button { width:auto; height:44px; min-height:44px; padding:0 .75rem; font-size:.8rem; font-weight:400; }
 .ledger-category-filters { display:flex; flex-wrap:wrap; gap:.4rem; }
 .filter-chip { min-height:44px; padding:.4rem .9rem; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--text); font:inherit; font-size:.85rem; cursor:pointer; }
@@ -1479,9 +1479,13 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
 .payment-direction .payment-person strong { display:grid; place-items:center; height:44px; white-space:nowrap; }
 .payment-direction #swapMoneyDirection { width:44px; height:44px; min-height:44px; padding:8px; }
 .inline-entry-actions { justify-content:flex-end; }
-#ledgerEntries #golfEntries .entry-column-head.golf, #ledgerEntries #golfEntries .entry-row.golf { grid-template-columns:90px minmax(85px,1fr) 148px 94px 62px; }
+#ledgerEntries #golfTableHead .entry-column-head.golf, #ledgerEntries #golfEntries .entry-row.golf { grid-template-columns:90px minmax(85px,1fr) 148px 94px 62px; }
 #golfEntries .golf-results { grid-template-columns:65px 77px; gap:6px; }
 @media(min-width:761px) {
+  .compact-table-head { position:sticky; top:calc(var(--app-header-height,0px) + var(--ledger-sticky-bar-height,0px)); z-index:15; overflow:hidden; background:var(--bg); border-bottom:1px solid var(--line); }
+  .compact-table-head .entry-column-head { padding-inline:.5rem; margin-inline:1px; }
+  .expanded-table th { position:sticky; top:calc(var(--app-header-height,0px) + var(--ledger-sticky-bar-height,0px)); z-index:15; background:var(--bg); box-shadow:0 1px var(--line); }
+  .ledger-columns > section { align-self:start; }
   .entry-detail-summary { display:flex; align-items:flex-start; gap:1rem; }
   .entry-detail-summary .entry-facts { flex:1; min-width:0; }
   .entry-detail-summary .inline-entry-actions { flex-shrink:0; margin:0; }
@@ -1490,7 +1494,7 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
 @media(max-width:760px) {
   .ledger-quick-actions { grid-template-columns:minmax(0,1.18fr) minmax(0,1fr); gap:.3rem; }
   .ledger-quick-actions .quick-round { display:grid; grid-template-columns:max-content minmax(44px,1fr) minmax(44px,1fr); gap:2px; padding:2px; min-width:0; width:auto; }
-  .ledger-quick-actions .quick-round > span { font-size:.6rem; white-space:nowrap; margin:0; padding-inline:3px; }
+  .ledger-quick-actions .quick-round > span { font-size:.7rem; white-space:nowrap; margin:0; padding-inline:3px; }
   .ledger-quick-actions .quick-round button { width:100%; padding:0; font-size:.65rem; }
   .money-primary-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
   .money-primary-row .payment-direction { grid-column:1 / -1; justify-self:center; }
@@ -1525,6 +1529,21 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
 }
 
 @media(max-width:359px) {
-  .ledger-quick-actions .quick-round > span { font-size:.55rem; padding-inline:2px; }
+  .ledger-quick-actions { grid-template-columns:minmax(0,1.22fr) minmax(0,1fr); gap:.1rem; }
+  .ledger-quick-actions .quick-round > span { font-size:.62rem; padding-inline:2px; }
   .ledger-quick-actions .quick-round { column-gap:1px; }
+}
+
+/* Add keeps its original slot, then joins the pinned controls when that slot leaves view. */
+.ledger-workspace .ledger-add-slot { display:flex; flex:0 0 48px; width:48px; height:var(--ledger-control-height); margin-left:0; }
+.ledger-add-slot .ledger-add { width:100%; }
+.ledger-pinned-controls { display:flex; align-items:center; gap:.65rem; min-width:0; }
+.ledger-add-dock { display:flex; flex:0 0 48px; width:48px; }
+.ledger-pinned-controls .ledger-category-filters { min-width:0; }
+@media(max-width:760px) {
+  .compact-table-head { display:none; }
+  .ledger-pinned-controls { position:sticky; top:var(--app-header-height,0px); z-index:20; gap:.35rem; padding:.5rem 0; background:var(--bg); border-bottom:1px solid var(--line); }
+  .ledger-pinned-controls .ledger-category-filters { position:static; flex:1; width:auto; padding:0; border:0; flex-wrap:nowrap; }
+  html[data-add-docked="true"] .ledger-category-filters { gap:.2rem; }
+  html[data-add-docked="true"] .ledger-category-filters .filter-chip { font-size:.7rem; padding-inline:.1rem; }
 }
