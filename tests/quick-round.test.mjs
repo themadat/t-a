@@ -36,5 +36,30 @@ test('quick entries require identity and report failed persistence honestly', ()
   assert.equal(unknown.notices[0].kind, 'warning');
   const blocked = quickClient('Tristen', false); blocked.App.ledgerUI.quickRound('Adam');
   assert.equal(blocked.state.workspace.moneyEntries.length, 1);
-  assert.equal(blocked.notices[0].title, 'Storage needs attention');
+  assert.equal(blocked.notices[0].title, 'Storage Needs Attention');
+});
+
+test('Dollar Bet credits the selected winner and saves with or without editable notes', () => {
+  const App = domain(), state = App.stateModel.createDefaultState(), nodes = new Map(), notices = [];
+  const form = { reset() {}, elements:{ description:{value:'Dollar Bet'}, details:{value:''} } };
+  for (const id of ['#dollarBetForm','#dollarBetError','#dollarBetWithNotes','#dollarBetTitle','#dollarBetDialog']) nodes.set(id, id === '#dollarBetForm' ? form : {hidden:false,disabled:false,textContent:''});
+  App.identity = {person:()=>'Tristen'};
+  App.storage = {getState:()=>state, mutate:fn=>fn(state), saveNow:()=>true};
+  App.components = {toast:(message, options)=>notices.push({...options,message}), openDialog(){}, closeDialog(){}};
+  const source = readFileSync(new URL('../assets/js/ledger-ui.js', import.meta.url), 'utf8').replace('App.ledgerUI = { init,', 'App.ledgerUI = { openDollarBet, saveDollarBet, init,');
+  vm.runInNewContext(source,{window:{LocalApp:App,matchMedia:()=>({matches:true})},document:{querySelector:key=>nodes.get(key),activeElement:null},Date});
+  App.ledgerUI.openDollarBet('Adam');
+  assert.equal(nodes.get('#dollarBetTitle').textContent,'Adam Won $1');
+  state.ui.activeModule='golf'; state.ui.ledgerCategories=['Rounds'];
+  form.elements.description.value='Closest To The Pin'; form.elements.details.value='Synthetic Notes';
+  App.ledgerUI.saveDollarBet({preventDefault(){},currentTarget:form,submitter:{value:'with'}});
+  const first = state.workspace.moneyEntries[0];
+  assert.equal(first.to,'Adam'); assert.equal(first.from,'Tristen'); assert.equal(first.createdBy,'Tristen');
+  assert.equal(first.amountCents,100); assert.equal(first.category,'Bets');
+  assert.equal(first.description,'Closest To The Pin'); assert.equal(first.details,'Synthetic Notes');
+  assert.equal(state.ui.activeModule,'money'); assert.equal(state.ui.ledgerCategories.length,0);
+  App.ledgerUI.openDollarBet('Tristen');
+  App.ledgerUI.saveDollarBet({preventDefault(){},currentTarget:form,submitter:{value:'without'}});
+  assert.equal(state.workspace.moneyEntries[1].to,'Tristen'); assert.equal(state.workspace.moneyEntries[1].details,'');
+  assert.equal(App.ledger.totals(state.workspace.moneyEntries).balance,0);
 });

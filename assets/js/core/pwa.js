@@ -94,7 +94,7 @@
   function renderUpdateReady(ready) {
     const button=document.querySelector('#updateAppButton');
     if (!button) return;
-    const label = document.documentElement.dataset.ledgerLayout === 'expanded' ? 'Force update' : 'Update';
+    const label = document.documentElement.dataset.ledgerLayout === 'expanded' ? 'Force Update' : 'Update';
     button.dataset.updateAvailable=String(ready);
     button.title=ready ? 'Update available — install and refresh' : 'Check for updates and force refresh';
     button.querySelector('.button-label').textContent = label;

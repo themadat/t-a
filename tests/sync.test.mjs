@@ -256,7 +256,7 @@ test('first upload still requires a choice; a synchronized copy needs no write',
 test('empty notes sync only an empty content envelope, independent of device, UI, or save metadata', () => {
   const h = harness(), model = h.App.stateModel;
   const original = JSON.stringify(model.syncPayload(h.state));
-  assert.deepEqual(JSON.parse(original), { syncFormat: 'local-first-app-data', syncVersion: 2, schemaVersion: 6, data: {} });
+  assert.deepEqual(JSON.parse(original), { syncFormat: 'local-first-app-data', syncVersion: 2, schemaVersion: 7, data: {} });
   assert.ok(Buffer.byteLength(JSON.stringify(model.syncPayload(h.state), null, 2)) < 120);
   h.App.storage.mutate(state => {
     state.preferences.appearance.mode = 'dark'; state.ui.search = 'cloud'; state.ui.supportTab = 'dataSync';

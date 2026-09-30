@@ -45,12 +45,12 @@ test('update saves before checking and activates the waiting worker before refre
   assert.equal(h.button.disabled, false);
   assert.equal(h.button['aria-busy'], undefined);
 });
-test('Expanded labels its Settings action Force update and retains update availability', async () => {
+test('Expanded labels its Settings action Force Update and retains update availability', async () => {
   const h = harness({layout:'expanded'}); h.App.pwa.init();
   await new Promise(setImmediate);
   h.App.pwa.renderUpdateControl();
-  assert.equal(h.label.textContent, 'Force update');
-  assert.match(h.button['aria-label'], /^Force update.*new version available/);
+  assert.equal(h.label.textContent, 'Force Update');
+  assert.match(h.button['aria-label'], /^Force Update.*new version available/);
   assert.equal(h.button.dataset.updateAvailable, 'true');
 });
 

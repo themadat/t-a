@@ -1453,3 +1453,21 @@ html[data-ledger-layout="expanded"] .ledger-workspace { --ledger-control-height:
   #ledgerEntries #golfEntries .entry-row.golf > .inline-entry-details { grid-column:1 / -1; grid-row:auto; }
   .money-choice-row .choice-toggle span { padding-inline:.55rem; font-size:.8rem; }
 }
+
+/* Round and bet actions scroll away on mobile; only category filters stay pinned. */
+html[data-ledger-layout="expanded"] .ledger-overview .is-selected { border-color:var(--line); box-shadow:none; }
+.ledger-quick-area { position:sticky; top:var(--app-header-height,0px); z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:.6rem 1rem; padding:.65rem 0; margin-bottom:.75rem; background:var(--bg); border-bottom:1px solid var(--line); }
+.ledger-quick-actions { position:static; padding:0; margin:0; border:0; }
+.ledger-quick-actions .quick-round > span { line-height:1.3; }
+@media(max-width:760px) {
+  .app-header .top-toolbar, html[data-ledger-layout="expanded"] .app-header .top-toolbar { width:auto; justify-content:flex-end; justify-self:end; }
+  .ledger-quick-area { position:static; display:contents; padding:0; border:0; }
+  .ledger-quick-actions { padding:.6rem 0; display:grid; grid-template-columns:1fr; gap:.4rem; }
+  .ledger-quick-actions .quick-round { width:100%; }
+  .ledger-category-filters { position:sticky; top:var(--app-header-height,0px); z-index:20; padding:.5rem 0; background:var(--bg); border-bottom:1px solid var(--line); box-sizing:border-box; }
+}
+.category-rounds { background:#d9ecdd; color:#205c30; }
+html[data-theme="dark"] .category-rounds { background:#284a31; color:#b6e5bf; }
+/* Keep generated Settings/action labels consistent without changing entered data. */
+.support-panel .button, .support-panel label, .support-panel legend, .support-panel summary, .support-panel h3, .support-panel h4, .dialog-header h2, .dialog-footer .button, .settings-section-label, .setting-label { text-transform:capitalize; }
+.support-panel input, .support-panel textarea, .support-panel option { text-transform:none; }

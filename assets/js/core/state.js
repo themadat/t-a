@@ -6,8 +6,8 @@
   const u = App.utils;
   const SYNC_FORMAT = "local-first-app-data";
   const SYNC_VERSION = 2;
-  // Older apps reject v5 instead of mistaking this compact envelope for empty v4 state.
-  const SYNC_SCHEMA_VERSION = 6;
+  // Older clients reject v7 rather than dropping Bet winnings or converting unknown scores.
+  const SYNC_SCHEMA_VERSION = 7;
   const CLOUD_TARGET = Object.freeze({
     owner: u.cleanLine(config.cloudSync?.owner, 39),
     repo: u.cleanLine(config.cloudSync?.repo, 100).replace(/\.git$/i, ""),
@@ -194,7 +194,7 @@
         search: u.cleanLine(sourceUi.search, 200),
         ledgerYear: /^\d{4}$/.test(sourceUi.ledgerYear) ? sourceUi.ledgerYear : "",
         ledgerSearch: u.cleanLine(sourceUi.ledgerSearch, 200),
-        ledgerCategories: Array.isArray(sourceUi.ledgerCategories) ? [...new Set(sourceUi.ledgerCategories.filter(category => ["Golf", "Bets", "Food", "Other"].includes(category)))] : [],
+        ledgerCategories: Array.isArray(sourceUi.ledgerCategories) ? [...new Set(sourceUi.ledgerCategories.map(category => category === "Golf" ? "Rounds" : category).filter(category => ["Rounds", "Bets", "Food", "Other"].includes(category)))] : [],
         dismissedHints: Array.from(new Set((Array.isArray(sourceUi.dismissedHints) ? sourceUi.dismissedHints : []).map(function (id) { return u.cleanLine(id, 80); }).filter(Boolean))).slice(0, 200),
         seenReleaseVersion: u.cleanLine(sourceUi.seenReleaseVersion, 32),
         supportTab: ["settings", "dataSync", "info", "help", "releases", "shortcuts", "roadmap", "developer"].includes(sourceUi.supportTab) ? sourceUi.supportTab : "settings"
@@ -245,8 +245,8 @@
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("The backup must be a JSON object.");
     const source = input.exportFormat === "local-first-workspace-backup" ? input.state : input;
     if (!source || typeof source !== "object" || Array.isArray(source)) throw new Error("The backup state is invalid.");
-    if (Object.keys(source).length && (![4, config.schemaVersion].includes(source.schemaVersion) || !source.workspace || !Array.isArray(source.workspace.documents) || source.workspace.documents.length !== 1)) throw new Error("This backup is not a supported T&A workspace.");
-    const migration = { state: source, applied: source.schemaVersion === 4 ? ["4→" + config.schemaVersion] : [] };
+    if (Object.keys(source).length && (![4, 5, config.schemaVersion].includes(source.schemaVersion) || !source.workspace || !Array.isArray(source.workspace.documents) || source.workspace.documents.length !== 1)) throw new Error("This backup is not a supported T&A workspace.");
+    const migration = { state: source, applied: source.schemaVersion < config.schemaVersion ? [source.schemaVersion + "→" + config.schemaVersion] : [] };
     const state = normalize(migration.state);
     const validation = validate(state);
     if (!validation.ok) throw new Error(validation.errors.join(" "));
@@ -339,7 +339,7 @@
       return Object.assign({}, prepared, { legacy: true });
     }
     const legacy = input.syncVersion === 1 && input.schemaVersion === 5;
-    if (input.syncFormat !== SYNC_FORMAT || (!legacy && (input.syncVersion !== SYNC_VERSION || input.schemaVersion !== SYNC_SCHEMA_VERSION))) throw new Error("This cloud data format is not supported. Update the app before syncing.");
+    if (input.syncFormat !== SYNC_FORMAT || (!legacy && (input.syncVersion !== SYNC_VERSION || ![6, SYNC_SCHEMA_VERSION].includes(input.schemaVersion)))) throw new Error("This cloud data format is not supported. Update the app before syncing.");
     if (legacy && Object.keys(input.data || {}).some(key => key !== "notes")) throw new Error("The old Notes file contains unsupported content.");
     const state = fromData(input.data);
     if (legacy) state.legacyNotesOnly = true;

@@ -30,15 +30,15 @@ All runtime modules attach to `window.LocalApp`.
 
 ## Persistence
 
-Local state/full backups use schema v5; migration from v4 preserves Notes and preferences and adds empty Money/Golf collections. Notes use stable `app-notes` in a single-item documents collection; editing is plain text escaped into the internal html field. Old template records and catalog state are not part of T&A.
+Local state/full backups use schema v6; migration from v4/v5 preserves Notes, preferences, and existing Money/Golf history. New Bet winnings default to zero; missing scores normalize to null. Notes use stable `app-notes` in a single-item documents collection; editing is plain text escaped into the internal html field. Old template records and catalog state are not part of T&A.
 
 Startup normalizes T&A state and can recover from a snapshot. Imports validate before replacing. Preserve storage keys across normal releases. New state shapes require migration tests. Preferences and UI stay device-local. Reset Preferences preserves content; Erase All requires confirmation.
 
 ## Cloud contract
 
-The `local-first-app-data` v2 envelope declares schema v6 so older builds reject it safely. Its allowlist contains plain-text Notes, money entries, and golf rounds. Entry IDs, addition order, revisions, attribution, import provenance, and deletion markers travel with content. Empty collections may be omitted. Local preferences/UI and credentials are excluded. Full backups include device preferences.
+The `local-first-app-data` v2 envelope declares schema v7 so older builds reject it rather than dropping Bet winnings or converting unknown scores. Previous schema v6 envelopes remain readable and are upgraded on sync. Its allowlist contains plain-text Notes, money entries, and golf rounds. Entry IDs, addition order, revisions, attribution, import provenance, and deletion markers travel with content. Empty collections may be omitted. Local preferences/UI and credentials are excluded. Full backups include device preferences.
 
-`syncPayload`, `syncHash`, `prepareSync`, and `applySync` centralize this contract. Hashes use `data-v2:`. Old Notes-only cloud envelopes remain readable without clearing new collections; Sync Now upgrades them. All amounts use integer cents; balances are derived in addition order. Four-digit dates preserve unknown historical days. A round and linked winnings/payment rows form an atomic conflict group.
+`syncPayload`, `syncHash`, `prepareSync`, and `applySync` centralize this contract. Hashes use `data-v2:`. Old Notes-only cloud envelopes remain readable without clearing new collections; Sync Now upgrades them. All amounts use integer cents; balances are derived in date order with stable addition order as a same-date tie. Four-digit dates preserve unknown historical days. A round and linked Golf winnings, Bet winnings, and payment rows form an atomic conflict group. Existing `winningsCents`/`winner` fields retain their Golf meaning and stable links. New `betWinningsCents`/`betWinner`/`betEntryId` fields describe independent Bets. Null scores count as a round but do not affect stroke totals, wins, or ties. Expanded hides the linked Golf winnings Money row and renders its amount and running balance with the Round; zero-winnings rounds use a derived zero-effect balance marker without persisting a zero-dollar Money entry. Bet order follows the Round/Golf winnings, so it appears above the Round in newest-first views.
 
 Target owner/repo/branch/path always come from config. Tokens use separate local/session storage and never enter state, backups, diagnostics, or sync JSON. Save and successful Test keep a masked value and visible storage label; background renders preserve dirty fields.
 

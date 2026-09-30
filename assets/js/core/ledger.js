@@ -16,7 +16,7 @@
     return amount;
   }
   function money(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(value / 100); }
-  function balanceLabel(value) { return value === 0 ? "All square" : (value > 0 ? "Tristen owes Adam " : "Adam owes Tristen ") + money(Math.abs(value)); }
+  function balanceLabel(value) { return value === 0 ? "All Square" : (value > 0 ? "Tristen Owes Adam " : "Adam Owes Tristen ") + money(Math.abs(value)); }
   function person(value) { if (value === "Tristan") value = "Tristen"; if (!people.includes(value)) fail("Choose Adam or Tristen."); return value; }
   function date(value) {
     if (typeof value !== "string" || !/^\d{4}(?:-\d{2}-\d{2})?$/.test(value)) fail("Enter a date or a known four-digit year.");
@@ -46,10 +46,12 @@
     const item = common(raw);
     if (!["unknown", "other"].includes(raw.holes) && !(/^[1-9][0-9]?$/.test(String(raw.holes)))) fail("Choose the number of holes, or Unknown.");
     const win = integer(raw.winningsCents, 0, MAX_CENTS, "Winnings");
-    const payment = integer(raw.paymentCents || 0, 0, MAX_CENTS, "Round payment");
-    return Object.assign(item, { adam: integer(raw.adam, 1, 500, "Adam's score"), tristan: integer(raw.tristan, 1, 500, "Tristen's score"),
+    const payment = integer(raw.paymentCents || 0, 0, MAX_CENTS, "Round Payment");
+    const bet = integer(raw.betWinningsCents ?? 0, 0, MAX_CENTS, "Bet Winnings");
+    return Object.assign(item, { adam: raw.adam == null ? null : integer(raw.adam, 1, 500, "Adam's Score"), tristan: raw.tristan == null ? null : integer(raw.tristan, 1, 500, "Tristen's Score"),
       holes: String(raw.holes), course: text(raw.course, 200), details: text(raw.details), winningsCents: win,
       winner: win ? person(raw.winner) : "", winningsEntryId: text(raw.winningsEntryId, 160),
+      betWinningsCents: bet, betWinner: bet ? person(raw.betWinner) : "", betEntryId: text(raw.betEntryId, 160),
       paymentCents: payment, payer: payment ? person(raw.payer) : "", paymentEntryId: text(raw.paymentEntryId, 160),
       review: text(raw.review, 1000) });
   }
@@ -86,7 +88,7 @@
     const rounds = new Map(data.golfRounds.map(x => [x.id, x]));
     data.golfRounds.forEach(round => {
       if (round.deleted) return;
-      for (const [role, entryId, amount, recipient] of [["winnings", round.winningsEntryId, round.winningsCents, round.winner], ["payment", round.paymentEntryId, round.paymentCents, round.payer]]) {
+      for (const [role, entryId, amount, recipient] of [["winnings", round.winningsEntryId, round.winningsCents, round.winner], ["bet", round.betEntryId, round.betWinningsCents, round.betWinner], ["payment", round.paymentEntryId, round.paymentCents, round.payer]]) {
         if (!entryId) continue;
         const entry = entries.get(entryId);
         if (!entry || entry.deleted || entry.sourceRoundId !== round.id || entry.linkRole !== role || entry.amountCents !== amount || entry.to !== recipient || entry.kind !== "owed") fail("A round and its linked money entry disagree. Review them together.");
@@ -95,7 +97,7 @@
     data.moneyEntries.forEach(entry => {
       if (entry.deleted || !entry.sourceRoundId) return;
       const round = rounds.get(entry.sourceRoundId);
-      if (!round || round.deleted || !["winnings", "payment"].includes(entry.linkRole) || round[entry.linkRole === "winnings" ? "winningsEntryId" : "paymentEntryId"] !== entry.id) fail("A linked money entry has no matching round.");
+      if (!round || round.deleted || !["winnings", "bet", "payment"].includes(entry.linkRole) || round[entry.linkRole === "winnings" ? "winningsEntryId" : entry.linkRole === "bet" ? "betEntryId" : "paymentEntryId"] !== entry.id) fail("A linked money entry has no matching round.");
     });
   }
   function active(rows) { return rows.filter(x => !x.deleted); }
@@ -113,14 +115,17 @@
     ordered(rows).forEach(entry => { balance += ledgerDelta(entry); if (!Number.isSafeInteger(balance)) fail("Balance is too large."); running[entry.id] = inLedger(entry) ? balance : null; });
     return { balance, running };
   }
+  function scoreDifference(round) { return round.adam == null || round.tristan == null ? null : round.tristan - round.adam; }
   function golfSummary(rows, year) {
     const items = active(rows).filter(x => !year || x.date.slice(0, 4) === year);
     return items.reduce((summary, round) => {
-      summary.count++; summary.margin += round.tristan - round.adam;
-      summary[round.adam < round.tristan ? "adamWins" : round.adam > round.tristan ? "tristanWins" : "ties"]++;
+      summary.count++;
+      const difference = scoreDifference(round);
+      if (difference === null) summary.unknownScores++;
+      else { summary.margin += difference; summary[difference > 0 ? "adamWins" : difference < 0 ? "tristanWins" : "ties"]++; }
       summary.winnings += round.winningsCents * (round.winner === "Adam" ? 1 : -1);
       return summary;
-    }, { count: 0, margin: 0, winnings: 0, adamWins: 0, tristanWins: 0, ties: 0 });
+    }, { count: 0, margin: 0, winnings: 0, adamWins: 0, tristanWins: 0, ties: 0, unknownScores: 0 });
   }
   function nextOrder(workspace) { return Math.max(0, ...workspace.moneyEntries.map(x => x.order), ...workspace.golfRounds.map(x => x.order)) + 1; }
   function stamp(workspace, old, actor) {
@@ -140,20 +145,20 @@
   }
   function saveRound(workspace, fields, actor, roundId, postWinnings) {
     const old = workspace.golfRounds.find(x => x.id === roundId);
-    const round = normalizeRound(Object.assign(stamp(workspace, old, actor), { winningsEntryId: "", paymentEntryId: "" }, old || {}, fields, { rev: id(), updatedAt: u.isoNow(), updatedBy: actor }));
-    for (const role of ["winnings", "payment"]) {
-      const key = role === "winnings" ? "winningsEntryId" : "paymentEntryId";
-      const amount = role === "winnings" ? round.winningsCents : round.paymentCents;
-      const recipient = role === "winnings" ? round.winner : round.payer;
-      const enabled = role === "payment" || postWinnings;
+    const round = normalizeRound(Object.assign(stamp(workspace, old, actor), { winningsEntryId: "", betEntryId: "", paymentEntryId: "" }, old || {}, fields, { rev: id(), updatedAt: u.isoNow(), updatedBy: actor }));
+    for (const [role, key, amount, recipient, category, description, enabled] of [
+      ["winnings", "winningsEntryId", round.winningsCents, round.winner, "Wins", "Golf Winnings", postWinnings],
+      ["bet", "betEntryId", round.betWinningsCents, round.betWinner, "Bets", "Bet Winnings", true],
+      ["payment", "paymentEntryId", round.paymentCents, round.payer, "Golf", "Golf Round Payment", true]
+    ]) {
       const oldEntry = workspace.moneyEntries.find(x => x.id === (fields[key] || old?.[key]));
       if (oldEntry?.sourceRoundId && oldEntry.sourceRoundId !== round.id) fail("That money entry is already linked to another round.");
       if (amount && enabled) {
         const entry = normalizeMoney(Object.assign(stamp(workspace, oldEntry, actor), {
           id: oldEntry?.id || "golf:" + round.id + ":" + role, date: round.date, kind: "owed", amountCents: amount,
           from: recipient === "Adam" ? "Tristen" : "Adam", to: recipient,
-          description: oldEntry?.description || (role === "winnings" ? "Golf Winnings" : "Golf round payment"), category: oldEntry?.category || (role === "winnings" ? "Wins" : "Golf"), details: oldEntry?.details && oldEntry.details !== old?.course ? oldEntry.details : "",
-          sourceRoundId: round.id, linkRole: role, rev: round.rev
+          description: oldEntry?.description || description, category: oldEntry?.category || category, details: oldEntry?.details && oldEntry.details !== old?.course ? oldEntry.details : "",
+          sourceRoundId: round.id, linkRole: role, rev: round.rev, order: role === "bet" ? Math.max(oldEntry?.order || 0, round.order + 1, (workspace.moneyEntries.find(entry => entry.id === round.winningsEntryId)?.order || 0) + 1, oldEntry ? 0 : nextOrder(workspace)) : oldEntry?.order ?? nextOrder(workspace)
         }));
         put(workspace.moneyEntries, entry); round[key] = entry.id;
       } else {
@@ -225,14 +230,15 @@
     if (!conflicts.length) collections(result);
     return { data: result, conflicts };
   }
-  function categoryTotals(entries, viewer) {
+  function categoryTotals(entries, viewer, year) {
     const result = { Wins: 0, Bets: 0 };
     for (const entry of active(entries)) {
+      if (year && entry.date.slice(0, 4) !== year) continue;
       const category = entry.category;
       if (!Object.hasOwn(result, category)) continue;
       result[category] += delta(entry) * (viewer === 'Tristen' ? -1 : 1);
     }
     return result;
   }
-  App.ledger = { LEDGER_START, inLedger, ledgerDelta, categoryTotals, people, id, cents, money, balanceLabel, date, collections, validateLinks, active, newest, delta, totals, golfSummary, nextOrder, saveMoney, saveRound, remove, undo, mergeData };
+  App.ledger = { LEDGER_START, inLedger, ledgerDelta, categoryTotals, scoreDifference, people, id, cents, money, balanceLabel, date, collections, validateLinks, active, newest, delta, totals, golfSummary, nextOrder, saveMoney, saveRound, remove, undo, mergeData };
 })();

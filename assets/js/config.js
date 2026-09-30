@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "0.0.1.16";
+  const VERSION = "0.0.1.17";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -31,7 +31,7 @@
       "manifestDark": "manifest-dark.webmanifest"
     }
   },
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "storage": {
     "stateKey": "t-a.state.v4",
     "legacyKeys": [],
@@ -70,7 +70,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-09-30T16:59:00.000Z", "title": "Date sorting and clearer columns", "summary": "Newest dates first, a separate Tags column, and matching Amount and Balance displays.", "features": [], "improvements": ["Date-sorted Money, Golf, and combined tables with chronological running balances", "Compact identity pill below the version; Expanded hides it", "Expanded Force update action between Appearance and recovery in Settings", "Add label below its icon", "Mobile Search... placeholder and entry counts", "Expanded Tags column, round-only results, and matching Amount/Balance styling"], "fixes": ["Date edits move entries to their correct chronological position", "Summary hints distinguish Money Wins from recorded-round winnings"], "knownIssues": []},
+    {"version": VERSION, "date": "2026-09-30T18:17:00.000Z", "title": "Golf Winnings And Dollar Bets", "summary": "Separate Golf and Bet winnings, unknown scores, and clearer yearly summaries.", "features": ["Dollar Bet quick actions credit $1 to the selected winner with editable What and optional Notes", "Independent Golf Winnings and Bet Winnings when adding or editing a round", "Unknown golf scores without fabricated stroke totals or ties"], "improvements": ["Expanded combines each round with its Golf Winnings and places nonzero Bets above it", "Year-filtered Books and Course summaries; round wins list the signed-in person first", "Mobile toolbar buttons stay together; only quick filters stick on scroll", "Rounds, Bets, Food, and Other filters; two-line Round Paid By label", "Pays label above the Money direction switch and consistent Title Case labels", "Expanded summary cards omit the active highlight border"], "fixes": ["Round and bet links stay atomic through edit, delete, Undo, import, and sync", "Older clients reject the new shared schema; previous backups and shared files migrate without losing history"], "knownIssues": []},
+    {"version": "0.0.1.16", "date": "2026-09-30T16:59:00.000Z", "title": "Date sorting and clearer columns", "summary": "Newest dates first, a separate Tags column, and matching Amount and Balance displays.", "features": [], "improvements": ["Date-sorted Money, Golf, and combined tables with chronological running balances", "Compact identity pill below the version; Expanded hides it", "Expanded Force update action between Appearance and recovery in Settings", "Add label below its icon", "Mobile Search... placeholder and entry counts", "Expanded Tags column, round-only results, and matching Amount/Balance styling"], "fixes": ["Date edits move entries to their correct chronological position", "Summary hints distinguish Money Wins from recorded-round winnings"], "knownIssues": []},
     {"version": "0.0.1.15", "date": "2026-09-30T16:02:00.000Z", "title": "Quick actions and inline details", "summary": "One Add button, sticky category filters, and entry details directly in the table.", "features": ["Sticky Round Paid By controls and Golf, Bets, Food, Other filters", "Click a cell to expand its entry details inline"], "improvements": ["Layout choice follows Button Style in Appearance", "One Add button beside the year with matching control heights", "Expanded identity pill beside the version", "Full names and a cleaner search field on mobile", "Payer and Payee headers in Money entries"], "fixes": ["Expanded includes linked Golf Winnings and round payments", "Compact omits Adding as", "Settings layout choice responds correctly"], "knownIssues": []},
     {"version": "0.0.1.14", "date": "2026-09-30T14:56:00.000Z", "title": "Personal layouts and ledger history", "summary": "Expanded and Compact views, token-first loading, and a May 2025 ledger boundary.", "features": ["Expanded combined table with Round tags and entry details", "Personal layout toggle: Compact for Adam, Expanded for everyone else", "Token entry fills 80% of the screen and loads shared data before opening the app"], "improvements": ["Desktop summaries between app identity and toolbar", "Ledger Begins divider at May 2025", "Larger Expanded text and controls"], "fixes": ["Saved categories survive editing, reload and sync", "Year-only history counts toward Wins and Bets without changing the money balance", "Linked category edits preserve round amounts and links"], "knownIssues": []},
     {"version": "0.0.1.13", "date": "2026-09-29T23:45:00.000Z", "title": "Header summaries and aligned results", "summary": "Compact header summaries and year-only winnings in Money.", "features": ["Historical year-only winnings in Money"], "improvements": ["Aligned golf results", "Whole-dollar displays", "Single-row mobile toolbar"], "fixes": ["Equal money input sizes"], "knownIssues": []},
@@ -143,7 +144,7 @@
       "title": "Getting started",
       "section": "Basics",
       "keywords": "start notes search settings",
-      "html": "<p>Connect your assigned token in Data Sync, then add a Money entry or Golf round. New additions appear at the top, even when backdated. Golf winnings create a linked Money entry. Record repayment reduces the amount owed. Search finds Money, Golf, Notes, Help, releases, and Roadmap entries. Changes save on this device automatically. Open Settings to customize appearance, manage backups, or connect GitHub Sync.</p>"
+      "html": "<p>Connect your assigned token in Data Sync, then add a Money entry or Golf round. Entries are sorted by newest date. Scores can be unknown, and Golf Winnings and Bet Winnings are independent. Expanded combines Golf Winnings with the Round and shows nonzero Bet Winnings separately. Dollar Bet credits $1 to the selected winner, with editable What and optional Notes. Record repayment reduces the amount owed. Search finds Money, Golf, Notes, Help, releases, and Roadmap entries. Changes save on this device automatically. Open Settings to customize appearance, manage backups, or connect GitHub Sync.</p>"
     },
     {
       "id": "notes",

@@ -173,3 +173,63 @@ test('year-only imported winnings link once, sort below dated entries and preser
   a.ledger.validateLinks(migrated);
   assert.equal(a.ledger.money(400), '$4');
 });
+
+test('unknown scores do not fabricate ties or margins and Golf and Bet winnings are independent', () => {
+  const a = domain(), l = a.ledger, w = a.stateModel.createDefaultState().workspace;
+  const zero = l.saveRound(w, {...roundFields, adam:null, tristan:null, winningsCents:0, betWinningsCents:0}, 'Adam', '', true);
+  assert.equal(l.active(w.moneyEntries).length, 0); assert.equal(l.scoreDifference(zero), null);
+  const paid = l.saveRound(w, {...roundFields, adam:80, tristan:85, betWinningsCents:300, betWinner:'Tristen'}, 'Adam', '', true);
+  const unknown = l.saveRound(w, {...roundFields, adam:null, tristan:90, winningsCents:0, betWinningsCents:100, betWinner:'Adam'}, 'Tristen', '', true);
+  const summary = l.golfSummary(w.golfRounds);
+  assert.equal(summary.count, 3); assert.equal(summary.unknownScores, 2);
+  assert.equal(summary.adamWins, 1); assert.equal(summary.ties, 0); assert.equal(summary.margin, 5);
+  assert.equal(summary.winnings, 400); assert.equal(l.totals(w.moneyEntries).balance, 200);
+  assert.equal(l.active(w.moneyEntries).length, 3);
+  assert.equal(w.moneyEntries.find(x => x.id === paid.winningsEntryId).category, 'Wins');
+  const bet = w.moneyEntries.find(x => x.id === paid.betEntryId);
+  assert.equal(bet.category, 'Bets'); assert.equal(bet.to, 'Tristen');
+  assert.ok(bet.order > w.moneyEntries.find(x => x.id === paid.winningsEntryId).order);
+  assert.ok(w.moneyEntries.find(x => x.id === unknown.betEntryId).order > unknown.order);
+  l.saveRound(w, {...paid, betWinningsCents:0}, 'Tristen', paid.id, true);
+  assert.equal(l.active(w.moneyEntries).length, 2);
+  const operation = l.remove(w, 'golfRounds', unknown.id, 'Adam');
+  assert.equal(l.active(w.moneyEntries).length, 1);
+  l.undo(w, operation, 'Adam'); l.validateLinks(w); assert.equal(l.active(w.moneyEntries).length, 2);
+});
+
+test('Golf and Bet edits merge atomically and survive backup/cloud migrations', () => {
+  const a = domain(), l = a.ledger, m = a.stateModel, base = m.createDefaultState();
+  const round = l.saveRound(base.workspace, {...roundFields, adam:null, betWinningsCents:200, betWinner:'Tristen'}, 'Adam', '', true);
+  const local = structuredClone(base), remote = structuredClone(base);
+  l.saveRound(local.workspace, {...round, betWinningsCents:300}, 'Adam', round.id, true);
+  l.saveRound(remote.workspace, {...round, winningsCents:700}, 'Tristen', round.id, true);
+  const common = m.syncPayload(base).data;
+  assert.equal(m.mergeResult(local, remote, {}, common).conflicts.length, 1);
+  const merged = m.merge(local, remote, {['golf:' + round.id]:'local'}, common);
+  l.validateLinks(merged.workspace);
+  assert.equal(l.totals(merged.workspace.moneyEntries).balance, 100);
+  const payload = m.syncPayload(merged);
+  assert.equal(payload.schemaVersion, 7);
+  const restored = m.prepareSync(JSON.parse(JSON.stringify(payload))).state;
+  assert.equal(restored.workspace.golfRounds[0].adam, null);
+  assert.equal(restored.workspace.golfRounds[0].betWinningsCents, 300);
+  assert.equal(m.prepare(JSON.parse(JSON.stringify(merged))).state.workspace.golfRounds[0].betWinningsCents, 300);
+  const old = m.createDefaultState(); old.schemaVersion = 5;
+  const legacy = l.saveRound(old.workspace, roundFields, 'Adam', '', true);
+  for (const key of ['betWinningsCents','betWinner','betEntryId']) delete legacy[key];
+  const migrated = m.prepare(old).state;
+  assert.equal(migrated.workspace.golfRounds[0].betWinningsCents, 0);
+  assert.equal(l.totals(migrated.workspace.moneyEntries).balance, 400);
+  const oldCloud = m.syncPayload(old); oldCloud.schemaVersion = 6;
+  assert.equal(m.prepareSync(oldCloud).state.workspace.golfRounds[0].betWinningsCents, 0);
+});
+
+test('year-filtered Wins and Bets include year-only history while yearly ledger balance excludes it', () => {
+  const a = domain(), l = a.ledger, w = a.stateModel.createDefaultState().workspace;
+  l.saveMoney(w, {...moneyFields, date:'2025', category:'Wins', amountCents:300}, 'Adam');
+  l.saveMoney(w, {...moneyFields, date:'2025-05-01', category:'Bets', amountCents:200}, 'Adam');
+  l.saveMoney(w, {...moneyFields, date:'2026-01-01', category:'Wins', amountCents:500}, 'Adam');
+  const categories = l.categoryTotals(w.moneyEntries, 'Tristen', '2025');
+  assert.equal(categories.Wins, 300); assert.equal(categories.Bets, 200);
+  assert.equal(l.totals(w.moneyEntries.filter(x => x.date.startsWith('2025'))).balance, -200);
+});
