@@ -41,6 +41,21 @@ test('combined entries combine Golf Winnings with rounds while retaining payment
   assert.ok(marked.indexOf('Ledger Begins') < marked.indexOf(historical.id));
   assert.ok(marked.indexOf(round.id) < marked.indexOf('Ledger Begins'));
 });
+
+test('Expanded counts a zero-winnings round without adding a Money entry or changing the balance', () => {
+  const { App, state } = client('Tristen'), l = App.ledger, w = state.workspace;
+  for (let i = 0; i < 35; i++) l.saveMoney(w, moneyFields, 'Adam');
+  for (let i = 0; i < 17; i++) l.saveRound(w, roundFields, 'Adam', '', true);
+  const before = l.totals(w.moneyEntries).balance;
+  const zero = l.saveRound(w, { ...roundFields, winningsCents: 0, winner: '' }, 'Adam', '', true);
+  assert.equal(l.active(w.moneyEntries).length, 52);
+  assert.equal(l.active(w.golfRounds).length, 18);
+  const rows = App.ledgerUI.combinedEntries(w);
+  assert.equal(rows.length, 53);
+  assert.equal(rows.filter(row => row.id === zero.id).length, 1);
+  assert.equal(w.moneyEntries.some(row => row.sourceRoundId === zero.id), false);
+  assert.equal(l.totals(w.moneyEntries).balance, before);
+});
 test('category chips combine with year and search while preserving ledger totals', () => {
   const h = client('Tristen'), { App, state } = h, l = App.ledger, w = state.workspace;
   const food = l.saveMoney(w, { ...moneyFields, category:'Food', description:'Lunch' }, 'Adam');
