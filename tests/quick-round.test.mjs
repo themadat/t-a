@@ -17,7 +17,7 @@ function quickClient(person = 'Adam', persistent = true) {
 }
 test('quick round buttons record $20 owed to the buyer and clear filters', () => {
   const { App, state } = quickClient();
-  state.ui.ledgerSearch = 'hidden'; state.ui.ledgerYear = '2025';
+  state.ui.ledgerSearch = 'hidden'; state.ui.ledgerYear = '2025'; state.ui.ledgerCategories = ['Food'];
   App.ledgerUI.quickRound('Tristen');
   const first = state.workspace.moneyEntries[0];
   assert.equal(first.from, 'Adam'); assert.equal(first.to, 'Tristen');
@@ -28,6 +28,7 @@ test('quick round buttons record $20 owed to the buyer and clear filters', () =>
   assert.equal(state.workspace.moneyEntries.length, 2);
   assert.equal(App.ledger.totals(state.workspace.moneyEntries).balance, 0);
   assert.equal(state.ui.ledgerSearch, ''); assert.equal(state.ui.ledgerYear, '');
+  assert.equal(state.ui.ledgerCategories.length, 0);
 });
 test('quick entries require identity and report failed persistence honestly', () => {
   const unknown = quickClient(''); unknown.App.ledgerUI.quickRound('Adam');

@@ -368,7 +368,7 @@
     $$('[data-theme-mode]').forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.themeMode === appearance.mode)); });
     renderTextSizeControl();
     setInputValue($("#whatsNewDismissSeconds"), preferences.controls.whatsNewDismissSeconds);
-    $$('[data-button-style]').forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.buttonStyle === preferences.controls.buttonStyle)); });
+    $$('button[data-button-style]').forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.buttonStyle === preferences.controls.buttonStyle)); });
     $$('[data-hints-enabled]').forEach(function (button) { button.setAttribute("aria-pressed", String((button.dataset.hintsEnabled === "true") === preferences.hints.enabled)); });
   }
 
@@ -700,8 +700,10 @@
       if (mode) {
         storage.mutate(function (next) { next.preferences.appearance.mode = mode.dataset.themeMode; }, { reason: "appearance" }); applyAppearance(); renderSettings(); return;
       }
-      const style = event.target.closest("[data-button-style]");
+      const style = event.target.closest("button[data-button-style]");
       if (style) { storage.mutate(function (next) { next.preferences.controls.buttonStyle = style.dataset.buttonStyle; }, { reason: "button-style" }); applyAppearance(); renderSettings(); return; }
+      const layout = event.target.closest("button[data-ledger-layout]");
+      if (layout) { App.ledgerUI.setLayout(layout.dataset.ledgerLayout); renderSettings(); return; }
     });
     dialog.addEventListener("keydown", function (event) {
       const tab = event.target.closest("[role='tab']");

@@ -71,6 +71,7 @@
         search: "",
         ledgerYear: "",
         ledgerSearch: "",
+        ledgerCategories: [],
         dismissedHints: [],
         seenReleaseVersion: "",
         supportTab: "settings"
@@ -193,6 +194,7 @@
         search: u.cleanLine(sourceUi.search, 200),
         ledgerYear: /^\d{4}$/.test(sourceUi.ledgerYear) ? sourceUi.ledgerYear : "",
         ledgerSearch: u.cleanLine(sourceUi.ledgerSearch, 200),
+        ledgerCategories: Array.isArray(sourceUi.ledgerCategories) ? [...new Set(sourceUi.ledgerCategories.filter(category => ["Golf", "Bets", "Food", "Other"].includes(category)))] : [],
         dismissedHints: Array.from(new Set((Array.isArray(sourceUi.dismissedHints) ? sourceUi.dismissedHints : []).map(function (id) { return u.cleanLine(id, 80); }).filter(Boolean))).slice(0, 200),
         seenReleaseVersion: u.cleanLine(sourceUi.seenReleaseVersion, 32),
         supportTab: ["settings", "dataSync", "info", "help", "releases", "shortcuts", "roadmap", "developer"].includes(sourceUi.supportTab) ? sourceUi.supportTab : "settings"

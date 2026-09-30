@@ -1379,3 +1379,69 @@ html[data-ledger-layout="expanded"] .entry-fields input:not([type="radio"]):not(
   html[data-ledger-layout="expanded"] .app-header { grid-template-columns:1fr; grid-template-areas:"title" "toolbar" "summaries"; }
   html[data-ledger-layout="expanded"] .app-header .top-toolbar { justify-content:space-between; }
 }
+
+/* Shared controls, sticky quick actions, and details within each entry. */
+.identity-person-pill { border:0; border-radius:999px; padding:.2rem .55rem; font-size:.7rem; font-weight:700; background:var(--surface-2); color:var(--text); }
+.identity-person-pill:disabled { opacity:1; cursor:default; }
+.identity-person-pill[data-person="Adam"] { background:#f3dadd; color:#8c2535; }
+.identity-person-pill[data-person="Tristen"] { background:#d9ecdd; color:#205c30; }
+html[data-theme="dark"] .identity-person-pill[data-person="Adam"] { background:#592a32; color:#f6bbc5; }
+html[data-theme="dark"] .identity-person-pill[data-person="Tristen"] { background:#284a31; color:#b6e5bf; }
+.ledger-workspace { --ledger-control-height:44px; }
+html[data-ledger-layout="expanded"] .ledger-workspace { --ledger-control-height:52px; }
+.ledger-workspace .ledger-filters { flex-wrap:nowrap; margin:.6rem 0 0; gap:.65rem; }
+.ledger-workspace .ledger-search-wrap { flex:1; flex-basis:0; height:var(--ledger-control-height); box-sizing:border-box; }
+.ledger-workspace .ledger-search-wrap input { height:100%; min-height:0; padding:.65rem; }
+.ledger-workspace #ledgerYear, .ledger-workspace .ledger-add { height:var(--ledger-control-height); min-height:var(--ledger-control-height); box-sizing:border-box; flex-shrink:0; }
+.ledger-add { display:inline-flex; align-items:center; justify-content:center; gap:.3rem; }
+.ledger-add svg { width:18px; height:18px; }
+.ledger-quick-actions { position:sticky; top:var(--app-header-height,0px); z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:.6rem 1rem; padding:.65rem 0; margin-bottom:.75rem; background:var(--bg); border-bottom:1px solid var(--line); }
+.ledger-quick-actions .quick-round { display:flex; gap:.4rem; border:1px solid var(--line); border-radius:10px; padding:.3rem .4rem .3rem .65rem; background:var(--surface); }
+.ledger-quick-actions .quick-round > span { font-size:.75rem; color:var(--text); margin-right:.25rem; }
+.ledger-quick-actions .quick-round button { width:auto; height:44px; min-height:44px; padding:0 .75rem; font-size:.8rem; }
+.ledger-category-filters { display:flex; flex-wrap:wrap; gap:.4rem; }
+.filter-chip { min-height:44px; padding:.4rem .9rem; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--text); font:inherit; font-size:.85rem; cursor:pointer; }
+.filter-chip[aria-pressed="true"] { background:var(--accent-strong); color:#fff; border-color:var(--accent-strong); }
+.money-choice-row { flex-wrap:wrap; align-items:flex-end; }
+.money-choice-row .payment-direction { height:auto; gap:.65rem; }
+.payment-person { display:flex; flex-direction:column; gap:.25rem; text-align:center; }
+.payment-person > span { font-size:.75rem; color:var(--muted); }
+.payment-direction #swapMoneyDirection { align-self:flex-end; }
+.choice-toggle { flex-wrap:wrap; }
+.entry-title-toggle { display:block; width:100%; padding:0; border:0; border-radius:3px; background:transparent; color:inherit; font:inherit; font-weight:inherit; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }
+[data-inline-open="true"] .entry-title-toggle { white-space:normal; overflow-wrap:anywhere; }
+.entry-row[data-entry-id], .expanded-row[data-entry-id] { cursor:pointer; }
+#ledgerEntries .entry-row > .inline-entry-details { grid-column:1 / -1; grid-row:auto; padding:.9rem .3rem; margin-top:.4rem; border-top:1px solid var(--line); font-size:.9rem; white-space:normal; cursor:default; }
+.inline-entry-details .entry-facts { margin-bottom:1rem; gap:.8rem 1.1rem; }
+.inline-entry-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem; }
+.inline-detail-row > td { padding:0; }
+.inline-detail-row .inline-entry-details { padding:1.25rem; background:var(--surface-2); border-bottom:1px solid var(--line); }
+.expanded-row[data-inline-open="true"] { box-shadow:inset 0 0 0 1px var(--line); }
+@media(max-width:760px) {
+  .inline-detail-row, .inline-detail-row > td { display:block; }
+  .inline-detail-row .inline-entry-details { padding:1rem .75rem; border:1px solid var(--line); border-radius:12px; margin:-.5rem 0 .75rem; }
+  .ledger-workspace .ledger-filters { gap:.4rem; }
+  .ledger-workspace #ledgerYear { width:88px; min-width:88px; flex-basis:88px; padding-inline:.4rem; font-size:.8rem; }
+  .ledger-workspace .ledger-add { width:64px; padding-inline:.5rem; }
+  .ledger-search-wrap kbd, .ledger-search-wrap[data-shortcut]::after { display:none; }
+  .ledger-workspace .ledger-search-wrap input { padding-right:.25rem; }
+  .ledger-search-wrap #ledgerCount { font-size:.65rem; }
+  .ledger-quick-actions { gap:.5rem; padding-block:.5rem; }
+  .ledger-quick-actions .quick-round { flex:1 0 100%; box-sizing:border-box; justify-content:space-between; padding:.25rem .5rem; gap:.35rem; }
+  .ledger-quick-actions .quick-round > span { font-size:.7rem; margin:0; }
+  .ledger-quick-actions .quick-round button { padding-inline:.7rem; }
+  .ledger-category-filters { width:100%; }
+  .ledger-category-filters .filter-chip { flex:1; padding-inline:.5rem; }
+}
+@media(max-width:600px) {
+  .ledger-search-wrap #ledgerCount { display:none; }
+  #golfEntries .entry-column-head.golf { display:none; }
+  #golfEntries .entry-row.golf { grid-template-columns:76px minmax(0,1fr) auto max-content; gap:3px .35rem; }
+  #golfEntries .entry-row.golf > time { grid-column:1; grid-row:1; font-size:.65rem; white-space:nowrap; }
+  #golfEntries .entry-course { grid-column:2; grid-row:1; font-size:.75rem; }
+  #ledgerEntries #golfEntries .entry-row.golf > .golf-winnings { grid-column:3; grid-row:1; font-size:.7rem; }
+  #ledgerEntries #golfEntries .entry-row.golf > .entry-actions { grid-column:4; grid-row:1; }
+  #ledgerEntries #golfEntries .entry-row.golf > .golf-results { grid-column:1 / -1; grid-row:2; display:flex; flex-wrap:wrap; gap:.25rem .8rem; font-size:.7rem; }
+  #ledgerEntries #golfEntries .entry-row.golf > .inline-entry-details { grid-column:1 / -1; grid-row:auto; }
+  .money-choice-row .choice-toggle span { padding-inline:.55rem; font-size:.8rem; }
+}
