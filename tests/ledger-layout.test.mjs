@@ -79,6 +79,8 @@ test('Expanded round balances include Golf Winnings once and keep a zero round a
   assert.match(html, /expanded-amount[^]*?\$4[^]*?to Adam/);
   assert.match(html, /expanded-balance[^]*?\$9[^]*?to Adam/);
   assert.match(html, />Wins<\/span>/);
+  assert.ok(!html.includes('expanded-result'));
+  assert.equal((html.split('</tr>')[0].match(/<td /g) || []).length, 6);
   const zeroHtml = App.ledgerUI.expandedRow(rows.find(row => row.id === zero.id), total, balances);
   assert.match(zeroHtml, /Adam: UNK • Tristen: 94/); assert.match(zeroHtml, /expanded-amount[^]*?\$0/);
   assert.equal(w.moneyEntries.some(row => row.amountCents === 0), false);
@@ -97,7 +99,11 @@ test('inline details render both winnings safely, including unknown scores and u
   const betHtml = App.ledgerUI.detailContent('money', bet);
   assert.match(betHtml, />Edit<\/button>/);
   for (const name of ['Date','What','Type','Payer','Payee','Amount','Balance']) assert.ok(!betHtml.includes('<dt>'+name+'</dt>'));
-  assert.match(betHtml, /Tags<\/dt><dd>Bets/);
+  assert.ok(!betHtml.includes('<dt>Tags</dt>'));
+  for (const name of ['Course','Holes','Tags']) assert.ok(!html.includes('<dt>'+name+'</dt>'));
+  assert.equal((html.match(/>Edit<\/button>/g) || []).length, 1);
+  assert.match(html, new RegExp('data-edit-golf="' + round.id + '"'));
+  assert.ok(!html.includes('data-edit-money=') && !html.includes('linked-entry-detail'));
 });
 
 test('Golf, Wins, and Bets filters stay distinct and linked tag edits remain authoritative', () => {
