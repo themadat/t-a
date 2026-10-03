@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.4";
+  const VERSION = "1.0.0.5";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -79,7 +79,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-10-03T19:04:37.000Z", "title": "Simple Masters Favicon", "summary": "Masters uses the supplied gold T&A favicon artwork.", "features": [], "improvements": ["Updated Masters browser favicon to favicon-masters-simple.svg"], "fixes": ["Corrected a duplicate SVG attribute so the artwork renders"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": VERSION, "date": "2026-10-03T19:15:26.000Z", "title": "Brighter Masters App Logo", "summary": "The Masters app logo pairs a neon green T with a bright coral-red A.", "features": [], "improvements": ["More distinct T&A lettering against the dark green icon background"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": "1.0.0.4", "date": "2026-10-03T19:04:37.000Z", "title": "Simple Masters Favicon", "summary": "Masters uses the supplied gold T&A favicon artwork.", "features": [], "improvements": ["Updated Masters browser favicon to favicon-masters-simple.svg"], "fixes": ["Corrected a duplicate SVG attribute so the artwork renders"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.3", "date": "2026-10-03T18:35:42.000Z", "title": "Safari Favicon Without White Backing", "summary": "Transparent browser favicons retain rounded outlines and readable T&A letters without the dark tile that triggers Safari's white backing.", "features": [], "improvements": ["Dedicated transparent tab artwork for Basic and Masters uses bright outlines and lettering"], "fixes": ["Removed the dark filled favicon background responsible for Safari's white outline"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.2", "date": "2026-10-03T17:54:17.000Z", "title": "Rounded Icons & Skin Palette", "summary": "Rounded favicons, clearer T&A lettering, and a skin palette disclosure in Settings.", "features": ["Color Palette disclosure under Skin shows the active theme colors"], "improvements": ["Rounded favicon artwork with transparent corners and no white border", "Higher contrast T&A letters with separation at their overlap"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.1", "date": "2026-09-30T21:58:00.000Z", "title": "T&A 1.0", "summary": "Money, Golf, Notes, and shared editing with a lean maintenance guide.", "features": [], "improvements": ["Documentation reduced to essential setup, source contracts, and verification", "Removed development plans, wishes, and repeated handoff history"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
