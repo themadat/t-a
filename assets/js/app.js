@@ -75,6 +75,7 @@
     const root = document.documentElement;
     const skin = config.skins[appearance.skin]?.[dark ? "dark" : "light"];
     const colors = skin || appearance;
+    $$('[data-palette-color]').forEach(function (label) { label.textContent = colors[label.dataset.paletteColor].toUpperCase(); });
     root.dataset.skin = appearance.skin;
     root.dataset.theme = dark ? "dark" : "light";
     root.dataset.buttonStyle = state().preferences.controls.buttonStyle;

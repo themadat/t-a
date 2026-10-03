@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.1";
+  const VERSION = "1.0.0.2";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -78,7 +78,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-09-30T21:58:00.000Z", "title": "T&A 1.0", "summary": "Money, Golf, Notes, and shared editing with a lean maintenance guide.", "features": [], "improvements": ["Documentation reduced to essential setup, source contracts, and verification", "Removed development plans, wishes, and repeated handoff history"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": VERSION, "date": "2026-10-03T17:54:17.000Z", "title": "Rounded Icons & Skin Palette", "summary": "Rounded favicons, clearer T&A lettering, and a skin palette disclosure in Settings.", "features": ["Color Palette disclosure under Skin shows the active theme colors"], "improvements": ["Rounded favicon artwork with transparent corners and no white border", "Higher contrast T&A letters with separation at their overlap"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": "1.0.0.1", "date": "2026-09-30T21:58:00.000Z", "title": "T&A 1.0", "summary": "Money, Golf, Notes, and shared editing with a lean maintenance guide.", "features": [], "improvements": ["Documentation reduced to essential setup, source contracts, and verification", "Removed development plans, wishes, and repeated handoff history"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "0.0.1.24", "date": "2026-09-30T21:48:00.000Z", "title": "Round Paid Confirmation", "summary": "Confirm the payer and $20 owed before adding a Round Paid entry.", "features": [], "improvements": ["Round Paid quick actions show a confirmation dialog with Add $20 Entry and Cancel"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.23", "date": "2026-09-30T21:44:00.000Z", "title": "Pinned Add Alignment", "summary": "Add stays at the far right when it joins the pinned controls.", "features": [], "improvements": [], "fixes": ["Right-aligned sticky Add in Compact and Expanded on desktop and mobile"], "knownIssues": []},
     {"version": "0.0.1.22", "date": "2026-09-30T21:40:00.000Z", "title": "Masters Golf Skin", "summary": "A default Masters-inspired skin with a one-click return to Basic.", "features": ["Appearance > Skin beneath Theme: Masters and Basic with supplied icons", "Masters course greens, warm ivory, yellow accents, and floral tags in light and dark themes"], "improvements": ["Coordinated header, summaries, tables, forms, Notes, Settings, sync states, and browser chrome", "Device-local skin choice persists through reload and sync; existing users default to Masters", "Basic restores the original appearance and color preferences"], "fixes": [], "knownIssues": []},
