@@ -1,5 +1,5 @@
 # Handoff
 
-Version 1.0.0.3: dedicated transparent browser favicons remove Safari's white backing; Masters has a gold outline and Basic a bright mint outline. Rounded monogram and in-app icons retained. Favicon routing lives in config/pwa; both new SVGs are in the offline shell and public deployment. Previous release frozen.
-Verification: 95 tests, JavaScript syntax, manifests, deployment staging, and diff checks pass. Final favicon artwork checked directly in desktop Safari: neither skin has white backing. Adaptive media-query artwork was rejected after Safari rendered it with white backing; final tab assets use static bright colors. Physical-phone and Safari light-appearance checks remain unverified.
-No agent commit/push. Temporary Safari preview window closed and preview server stopped. Preserve unrelated private data and icon artwork.
+Version 1.0.0.4: Masters browser favicon now uses the supplied assets/icons/favicon-masters-simple.svg. Removed its duplicate stroke-width attribute so the SVG parses; artwork otherwise preserved. Config and offline shell updated; previous release frozen. Basic favicon and in-app icons unchanged.
+Verification: 95 tests, JavaScript syntax, SVG XML parsing, public deployment staging, and task-scoped diff checks pass. Browser preview confirms the actual favicon href is assets/icons/favicon-masters-simple.svg?v=1.0.0.4 and the supplied SVG renders. This artwork has not been rechecked in Safari's tab chrome or on a physical phone.
+No agent commit/push. Preview server stopped and preview tab closed. Preserve unrelated t-a-wip.svg edits and private data.
