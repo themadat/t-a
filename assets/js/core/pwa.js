@@ -48,7 +48,7 @@
       meta.content = meta.media.includes("dark") ? darkChrome : lightChrome;
     });
     const favicon = document.querySelector("link[rel='icon']");
-    if (favicon) favicon.href = versionedAsset(skin ? config.identity.assets.appIconMasters : config.identity.assets.favicon);
+    if (favicon) favicon.href = versionedAsset(skin ? config.identity.assets.faviconMasters : config.identity.assets.favicon);
     document.documentElement.dataset.installIcon = variant;
   }
 

@@ -1,5 +1,5 @@
 # Handoff
 
-Version 1.0.0.2: rounded SVG favicons with transparent corners, larger and higher contrast T&A lettering with overlap separation, and a native Color Palette disclosure directly below Skin in Settings. Swatches and hex values follow the active skin/theme, including system theme changes. Previous release frozen.
-Verification: 95 tests, JavaScript syntax, manifests, deployment staging, and diff checks pass. Browser checks cover desktop/mobile, both layouts/skins/themes, palette updates, keyboard Enter/Space, Escape, and overflow. UI checked in an isolated temporary staging copy with the token gate omitted; production authentication is unchanged. Safari favicon chrome and physical-phone behavior remain unverified.
-No agent commit/push. Preview servers stopped. Preserve unrelated private data and icon artwork.
+Version 1.0.0.3: dedicated transparent browser favicons remove Safari's white backing; Masters has a gold outline and Basic a bright mint outline. Rounded monogram and in-app icons retained. Favicon routing lives in config/pwa; both new SVGs are in the offline shell and public deployment. Previous release frozen.
+Verification: 95 tests, JavaScript syntax, manifests, deployment staging, and diff checks pass. Final favicon artwork checked directly in desktop Safari: neither skin has white backing. Adaptive media-query artwork was rejected after Safari rendered it with white backing; final tab assets use static bright colors. Physical-phone and Safari light-appearance checks remain unverified.
+No agent commit/push. Temporary Safari preview window closed and preview server stopped. Preserve unrelated private data and icon artwork.

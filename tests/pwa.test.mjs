@@ -11,7 +11,7 @@ function harness({ online = true, saved = true, layout = 'compact', skin = 'basi
   const registration = { waiting: worker, async update() { events.push('check'); }, addEventListener() {} };
   const chrome = { content: '' }, lightChrome = { media: '(prefers-color-scheme: light)' }, darkChrome = { media: '(prefers-color-scheme: dark)' }, favicon = {};
   const App = {
-    config: { identity: { buildId: 'test', assets: { favicon: 'basic.svg', appIconMasters: 'masters.svg' } }, skins: { masters: { light: { chrome: '#004f36' }, dark: { chrome: '#004f36' } } } },
+    config: { identity: { buildId: 'test', assets: { favicon: 'basic.svg', faviconMasters: 'masters.svg', appIconMasters: 'in-app-masters.svg' } }, skins: { masters: { light: { chrome: '#004f36' }, dark: { chrome: '#004f36' } } } },
     storage: { saveNow() { events.push('save'); return saved; }, getState() { return { preferences: { appearance: { mode, skin } } }; } },
     icons: { set(_element, name) { events.push(name); } },
     components: { toast(message) { events.push(message); } }

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.2";
+  const VERSION = "1.0.0.3";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -24,7 +24,8 @@
       }
     ],
     "assets": {
-      "favicon": "assets/icons/favicon.svg",
+      "favicon": "assets/icons/favicon-tab-basic.svg",
+      "faviconMasters": "assets/icons/favicon-tab-masters.svg",
       "appIconLight": "assets/icons/favicon.svg",
       "appIconDark": "assets/icons/favicon.svg",
       "appIconMasters": "assets/icons/favicon-masters.svg",
@@ -78,7 +79,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-10-03T17:54:17.000Z", "title": "Rounded Icons & Skin Palette", "summary": "Rounded favicons, clearer T&A lettering, and a skin palette disclosure in Settings.", "features": ["Color Palette disclosure under Skin shows the active theme colors"], "improvements": ["Rounded favicon artwork with transparent corners and no white border", "Higher contrast T&A letters with separation at their overlap"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": VERSION, "date": "2026-10-03T18:35:42.000Z", "title": "Safari Favicon Without White Backing", "summary": "Transparent browser favicons retain rounded outlines and readable T&A letters without the dark tile that triggers Safari's white backing.", "features": [], "improvements": ["Dedicated transparent tab artwork for Basic and Masters uses bright outlines and lettering"], "fixes": ["Removed the dark filled favicon background responsible for Safari's white outline"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": "1.0.0.2", "date": "2026-10-03T17:54:17.000Z", "title": "Rounded Icons & Skin Palette", "summary": "Rounded favicons, clearer T&A lettering, and a skin palette disclosure in Settings.", "features": ["Color Palette disclosure under Skin shows the active theme colors"], "improvements": ["Rounded favicon artwork with transparent corners and no white border", "Higher contrast T&A letters with separation at their overlap"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.1", "date": "2026-09-30T21:58:00.000Z", "title": "T&A 1.0", "summary": "Money, Golf, Notes, and shared editing with a lean maintenance guide.", "features": [], "improvements": ["Documentation reduced to essential setup, source contracts, and verification", "Removed development plans, wishes, and repeated handoff history"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "0.0.1.24", "date": "2026-09-30T21:48:00.000Z", "title": "Round Paid Confirmation", "summary": "Confirm the payer and $20 owed before adding a Round Paid entry.", "features": [], "improvements": ["Round Paid quick actions show a confirmation dialog with Add $20 Entry and Cancel"], "fixes": [], "knownIssues": []},
     {"version": "0.0.1.23", "date": "2026-09-30T21:44:00.000Z", "title": "Pinned Add Alignment", "summary": "Add stays at the far right when it joins the pinned controls.", "features": [], "improvements": [], "fixes": ["Right-aligned sticky Add in Compact and Expanded on desktop and mobile"], "knownIssues": []},

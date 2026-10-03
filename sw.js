@@ -26,6 +26,8 @@ const SHELL = [
   versioned("./assets/js/core/pwa.js"),
   versioned("./assets/js/ledger-ui.js"),
   versioned("./assets/js/app.js"),
+  versioned("./assets/icons/favicon-tab-basic.svg"),
+  versioned("./assets/icons/favicon-tab-masters.svg"),
   versioned("./assets/icons/favicon.svg"),
   versioned("./assets/icons/favicon-masters.svg"),
   versioned("./assets/icons/app-icon-light.svg"),
