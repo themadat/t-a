@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.5";
+  const VERSION = "1.0.0.6";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -79,7 +79,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-10-03T19:15:26.000Z", "title": "Brighter Masters App Logo", "summary": "The Masters app logo pairs a neon green T with a bright coral-red A.", "features": [], "improvements": ["More distinct T&A lettering against the dark green icon background"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": VERSION, "date": "2026-10-13T02:00:10.000Z", "title": "Clear Sync Recovery", "summary": "Sync failures explain the reason and offer recovery choices, including a fresh GitHub overwrite without a local backup.", "features": ["Sync failure pop-ups with retry, pull and overwrite, export, and Settings", "Show Latest Update Banners setting, off by default"], "improvements": ["Pull fetches the latest GitHub copy after confirmation and bypasses local-save, recovery, and tab-conflict blockers", "Repeated background errors show once until the connection recovers"], "fixes": ["Full recovery storage no longer blocks an explicitly confirmed GitHub overwrite", "Existing users without a banner preference default to off"], "knownIssues": ["GitHub access and valid remote data are still required; unavailable browser storage opens the copy with a persistence warning", "Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": "1.0.0.5", "date": "2026-10-03T19:15:26.000Z", "title": "Brighter Masters App Logo", "summary": "The Masters app logo pairs a neon green T with a bright coral-red A.", "features": [], "improvements": ["More distinct T&A lettering against the dark green icon background"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.4", "date": "2026-10-03T19:04:37.000Z", "title": "Simple Masters Favicon", "summary": "Masters uses the supplied gold T&A favicon artwork.", "features": [], "improvements": ["Updated Masters browser favicon to favicon-masters-simple.svg"], "fixes": ["Corrected a duplicate SVG attribute so the artwork renders"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.3", "date": "2026-10-03T18:35:42.000Z", "title": "Safari Favicon Without White Backing", "summary": "Transparent browser favicons retain rounded outlines and readable T&A letters without the dark tile that triggers Safari's white backing.", "features": [], "improvements": ["Dedicated transparent tab artwork for Basic and Masters uses bright outlines and lettering"], "fixes": ["Removed the dark filled favicon background responsible for Safari's white outline"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.2", "date": "2026-10-03T17:54:17.000Z", "title": "Rounded Icons & Skin Palette", "summary": "Rounded favicons, clearer T&A lettering, and a skin palette disclosure in Settings.", "features": ["Color Palette disclosure under Skin shows the active theme colors"], "improvements": ["Rounded favicon artwork with transparent corners and no white border", "Higher contrast T&A letters with separation at their overlap"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
@@ -193,7 +194,7 @@
       "title": "GitHub synchronization",
       "section": "Data",
       "keywords": "github cloud sync token conflict merge",
-      "html": "<p>GitHub sync is optional. The app configuration fixes the repository, branch, and JSON file path; enter a fine-grained token with Contents access in Settings → Data Sync. Expand Sync payload (JSON) there to inspect the current local content included in uploads. Money, Golf, and Notes sync; appearance and settings stay on this device. Adam labels both tokens once in Data Sync and publishes the setup. Afterward, paste your assigned token and press Connect: the app identifies you, loads shared content, and enables Auto Sync. Separate edits merge; conflicting edits are reviewed individually. Each person should use a separate token limited to the private data repository.</p>"
+      "html": "<p>GitHub sync is optional. The app configuration fixes the repository, branch, and JSON file path; enter a fine-grained token with Contents access in Settings → Data Sync. Expand Sync payload (JSON) there to inspect the current local content included in uploads. Money, Golf, and Notes sync; appearance and settings stay on this device. Adam labels both tokens once in Data Sync and publishes the setup. Afterward, paste your assigned token and press Connect: the app identifies you, loads shared content, and enables Auto Sync. Separate edits merge; conflicting edits are reviewed individually. Sync failures show the reason with retry, export, Settings, and Pull and Overwrite from GitHub options. Pull and Overwrite discards unsynced local content after confirmation, fetches the latest GitHub copy, and never requires a local backup or uploads to GitHub. If storage is full, old local recovery data may be removed; if storage is unavailable, the copy opens with a warning that it may not survive reload. Each person should use a separate token limited to the private data repository.</p>"
     },
     {
       "id": "install",

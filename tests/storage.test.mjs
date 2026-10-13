@@ -42,3 +42,56 @@ test('failed disk writes retain a reloadable session draft',()=>{
   disk.setItem=original; const reloaded=client(disk,a.sessionStorage);
   assert.equal(reloaded.state.workspace.moneyEntries[0].description,'Unsaved');
 });
+
+
+test('explicit GitHub overwrite clears a conflicting tab draft and persists without recovery', () => {
+  const disk = memory(), a = client(disk); add(a, 'Original'); a.App.storage.saveNow();
+  const b = client(disk), id = a.state.workspace.moneyEntries[0].id;
+  edit(a, id, 'Other tab'); edit(b, id, 'Discard this draft'); a.App.storage.saveNow();
+  assert.equal(b.App.storage.saveNow(), false); assert.ok(b.App.storage.getTabConflict());
+  const next = b.App.stateModel.createDefaultState();
+  b.App.ledger.saveMoney(next.workspace, { ...moneyFields, description: 'GitHub only' }, 'Adam');
+  assert.equal(b.App.storage.overwriteFromSync(next), true);
+  assert.equal(b.App.storage.getTabConflict(), null);
+  assert.equal(b.App.storage.saveNow(), true);
+  const reloaded = client(disk, b.sessionStorage);
+  assert.deepEqual(Array.from(reloaded.state.workspace.moneyEntries, e => e.description), ['GitHub only']);
+  assert.equal(reloaded.App.storage.recoveryInfo(), null);
+});
+
+test('overwrite frees app recovery space, retains credentials and other data, and survives offline reload', () => {
+  const data = new Map(); let limit = Infinity;
+  const disk = {
+    getItem: key => data.get(key) ?? null,
+    removeItem: key => data.delete(key),
+    setItem(key, value) {
+      const size = Array.from(data, ([k, v]) => k === key ? 0 : v.length).reduce((a, b) => a + b, 0) + value.length;
+      if (size > limit) throw Object.assign(new Error('Storage full'), { name: 'QuotaExceededError' });
+      data.set(key, value);
+    }
+  };
+  const h = client(disk), store = h.App.storage, config = h.App.config.storage;
+  store.mutate(s => { s.workspace.documents[0].html = 'Old'.repeat(1000); }); store.saveNow();
+  assert.equal(store.saveRecovery('Old backup'), true);
+  store.setSecret('synthetic-secret', true); disk.setItem('another-app', 'preserve');
+  const next = structuredClone(h.state); next.workspace.documents[0].html = 'Latest'.repeat(900);
+  limit = JSON.stringify(h.App.stateModel.prepare(next).state).length + 100;
+  assert.equal(store.saveRecovery('Cannot fit another backup', next), false);
+  assert.equal(store.overwriteFromSync(next), true);
+  assert.equal(disk.getItem(config.recoveryKey), null);
+  assert.equal(store.getSecret(), 'synthetic-secret'); assert.equal(disk.getItem('another-app'), 'preserve');
+  assert.equal(store.isPersistent(), true);
+  assert.equal(client(disk, h.sessionStorage).state.workspace.documents[0].html, next.workspace.documents[0].html);
+});
+
+test('unavailable disk still opens the pulled copy and replaces the stale session draft', () => {
+  const disk = memory(), h = client(disk); add(h, 'Discard'); h.App.storage.saveNow();
+  const next = h.App.stateModel.createDefaultState();
+  h.App.ledger.saveMoney(next.workspace, { ...moneyFields, description: 'Latest cloud' }, 'Adam');
+  disk.setItem = () => { throw new Error('Storage denied'); };
+  assert.equal(h.App.storage.overwriteFromSync(next), false);
+  assert.equal(h.state.workspace.moneyEntries[0].description, 'Latest cloud');
+  assert.equal(h.App.storage.isPersistent(), false);
+  assert.equal(h.App.storage.saveNow(), false);
+  assert.equal(client(disk, h.sessionStorage).state.workspace.moneyEntries[0].description, 'Latest cloud');
+});

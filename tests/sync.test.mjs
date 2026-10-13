@@ -36,7 +36,8 @@ function harness({ token = 'test-token', online = true } = {}) {
     setSecret(value) { token = value; return true; }, clearSecret() { token = ''; },
     mutate(callback, options = {}) { callback(state); if (options.touch !== false) App.stateModel.touch(state); state = App.stateModel.normalize(state); },
     saveRecovery() { if (!h.recoveryWorks) return false; h.recovery = structuredClone(state); return true; },
-    replace(next, options) { replacements.push(options); state = App.stateModel.normalize(structuredClone(next)); }
+    replace(next, options) { replacements.push(options); state = App.stateModel.normalize(structuredClone(next)); },
+    overwriteFromSync(next) { replacements.push({ reason: 'sync-download', saveRecovery: false }); state = App.stateModel.normalize(structuredClone(next)); return h.persistWorks !== false; }
   };
   App.components = {
     toast: (message, options) => toasts.push({ message, ...options }),
@@ -161,7 +162,7 @@ test('missing remote is static pending and malformed JSON is a failed attempt', 
   const h = harness(); h.respond = () => response(404);
   await h.sync.check(true);
   assert.equal(h.sync.getInfo().state, 'pending');
-  assert.equal(h.sync.getInfo().canRestore, false);
+  assert.equal(h.sync.getInfo().canRestore, true);
   h.respond = () => response(200, { type: 'file', sha: 'sha', content: btoa('invalid json') });
   await h.sync.check(true);
   assert.equal(h.sync.getInfo().state, 'failed');
@@ -190,7 +191,7 @@ test('upload direction stays static; an edit during upload remains pending after
   assert.equal(h.sync.getInfo().state, 'pending');
 });
 
-test('restore cancellation preserves data; confirmation saves recovery and local cloud settings', async () => {
+test('pull cancellation preserves data; confirmation overwrites without a recovery backup', async () => {
   const h = harness(); changeNotes(h.remote, 'cloud content');
   const cloud = structuredClone(h.state.modules.cloudSync);
   await h.sync.restoreFromCloud();
@@ -198,19 +199,24 @@ test('restore cancellation preserves data; confirmation saves recovery and local
   h.confirmation = true;
   await h.sync.restoreFromCloud();
   assert.equal(h.replacements.length, 1);
-  assert.ok(h.recovery);
+  assert.equal(h.recovery, null);
   assert.equal(h.state.workspace.documents[0].html, 'cloud content');
   assert.equal(h.state.modules.cloudSync.rememberToken, cloud.rememberToken);
   assert.equal(h.sync.getInfo().state, 'upToDate', h.sync.getInfo().message);
   assert.ok(h.events.some(event => event.detail?.info?.state === 'downloading'));
 });
 
-test('restore refuses replacement when a recovery copy cannot be saved', async () => {
-  const h = harness(); h.confirmation = true; h.recoveryWorks = false;
-  await h.sync.restoreFromCloud();
-  assert.equal(h.replacements.length, 0);
-  assert.equal(h.sync.getInfo().state, 'failed');
-  assert.match(h.sync.getInfo().message, /recovery copy/);
+test('pull bypasses failed local saves and recovery, fetches after confirmation, and never writes GitHub', async () => {
+  const h = harness(); h.recoveryWorks = false;
+  h.App.storage.saveNow = () => false;
+  changeNotes(h.state, 'Discard me');
+  h.App.components.confirm = async () => { changeNotes(h.remote, 'Latest after confirmation'); return true; };
+  assert.equal(await h.sync.restoreFromCloud(), true);
+  assert.equal(h.state.workspace.documents[0].html, 'Latest after confirmation');
+  assert.equal(h.recovery, null);
+  assert.equal(h.sync.getInfo().state, 'upToDate');
+  assert.equal(h.requests.length, 1);
+  assert.ok(h.requests.every(r => r.options.method !== 'PUT'));
 });
 
 test('forgetting a connection prevents stale errors and a pending restore from applying', async () => {
@@ -455,7 +461,8 @@ test('Auto Sync requires opt-in and a baseline and never chooses a conflicting v
   h.state.modules.cloudSync.autoSync = true;
   changeNotes(h.state, 'local'); changeNotes(h.remote, 'remote');
   await h.sync.autoSync();
-  assert.equal(h.choices.length, 0); assert.equal(h.replacements.length, 0);
+  assert.equal(h.choices.length, 1); assert.equal(h.replacements.length, 0);
+  assert.match(h.choices[0].message, /Conflicting entries/);
   assert.equal(h.sync.getInfo().state, 'warning');
   assert.equal(h.requests.filter(r => r.options.method === 'PUT').length, 0);
 });
@@ -520,4 +527,116 @@ test('restored token resolves offline and reassigned token loses its old identit
   await restored.refresh(); assert.equal(restored.person(),'Adam');
   h.state.workspace.tokenLabels.Adam=await restored.fingerprint('replacement');
   assert.equal(restored.person(),'');
+});
+
+
+test('failed local saves show a reason and offer retry, overwrite, export, and Settings', async () => {
+  const h = harness(); h.App.storage.saveNow = () => false;
+  assert.equal(await h.sync.syncNow(), false);
+  assert.match(h.choices[0].message, /storage.*full or unavailable/i);
+  assert.deepEqual(Array.from(h.choices[0].choices, c => c.value), ['retry', 'pull', 'export', 'settings']);
+  assert.equal(h.requests.length, 0);
+  h.App.components.choose = async options => { h.choices.push(options); return 'pull'; };
+  h.confirmation = true; changeNotes(h.remote, 'Use GitHub');
+  assert.equal(await h.sync.syncNow(), true);
+  assert.equal(h.state.workspace.documents[0].html, 'Use GitHub');
+});
+
+test('manual failures always open a popup; recurring background failures are deduplicated', async () => {
+  const h = harness(); h.respond = () => response(401);
+  await h.sync.check(true); await h.sync.check(true);
+  assert.equal(h.choices.length, 1);
+  assert.match(h.choices[0].message, /rejected the token/);
+  assert.equal(h.sync.getInfo().canRestore, true);
+  await h.sync.syncNow(); await h.sync.syncNow();
+  assert.equal(h.choices.length, 3);
+  h.respond = h.file; await h.sync.check(true);
+  h.respond = () => response(401); await h.sync.check(true);
+  assert.equal(h.choices.length, 4);
+});
+
+test('manual offline sync explains why; pull failures preserve local data and offer recovery choices', async () => {
+  const h = harness({ online: false });
+  await h.sync.syncNow();
+  assert.match(h.choices[0].message, /offline/);
+  assert.match(h.sync.getInfo().message, /offline/);
+  for (const status of [401, 403, 404, 429, 500]) {
+    const r = harness(); changeNotes(r.state, 'Keep on failed fetch'); r.confirmation = true;
+    r.respond = () => response(status);
+    await r.sync.restoreFromCloud();
+    assert.equal(r.replacements.length, 0);
+    assert.equal(r.state.workspace.documents[0].html, 'Keep on failed fetch');
+    assert.equal(r.choices.length, 1);
+    assert.equal(r.sync.getInfo().canRestore, true);
+  }
+});
+
+test('a pulled copy opens even if persistence fails, with an explicit reload warning', async () => {
+  const h = harness(); h.confirmation = true; h.persistWorks = false;
+  changeNotes(h.remote, 'Open despite unavailable storage');
+  assert.equal(await h.sync.restoreFromCloud(), false);
+  assert.equal(h.state.workspace.documents[0].html, 'Open despite unavailable storage');
+  assert.match(h.choices[0].message, /latest GitHub copy is open.*lost on reload/);
+  assert.equal(h.sync.getInfo().state, 'failed');
+});
+
+test('failure options retry outside the sync lock and export or open Settings', async () => {
+  const h = harness(); let locked = false;
+  h.context.navigator.locks = { request: async (name, run) => {
+    assert.equal(locked, false); locked = true;
+    try { return await run(); } finally { locked = false; }
+  } };
+  h.respond = () => response(500);
+  h.App.components.choose = async () => { h.respond = h.file; return 'retry'; };
+  assert.equal(await h.sync.syncNow(), true);
+  let exported = false; h.App.portability = { exportJson: () => { exported = true; } };
+  h.respond = () => response(500); h.App.components.choose = async () => 'export';
+  await h.sync.syncNow(); assert.equal(exported, true);
+  h.App.components.choose = async () => 'settings';
+  await h.sync.syncNow(); assert.equal(h.events.at(-1).type, 'app:opensyncsettings');
+});
+
+test('update banners default off for new and existing users while explicit choices survive normalization', () => {
+  const h = harness(), model = h.App.stateModel;
+  assert.equal(h.state.preferences.controls.whatsNewEnabled, false);
+  const payload = JSON.stringify(model.syncPayload(h.state));
+  for (const [input, expected] of [[undefined, false], [false, false], [true, true], ['true', false]]) {
+    h.state.preferences.controls.whatsNewEnabled = input;
+    const normalized = model.normalize(h.state);
+    assert.equal(normalized.preferences.controls.whatsNewEnabled, expected);
+    assert.equal(JSON.stringify(model.syncPayload(normalized)), payload);
+    assert.equal(model.prepare(model.exportEnvelope(normalized)).state.preferences.controls.whatsNewEnabled, expected);
+  }
+});
+
+
+test('a failed merge recovery backup explains the blocker and can recover through overwrite', async () => {
+  const h = harness(); h.setBaseline(); h.recoveryWorks = false;
+  changeNotes(h.remote, 'Remote-only content');
+  assert.equal(await h.sync.syncNow(), false);
+  assert.match(h.choices[0].message, /local recovery backup.*full or unavailable/);
+  assert.equal(h.replacements.length, 0);
+  h.App.components.choose = async () => 'pull'; h.confirmation = true;
+  assert.equal(await h.sync.syncNow(), true);
+  assert.equal(h.state.workspace.documents[0].html, 'Remote-only content');
+  assert.ok(h.requests.every(r => r.options.method !== 'PUT'));
+});
+
+test('forgetting while a pull is fetching prevents the downloaded copy from being applied', async () => {
+  const h = harness(); h.confirmation = true;
+  const reading = deferred(), started = deferred();
+  h.respond = () => { started.resolve(); return reading.promise; };
+  const pulling = h.sync.restoreFromCloud(); await started.promise;
+  await h.sync.forget(); reading.resolve(h.file()); await pulling;
+  assert.equal(h.replacements.length, 0);
+  assert.equal(h.choices.length, 0);
+  assert.equal(h.sync.getInfo().state, 'authenticationRequired');
+});
+
+test('Auto Sync reports storage failures once and explicit retry reports them again', async () => {
+  const h = harness(); h.setBaseline(); h.state.modules.cloudSync.autoSync = true;
+  h.App.storage.saveNow = () => false;
+  await h.sync.autoSync(); await h.sync.autoSync();
+  assert.equal(h.choices.length, 1);
+  await h.sync.syncNow(); assert.equal(h.choices.length, 2);
 });

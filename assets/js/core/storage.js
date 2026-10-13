@@ -25,14 +25,14 @@
     }
   }
 
-  function writeLocal(key, value) {
+  function writeLocal(key, value, quiet) {
     try {
       localStorage.setItem(key, value);
       persistentStorageAvailable = true;
       return true;
     } catch (error) {
       persistentStorageAvailable = false;
-      emit("app:storageerror", {
+      if (!quiet) emit("app:storageerror", {
         title: error && error.name === "QuotaExceededError" ? "Storage is full" : "Changes are not persistent",
         message: error && error.name === "QuotaExceededError"
           ? "The browser could not save this change. Export a backup, remove unneeded content, or free browser storage."
@@ -170,6 +170,28 @@
     return currentState;
   }
 
+  // Explicitly discarding the local copy must bypass recovery and tab merging.
+  function overwriteFromSync(nextState) {
+    const next = model.prepare(nextState).state;
+    const json = JSON.stringify(next);
+    scheduleSave.cancel();
+    let saved = writeLocal(config.storage.stateKey, json, true);
+    if (!saved) {
+      // Only disposable app data is removed; credentials and other apps stay intact.
+      [config.storage.recoveryKey].concat(config.storage.legacyKeys).forEach(removeLocal);
+      saved = writeLocal(config.storage.stateKey, json, true);
+    }
+    currentState = next;
+    tabConflict = null;
+    lastSavedJson = saved ? json : (readLocal(config.storage.stateKey) || "");
+    clearDraft();
+    if (!saved) saveDraft();
+    persistentStorageAvailable = saved;
+    emit("app:statechange", { reason: "sync-download", state: currentState });
+    if (saved) emit("app:statesaved", { bytes: new Blob([json]).size, updatedAt: next.meta.updatedAt });
+    return saved;
+  }
+
   function restoreRecovery() {
     const recovery = readRecovery();
     if (!recovery) throw new Error("No usable recovery snapshot is available.");
@@ -285,6 +307,7 @@
     getLoadReport: function () { return u.clone(loadReport); },
     mutate: mutate,
     replace: replace,
+    overwriteFromSync: overwriteFromSync,
     saveNow: saveNow,
     saveRecovery: saveRecovery,
     restoreRecovery: restoreRecovery,

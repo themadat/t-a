@@ -120,8 +120,9 @@
     const unread = latest && state().ui.seenReleaseVersion !== latest.version;
     $("#releaseUnreadDot").hidden = !unread;
     const banner = $("#whatsNewBanner");
-    banner.hidden = !unread;
-    if (unread) {
+    const showBanner = unread && state().preferences.controls.whatsNewEnabled;
+    banner.hidden = !showBanner;
+    if (showBanner) {
       $("[data-whats-new-version]").textContent = "v" + latest.version;
       $("[data-whats-new-title]").textContent = latest.title;
       $("[data-whats-new-summary]").textContent = latest.summary;
@@ -373,6 +374,7 @@
     $$('[data-theme-mode]').forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.themeMode === appearance.mode)); });
     $$('[data-skin]', $("#supportDialog")).forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.skin === appearance.skin)); });
     renderTextSizeControl();
+    $("#whatsNewEnabled").checked = preferences.controls.whatsNewEnabled;
     setInputValue($("#whatsNewDismissSeconds"), preferences.controls.whatsNewDismissSeconds);
     $$('button[data-button-style]').forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.buttonStyle === preferences.controls.buttonStyle)); });
     $$('[data-hints-enabled]').forEach(function (button) { button.setAttribute("aria-pressed", String((button.dataset.hintsEnabled === "true") === preferences.hints.enabled)); });
@@ -727,6 +729,11 @@
     $("#textSizeSlider").addEventListener("input", function (event) { storage.mutate(function (next) { next.preferences.appearance.textScale = Number(event.target.value) / 100; }, { reason: "appearance" }); applyAppearance(); renderTextSizeControl(); });
     $$('[data-hints-enabled]').forEach(function (button) {
       button.addEventListener("click", function () { storage.mutate(function (next) { next.preferences.hints.enabled = button.dataset.hintsEnabled === "true"; }, { reason: "hints" }); renderHeader(); renderSettings(); });
+    });
+    $("#whatsNewEnabled").addEventListener("change", function (event) {
+      storage.mutate(function (next) { next.preferences.controls.whatsNewEnabled = event.target.checked; }, { reason: "banner-enabled" });
+      storage.saveNow();
+      renderHeader();
     });
     $("#whatsNewDismissSeconds").addEventListener("change", function () {
       if (!this.reportValidity()) return;

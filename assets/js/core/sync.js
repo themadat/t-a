@@ -30,7 +30,7 @@
   })));
   const ACTIONS = Object.freeze({
     syncNow: Object.freeze({ symbol: "arrow.trianglehead.clockwise.icloud", title: "Sync Now", help: "Compare copies and sync changes with GitHub." }),
-    restore: Object.freeze({ symbol: "arrow.trianglehead.counterclockwise.icloud", title: "Restore from Cloud", help: "Replace this device with the GitHub copy after confirmation and a recovery backup." }),
+    restore: Object.freeze({ symbol: "arrow.trianglehead.counterclockwise.icloud", title: "Pull and Overwrite from GitHub", help: "Discard local content and fetch the latest GitHub copy without requiring a local backup." }),
     settings: Object.freeze({ symbol: "support", title: "Sync Settings", help: "Open storage and GitHub Sync settings." })
   });
 
@@ -57,6 +57,7 @@
     error: "",
     errorState: "",
     deciding: false,
+    notifiedError: "",
     offline: navigator.onLine === false,
     requestSequence: 0,
     controller: null
@@ -140,6 +141,7 @@
       error: "",
       errorState: "",
       deciding: false,
+      notifiedError: "",
       offline: navigator.onLine === false,
       requestSequence: runtime.requestSequence + 1,
       controller: null
@@ -191,9 +193,42 @@
   }
 
   function recordError(error, fallback) {
-    runtime.error = error.message || fallback;
-    runtime.errorState = error.syncState || CloudSyncState.failed;
     runtime.offline = networkError(error);
+    runtime.error = runtime.offline && navigator.onLine !== false
+      ? "Could not reach GitHub. Check your internet connection and try again."
+      : error.message || fallback;
+    runtime.errorState = error.syncState || CloudSyncState.failed;
+  }
+
+  async function showFailure(trigger, interactive, retryPull) {
+    if (!runtime.error || runtime.busy || runtime.checking || runtime.deciding) return false;
+    const message = runtime.error;
+    if (!interactive && runtime.notifiedError === message) return false;
+    runtime.notifiedError = message;
+    const sequence = runtime.requestSequence;
+    runtime.deciding = true;
+    emit();
+    let choice;
+    try {
+      choice = await App.components.choose({
+        title: "Sync needs attention",
+        message: message,
+        trigger: trigger,
+        choices: [
+          { value: "retry", label: "Try again", description: "Retry when the connection or storage problem is fixed.", symbol: ACTIONS.syncNow.symbol },
+          { value: "pull", label: ACTIONS.restore.title, description: "Discard unsynced local content. No local backup is required. GitHub stays unchanged.", symbol: ACTIONS.restore.symbol },
+          { value: "export", label: "Export local backup", description: "Download a copy of the content currently open on this device.", symbol: "json" },
+          { value: "settings", label: "Open Sync Settings", description: "Review the token, connection, and browser storage.", symbol: ACTIONS.settings.symbol }
+        ],
+        cancelLabel: "Close"
+      });
+    } finally { runtime.deciding = false; emit(); }
+    if (sequence !== runtime.requestSequence) return false;
+    if (choice === "pull" || (choice === "retry" && retryPull)) return restoreFromCloud(trigger);
+    if (choice === "retry") return syncNow(trigger);
+    if (choice === "export") App.portability.exportJson();
+    if (choice === "settings") window.dispatchEvent(new CustomEvent("app:opensyncsettings", { detail: { trigger } }));
+    return false;
   }
 
   async function verifyTarget(cloud, token, context) {
@@ -207,7 +242,10 @@
 
   async function readRemote(cloud, token, context, allowMissing) {
     const response = await fetch(apiContentsUrl(cloud) + "?ref=" + encodeURIComponent(cloud.branch), { headers: headers(token), signal: context.signal, cache: "no-store" });
-    if (response.status === 404 && allowMissing) return null;
+    if (response.status === 404) {
+      if (allowMissing) return null;
+      throw Object.assign(new Error("GitHub has no readable data file at the configured path. The file may be missing or the token may not have access. Review Sync Settings."), { syncState: CloudSyncState.warning });
+    }
     if (!response.ok) throw await responseError(response);
     const file = await response.json();
     if (!file || file.type !== "file" || typeof file.content !== "string" || typeof file.sha !== "string") throw new Error("The configured GitHub path is not a readable file.");
@@ -311,7 +349,7 @@
       "first-sync": runtime.remoteMissing ? "Sync Now will create the GitHub data file after you confirm." : "Review and combine entries to start this sync connection.",
       conflict: "This device and GitHub both changed. Sync Now merges separate entries and reviews conflicting edits."
     };
-    if (runtime.error && state !== CloudSyncState.offline) info.message = runtime.error;
+    if (runtime.error) info.message = runtime.error;
     else if (state === CloudSyncState.pending || state === CloudSyncState.warning) info.message = details[change] || info.message;
     const busy = runtime.busy || runtime.checking || runtime.deciding;
     info.help = info.title + ". " + info.message;
@@ -319,7 +357,7 @@
       state: state, change: change, checkedAt: runtime.checkedAt || settings().lastCheckedAt,
       busy: busy, newer: copyComparisonText(), action: ACTIONS[info.primaryAction].title,
       canSync: !busy && info.primaryAction === "syncNow" && configured(),
-      canRestore: !busy && info.primaryAction === "syncNow" && configured() && !runtime.remoteMissing
+      canRestore: !busy && configured()
     });
   }
 
@@ -357,6 +395,7 @@
         || (cloud.baselineTarget === target(cloud) && cloud.baselineSha === remote.sha && !cloud.baselineHash.startsWith("data-v2:")))) {
         if (cloud.baselineTarget !== target(cloud) || cloud.baselineHash !== runtime.remoteHash || cloud.baselineSha !== remote.sha) rememberBaseline(remote.sha, runtime.remoteHash, remote.state);
       }
+      runtime.notifiedError = "";
       runtime.checkedAt = checkedAt;
       storage.mutate(function (state) { state.modules.cloudSync.lastCheckedAt = checkedAt; }, { touch: false, reason: "sync-check" });
     } catch (error) {
@@ -370,6 +409,7 @@
         emit();
       }
     }
+    await showFailure(null, false);
     return getInfo();
   }
 
@@ -406,29 +446,6 @@
     }
   }
 
-  async function performDownload() {
-    if (!runtime.remoteState) throw new Error("No remote data is available to download.");
-    const context = requestContext("downloading");
-    runtime.busy = true;
-    runtime.operation = "downloading";
-    runtime.error = "";
-    emit();
-    try {
-      const next = model.applySync(storage.getState(), runtime.remoteState);
-      if (!storage.saveRecovery("Before downloading GitHub data")) throw new Error("The local recovery copy could not be saved. Export a backup before restoring from cloud.");
-      storage.replace(next, { saveRecovery: false, reason: "sync-download", touch: false });
-      rememberBaseline(runtime.remoteSha, runtime.remoteHash);
-      App.components.toast("This device now uses the GitHub copy. The previous local copy is recoverable in Developer Tools.", { title: "Sync complete", kind: "success", duration: 5000 });
-      return true;
-    } catch (error) {
-      recordError(error, "Download failed.");
-      App.components.toast(runtime.error, { title: "Sync Failed", kind: "danger", duration: 6000 });
-      return false;
-    } finally {
-      if (currentRequest(context)) { runtime.busy = false; runtime.operation = ""; emit(); }
-    }
-  }
-
   let autoTimer = 0, autoFailures = 0;
   function describeVersion(value) {
     if (value === undefined) return "No entry";
@@ -452,8 +469,11 @@
   async function reconcileShared(interactive, trigger) {
     if (runtime.busy || runtime.checking || runtime.deciding || !configured()) return false;
     if (!interactive && (!settings().autoSync || !settings().baselineData || settings().baselineTarget !== target())) return false;
-    if (navigator.onLine === false) { runtime.offline = true; emit(); return false; }
-    if (storage.saveNow && !storage.saveNow()) { recordError(new Error("Save or resolve this device’s pending changes before syncing.")); emit(); return false; }
+    if (navigator.onLine === false) { recordError(new Error("This device is offline. Reconnect to reach GitHub, then try again.")); emit(); return false; }
+    if (storage.saveNow && !storage.saveNow()) {
+      recordError(new Error(storage.getTabConflict?.() ? "Another browser tab changed the same entries. Review those changes, or pull and overwrite to discard this device’s copy." : "Browser storage could not save this device’s pending changes. Storage may be full or unavailable. Export a backup, or pull and overwrite from GitHub without saving the local copy."));
+      emit(); return false;
+    }
     const context = requestContext("syncing"); runtime.busy = true; runtime.error = ""; runtime.offline = false; emit();
     try {
       for (let attempt = 0; attempt < 3; attempt++) {
@@ -485,7 +505,7 @@
           }
           if (model.syncHash(storage.getState()) !== originalHash) continue;
           const merged = model.merge(snapshot, remote.state, resolutions, base);
-          if (model.syncHash(merged) !== originalHash && !storage.saveRecovery("Before merging shared entries")) throw new Error("A recovery copy could not be saved. No data was replaced.");
+          if (model.syncHash(merged) !== originalHash && !storage.saveRecovery("Before merging shared entries")) throw new Error("Browser storage could not save the local recovery backup; it may be full or unavailable. No content was replaced. Pull and overwrite from GitHub to continue without a local backup.");
           snapshot = model.applySync(storage.getState(), merged);
           // The fetched remote is a common ancestor of the merged local copy.
           // Persist it before PUT so retry/reload cannot mistake imported remote edits for local conflicts.
@@ -503,7 +523,8 @@
         if (!currentRequest(context)) return false;
         runtime.remoteState = snapshot; runtime.remoteNeedsRewrite = false;
         rememberBaseline(sha, hash, snapshot);
-        if (storage.saveNow) storage.saveNow();
+        if (storage.saveNow && !storage.saveNow()) throw new Error("GitHub received the synchronized content, but browser storage could not save its sync status. Storage may be full or unavailable.");
+        runtime.notifiedError = "";
         autoFailures = 0;
         if (interactive) App.components.toast("Shared entries are synchronized. New edits remain queued if you changed anything during upload.", { title: "Sync complete", kind: "success" });
         return true;
@@ -512,14 +533,19 @@
     } catch (error) {
       if (!currentRequest(context) || error.name === "AbortError") return false;
       recordError(error, "Sync failed."); autoFailures = Math.min(autoFailures + 1, 6);
-      if (interactive) App.components.toast(runtime.error, { title: "Sync needs attention", kind: "warning", duration: 6000 });
       return false;
     } finally { if (currentRequest(context)) { runtime.busy = false; runtime.operation = ""; emit(); } }
   }
+  async function runSync(interactive, trigger) {
+    const run = () => reconcileShared(interactive, trigger);
+    const result = navigator.locks?.request ? await navigator.locks.request("t-a-sync-" + target(), run) : await run();
+    // Recovery actions run after releasing the sync lock and busy state.
+    if (!result && runtime.error) return showFailure(trigger, interactive);
+    return result;
+  }
   async function syncNow(trigger) {
-    if (!configured()) { window.dispatchEvent(new CustomEvent("app:opensyncsettings", { detail: { trigger } })); return; }
-    const run = () => reconcileShared(true, trigger);
-    return navigator.locks?.request ? navigator.locks.request("t-a-sync-" + target(), run) : run();
+    if (!configured()) { window.dispatchEvent(new CustomEvent("app:opensyncsettings", { detail: { trigger } })); return false; }
+    return runSync(true, trigger);
   }
   function scheduleAuto() {
     if (autoTimer && window.clearTimeout) window.clearTimeout(autoTimer);
@@ -527,31 +553,55 @@
     autoTimer = window.setTimeout(async function () {
       autoTimer = 0;
       if (document.visibilityState === "hidden") return;
-      const run = () => reconcileShared(false);
-      if (navigator.locks?.request) await navigator.locks.request("t-a-sync-" + target(), run); else await run();
+      await runSync(false);
     }, Math.min(60000, 1200 * Math.pow(2, autoFailures)));
   }
 
   async function restoreFromCloud(trigger) {
-    if (!getInfo().canRestore) return;
-    await check(true);
-    if (runtime.error || runtime.offline || !configured() || getInfo().busy) return;
-    if (!runtime.remoteState) {
-      App.components.message("No cloud copy", "There is no GitHub data file to restore. Use Sync Now to create one.", { trigger: trigger });
-      return;
-    }
+    if (getInfo().busy) return false;
+    if (!configured()) { window.dispatchEvent(new CustomEvent("app:opensyncsettings", { detail: { trigger } })); return false; }
     const sequence = runtime.requestSequence;
     runtime.deciding = true;
     emit();
     let accepted;
     try {
       accepted = await App.components.confirm({
-        title: "Restore from Cloud?",
-        message: "Replace this device’s saved content with the GitHub copy? Device settings stay as they are. Your current local copy will be saved for recovery in Developer Tools.",
+        title: "Pull and overwrite from GitHub?",
+        message: "Discard this device’s Money, Golf, Notes, and token labels and fetch the latest GitHub copy? Unsynced local changes will be lost. No local recovery backup will be required or created. Old local recovery copies may be removed to free storage. Device settings and your token stay on this device. GitHub will not be changed.",
         confirmLabel: ACTIONS.restore.title, cancelLabel: "Keep this device", danger: true, trigger: trigger
       });
     } finally { runtime.deciding = false; emit(); }
-    if (accepted && sequence === runtime.requestSequence && navigator.onLine !== false && configured()) return performDownload();
+    if (!accepted || sequence !== runtime.requestSequence || !configured()) return false;
+    const run = async function () {
+      if (getInfo().busy || sequence !== runtime.requestSequence || !configured()) return false;
+      const context = requestContext("downloading");
+      runtime.busy = true; runtime.error = ""; runtime.offline = false; emit();
+      try {
+        if (navigator.onLine === false) throw new Error("This device is offline. Reconnect to reach GitHub, then try again.");
+        // Fetch after confirmation: never replace from a stale cached comparison.
+        const remote = await readRemote(settings(), storage.getSecret(), context, false);
+        if (!currentRequest(context)) return false;
+        const next = model.applySync(storage.getState(), remote.state);
+        const hash = model.syncHash(remote.state), now = u.isoNow();
+        Object.assign(next.modules.cloudSync, { baselineTarget: target(), baselineSha: remote.sha, baselineHash: hash, baselineData: model.syncPayload(remote.state).data, lastSyncedAt: now, lastCheckedAt: now });
+        const saved = storage.overwriteFromSync(next);
+        Object.assign(runtime, { remoteState: remote.state, remoteSha: remote.sha, remoteHash: hash, remoteNeedsRewrite: remote.needsRewrite, remoteMissing: false, checkedAt: now, error: "", errorState: "", notifiedError: "", offline: false });
+        autoFailures = 0;
+        if (!saved) {
+          recordError(new Error("The latest GitHub copy is open, but browser storage is full or unavailable and could not save it. It may be lost on reload. Free browser storage and try again, or export the open copy."));
+          return false;
+        }
+        App.components.toast("This device now uses the latest GitHub copy. Local changes were discarded.", { title: "Pull complete", kind: "success", duration: 5000 });
+        return true;
+      } catch (error) {
+        if (!currentRequest(context) || error.name === "AbortError") return false;
+        recordError(error, "Could not pull the GitHub copy.");
+        return false;
+      } finally { if (currentRequest(context)) { runtime.busy = false; runtime.operation = ""; emit(); } }
+    };
+    const result = navigator.locks?.request ? await navigator.locks.request("t-a-sync-" + target(), run) : await run();
+    if (!result && runtime.error) return showFailure(trigger, true, true);
+    return result;
   }
 
   async function forget() {
@@ -603,7 +653,7 @@
     syncNow: syncNow,
     restoreFromCloud: restoreFromCloud,
     resolveConflicts: resolveConflicts,
-    autoSync: function () { return reconcileShared(false); },
+    autoSync: function () { return runSync(false); },
     forget: forget
   };
 })();
