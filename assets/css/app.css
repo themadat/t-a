@@ -1721,7 +1721,7 @@ html[data-header-layout="stacked"] .app-header {
 
 /* Explicit pinning keeps the complete ledger stack independent of overflow ancestors. */
 .ledger-pin-space { display:none; }
-.ledger-quick-area, .ledger-pinned-controls, .compact-table-head { position:relative; }
+.ledger-quick-area, .ledger-pinned-controls, .compact-table-head { position:relative; top:auto; }
 .ledger-quick-area.ledger-is-pinned, .ledger-pinned-controls.ledger-is-pinned, .compact-table-head.ledger-is-pinned {
   position:fixed; top:var(--pin-top); left:var(--pin-left); width:var(--pin-width); margin:0;
 }

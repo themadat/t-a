@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.13";
+  const VERSION = "1.0.0.14";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -79,7 +79,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-11-16T02:32:52.589Z", "title": "Pinned Controls And Column Headings", "summary": "The ledger controls and column headings pin below the summary bar without depending on native sticky behavior.", "features": [], "improvements": [], "fixes": ["Controls reserve their page space while pinned and retain keyboard focus", "Expanded and Compact column headings stay aligned below the controls", "Mobile keeps category filters and Add pinned while quick actions scroll away"], "knownIssues": ["Physical-device checks remain unverified"]},
+    {"version": VERSION, "date": "2026-11-16T05:55:27.052Z", "title": "Correct Unpinned Control Spacing", "summary": "Controls and headings return to their normal positions before scrolling and after resizing.", "features": [], "improvements": [], "fixes": ["Clear sticky top offsets when controls and Compact headings are in normal flow", "Remove the header-sized gaps and overlapping mobile filters introduced by the previous release"], "knownIssues": ["Physical-device checks remain unverified"]},
+    {"version": "1.0.0.13", "date": "2026-11-16T02:32:52.589Z", "title": "Pinned Controls And Column Headings", "summary": "The ledger controls and column headings pin below the summary bar without depending on native sticky behavior.", "features": [], "improvements": [], "fixes": ["Controls reserve their page space while pinned and retain keyboard focus", "Expanded and Compact column headings stay aligned below the controls", "Mobile keeps category filters and Add pinned while quick actions scroll away"], "knownIssues": ["Physical-device checks remain unverified"]},
     {"version": "1.0.0.12", "date": "2026-11-16T02:20:00.933Z", "title": "Reliable Pinned Header", "summary": "Single-row headers remain pinned while scrolling in every layout and skin.", "features": [], "improvements": [], "fixes": ["Single-row headers use fixed positioning with matching reserved page space", "Content and pinned controls remain below the header; stacked headers still scroll normally"], "knownIssues": ["Physical-phone checks remain unverified"]},
     {"version": "1.0.0.11", "date": "2026-11-16T02:11:42.073Z", "title": "Reliable Single-Row Header Fit", "summary": "The header uses rendered summary widths to decide when everything fits on one row.", "features": [], "improvements": ["Actual browser text measurements include uppercase labels, letter spacing, and active text size", "Header text keeps its chosen size without automatic mobile enlargement", "Action buttons occupy their intrinsic width"], "fixes": ["Wide headers no longer rely on canvas estimates to choose the stacked layout"], "knownIssues": ["Physical-phone checks remain unverified"]},
     {"version": "1.0.0.10", "date": "2026-11-16T01:52:33.475Z", "title": "Steady Settings Scrolling", "summary": "Settings keeps its scroll position when background data refreshes.", "features": [], "improvements": [], "fixes": ["Refreshing the current Settings section no longer scrolls it to the top or saves a redundant tab change", "Opening Settings or deliberately changing sections still starts at the top"], "knownIssues": ["Physical-phone checks remain unverified"]},
