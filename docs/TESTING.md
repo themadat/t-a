@@ -11,3 +11,5 @@ git diff --check
 ```
 
 For UI changes, serve locally and check desktop/mobile, both layouts/skins, keyboard focus/Escape, overflow, and the changed behavior. For persistence changes, verify backup/recovery, migrations, conflicts, and offline reload. Stop preview servers. Mocked sync and desktop viewports do not establish real two-account sync or physical-phone behavior.
+
+For scroll changes, check the complete stack: summary header, controls/Add, and column headings. Scroll past the pinning threshold and back to the top; resize while scrolled and change filters/search. Include overflow ancestors and a nested content scroller, and test Chromium and WebKit when available. Confirm column alignment, reserved page space, keyboard focus, and Settings scroll preservation.

@@ -421,6 +421,40 @@
     headerSpace.setAttribute('aria-hidden', 'true');
     header.before(headerSpace);
     const pinned = $('#ledgerPinnedControls'), quickArea = $('.ledger-quick-area');
+    // Pin the actual controls without moving focus or relying on ancestor overflow behavior.
+    const pinStates = new Map();
+    function pinControl(element, enabled, top, boundary) {
+      let pin = pinStates.get(element);
+      if (!pin) {
+        const space = document.createElement('div');
+        space.className = 'ledger-pin-space'; space.setAttribute('aria-hidden', 'true');
+        element.before(space); pin = { space, fixed: false, margin: 0 }; pinStates.set(element, pin);
+      }
+      const anchor = (pin.fixed ? pin.space : element).getBoundingClientRect();
+      const bottom = boundary.getBoundingClientRect().bottom;
+      const fixed = enabled && element.getClientRects().length && anchor.width > 0 && anchor.top <= top && bottom > top;
+      if (fixed) {
+        if (!pin.fixed) {
+          pin.margin = parseFloat(getComputedStyle(element).marginBottom) || 0;
+          pin.space.style.height = element.getBoundingClientRect().height + pin.margin + 'px';
+          pin.space.style.display = 'block';
+          element.classList.add('ledger-is-pinned'); pin.fixed = true;
+        }
+        const rect = pin.space.getBoundingClientRect();
+        element.style.setProperty('--pin-left', rect.left + 'px');
+        element.style.setProperty('--pin-width', rect.width + 'px');
+        const height = element.getBoundingClientRect().height;
+        pin.space.style.height = height + pin.margin + 'px';
+        element.style.setProperty('--pin-top', Math.min(top, bottom - height) + 'px');
+      } else if (pin.fixed) {
+        element.classList.remove('ledger-is-pinned'); pin.space.style.display = 'none'; pin.fixed = false;
+      }
+    }
+    const fixedTableHead = document.createElement('table');
+    fixedTableHead.className = 'expanded-table ledger-fixed-head';
+    fixedTableHead.inert = true; fixedTableHead.hidden = true;
+    fixedTableHead.setAttribute('aria-hidden', 'true'); document.body.append(fixedTableHead);
+    let sourceTableHead;
     let summarySizeKey = '', summaryWidths = [];
     updateStickyControls = () => {
       // Fit the summaries between the actual identity and toolbar widths, including text scaling.
@@ -462,10 +496,24 @@
       const headerRect = header.getBoundingClientRect();
       const headerHeight = inline ? headerRect.height : Math.max(0, headerRect.bottom);
       document.documentElement.style.setProperty('--app-header-height', headerHeight + 'px');
+      pinControl(quickArea, !mobileSearch.matches, headerHeight, $('#ledgerPanel'));
+      pinControl(pinned, mobileSearch.matches, headerHeight, $('#ledgerPanel'));
       document.documentElement.style.setProperty('--ledger-filters-height', pinned.getBoundingClientRect().height + 'px');
       document.documentElement.style.setProperty('--ledger-sticky-bar-height', (mobileSearch.matches ? pinned : quickArea).getBoundingClientRect().height + 'px');
+      const columnTop = headerHeight + (mobileSearch.matches ? pinned : quickArea).getBoundingClientRect().height;
+      const table = $('#combinedEntries .expanded-table'), source = table?.tHead;
+      const tableRect = table?.getBoundingClientRect(), sourceRect = source?.getBoundingClientRect();
+      fixedTableHead.hidden = !sourceRect || mobileSearch.matches || sourceRect.top > columnTop || tableRect.bottom <= columnTop;
+      if (!fixedTableHead.hidden) {
+        if (sourceTableHead !== source) { fixedTableHead.replaceChildren(source.cloneNode(true)); sourceTableHead = source; }
+        fixedTableHead.style.left = tableRect.left + 'px'; fixedTableHead.style.width = tableRect.width + 'px';
+        Array.from(source.rows[0].cells).forEach((cell, index) => { fixedTableHead.tHead.rows[0].cells[index].style.width = cell.getBoundingClientRect().width + 'px'; });
+        fixedTableHead.style.top = Math.min(columnTop, tableRect.bottom - fixedTableHead.getBoundingClientRect().height) + 'px';
+      }
       for (const type of ['money', 'golf']) {
-        const list = $('#' + type + 'Entries'), head = $('#' + type + 'TableHead').firstElementChild, rows = list.querySelector('.entry-list');
+        const container = $('#' + type + 'TableHead');
+        pinControl(container, !mobileSearch.matches && !container.hidden, columnTop, $('#' + type + 'Column'));
+        const list = $('#' + type + 'Entries'), head = container.firstElementChild, rows = list.querySelector('.entry-list');
         if (head && rows) { head.style.width = rows.querySelector('.entry-row').getBoundingClientRect().width + 'px'; head.style.transform = 'translateX(' + -list.scrollLeft + 'px)'; }
       }
     };
@@ -473,7 +521,7 @@
     const scheduleStickyUpdate = () => { if (!stickyFrame) stickyFrame = window.requestAnimationFrame(() => { stickyFrame = 0; updateStickyControls(); }); };
     const stickyObserver = new ResizeObserver(scheduleStickyUpdate);
     [header, pinned, quickArea].forEach(element => stickyObserver.observe(element));
-    window.addEventListener('scroll', scheduleStickyUpdate, { passive: true });
+    window.addEventListener('scroll', scheduleStickyUpdate, { passive: true, capture: true });
     window.addEventListener('resize', scheduleStickyUpdate);
     ['money', 'golf'].forEach(type => $('#' + type + 'Entries').addEventListener('scroll', scheduleStickyUpdate, { passive: true }));
     updateStickyControls();
