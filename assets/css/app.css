@@ -160,7 +160,7 @@ a { color: var(--accent-strong); }
   min-width: 0;
   padding: calc(.65rem + var(--safe-top)) max(.9rem, var(--safe-right)) .65rem max(.9rem, var(--safe-left));
   border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  background: var(--bg);
   backdrop-filter: blur(18px);
 }
 .title-cluster { grid-area: title; display: flex; align-items: center; min-width: 0; gap: .65rem; }
@@ -927,10 +927,9 @@ details > summary { width: fit-content; cursor: pointer; color: var(--accent-str
 .ledger-intro h1 { margin:.15rem 0; font-size:clamp(1.3rem,2vw,1.7rem); line-height:1.05; letter-spacing:-.055em; }
 .ledger-intro p, .ledger-footer { color:var(--muted); margin:.4rem 0; }
 .person-picker { display:grid; gap:.35rem; font-size:.75rem; font-weight:700; color:var(--muted); min-width:160px; }
-.ledger-overview { display:grid; grid-template-columns:1.35fr 1fr; gap:.65rem; margin-bottom:.65rem; }
+.ledger-overview { display:grid; grid-auto-rows:1fr; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; margin-bottom:.65rem; }
 .balance-card, .golf-overview { display:flex; flex-direction:column; align-items:start; padding:.65rem .85rem; border:1px solid var(--line); border-radius:18px; background:var(--surface); }
 .balance-card { background:var(--accent-strong); color:white; }
-.balance-card .eyebrow { color:inherit; opacity:.82; }
 .balance-card > strong { font-size:1.8rem; line-height:1.2; letter-spacing:-.06em; margin:.15rem 0 0; }
 .balance-card p { font-size:1rem; margin:.15rem 0 .4rem; }
 .balance-card .button { background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.4); color:white; }
@@ -1055,9 +1054,9 @@ dialog.notes-dialog { width:80vw; max-width:80vw; height:80dvh; max-height:80dvh
 .ledger-overview .balance-card { background:color-mix(in srgb, #a34b50 22%, var(--surface)); }
 .ledger-overview .golf-overview { background:color-mix(in srgb, #427a50 22%, var(--surface)); }
 .ledger-overview .is-selected { border-color:var(--text); box-shadow:inset 0 0 0 1px var(--text); }
-.overview-select { display:flex; flex:1; flex-direction:column; align-items:flex-start; gap:.2rem; min-width:0; border:0; background:transparent; color:inherit; text-align:left; padding:.75rem; cursor:pointer; }
-.overview-select > strong { font-size:1.65rem; line-height:1.2; }
-.overview-select > span:last-child { font-size:.85rem; }
+.overview-select { display:grid; flex:1; grid-template-rows:auto 1fr auto; align-items:start; gap:.25rem; min-width:0; border:0; background:transparent; color:inherit; text-align:left; padding:.75rem; cursor:pointer; }
+.overview-select > strong { font-size:1.25rem; font-weight:700; line-height:1.25; letter-spacing:normal; }
+.overview-select > span:last-child { font-size:.8rem; line-height:1.4; color:var(--muted); }
 .ledger-overview .overview-add { align-self:center; display:inline-flex; align-items:center; gap:.35rem; margin:.65rem; color:inherit; background:var(--surface); border-color:var(--line); }
 .overview-add svg, .entry-row button svg { width:1.25rem; height:1.25rem; }
 .toolbar-person { display:grid; gap:.1rem; font-size:.7rem; white-space:nowrap; padding:.2rem .4rem; }
@@ -1155,7 +1154,6 @@ html[data-theme="dark"] .category-other { background:#263e5e; color:#b7d5ff; }
 #golfEntries .entry-list, #golfEntries .entry-column-head { min-width:530px; }
 .balance-card .quick-round { grid-template-columns:50px 50px; align-self:flex-start; margin:.75rem .2rem .4rem; }
 .balance-card .quick-round > span { white-space:nowrap; }
-.ledger-overview #golfCount { font-size:1.4rem; }
 @media (max-width:1099px) {
   #golfEntries .entry-column-head.golf { display:grid; }
   #golfEntries .entry-list { display:block; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
@@ -1197,8 +1195,6 @@ html[data-theme="dark"] .category-other { background:#263e5e; color:#b7d5ff; }
 .balance-card .quick-round > span { grid-column:1 / -1; grid-row:2; font-size:.7rem; line-height:14px; color:var(--text); }
 .ledger-overview .balance-card .quick-round button { grid-row:1; width:28px; height:28px; min-height:28px; justify-self:center; border:0; }
 .quick-round button svg { width:24px; height:24px; }
-.ledger-overview #balanceAmount { font-size:clamp(1rem,1.5vw,1.4rem); }
-.ledger-overview #balanceWords { font-size:.72rem; }
 @media(max-width:699px) { .app-header { grid-template-columns:1fr; grid-template-areas:"title" "toolbar"; } .balance-card .quick-round { min-width:106px; padding-inline:4px; } }
 
 /* Compact category controls and phone ledger layout. */
@@ -1239,7 +1235,6 @@ html[data-theme="dark"] .category-other { background:#263e5e; color:#b7d5ff; }
   #golfEntries .golf-results { display:flex; flex-wrap:wrap; gap:0 4px; font-size:.6rem; }
   #golfEntries .golf-winnings { font-size:.65rem; }
   #golfEntries .entry-column-head { font-size:.55rem; }
-  .ledger-overview #golfCount { font-size:1.1rem; }
 }
 .entry-dialog .dialog-body.entry-fields { align-content:start; }
 .entry-fields > label, .golf-date-row label { align-content:start; }
@@ -1304,9 +1299,9 @@ dialog.token-dialog { width:80vw; max-width:80vw; height:80dvh; max-height:80dvh
 /* Desktop summaries sit between the identity and the action buttons. */
 @media(min-width:1100px) {
   .app-header { grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"title summaries toolbar"; gap:.6rem; }
-  .app-header > .ledger-overview { grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:.5rem; }
+  .app-header > .ledger-overview { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }
   .app-header .overview-select { padding:.6rem; }
-  .app-header .overview-select > strong, .app-header .ledger-overview #golfCount, .app-header .ledger-overview #balanceAmount { font-size:1rem; }
+  .app-header .overview-select > strong { font-size:1rem; }
   .app-header .overview-select > span:last-child { font-size:.67rem; }
   .app-header .ledger-overview .overview-add { width:40px; height:44px; min-height:44px; margin:.3rem; }
   .app-header .balance-card .quick-round { min-width:92px; padding-inline:3px; gap:2px 3px; }
@@ -1333,7 +1328,7 @@ html[data-ledger-layout="expanded"] .entry-fields input:not([type="radio"]):not(
 .expanded-table th:nth-child(2) { width:43%; }
 .expanded-table th:nth-child(3) { width:12%; }
 .expanded-table th:nth-child(4), .expanded-table th:nth-child(5) { width:13%; }
-.expanded-table th:last-child { width:54px; }
+.expanded-table th:last-child { width:76px; }
 .expanded-row td { padding:1.1rem 1rem; border-bottom:1px solid var(--line); vertical-align:middle; overflow-wrap:anywhere; }
 .expanded-row[data-outcome="positive"] { background:color-mix(in srgb,#427a50 8%,var(--surface)); }
 .expanded-row[data-outcome="negative"] { background:color-mix(in srgb,#a34b50 8%,var(--surface)); }
@@ -1401,7 +1396,7 @@ html[data-ledger-layout="expanded"] .ledger-workspace { --ledger-control-height:
 .ledger-add { display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem; padding:.2rem .7rem; font-size:.75rem; line-height:1.1; }
 .ledger-add svg { width:18px; height:18px; }
 .ledger-quick-actions { position:sticky; top:var(--app-header-height,0px); z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:.6rem 1rem; padding:.65rem 0; margin-bottom:.75rem; background:var(--bg); border-bottom:1px solid var(--line); }
-.ledger-quick-actions .quick-round { display:flex; align-items:center; gap:.2rem; border:1px solid var(--line); border-radius:8px; padding:.15rem .2rem; background:var(--surface); }
+.ledger-quick-actions .quick-round { display:grid; grid-template-columns:max-content repeat(2,minmax(44px,1fr)); min-width:0; align-items:center; gap:.2rem; border:1px solid var(--line); border-radius:8px; padding:.15rem .2rem; background:var(--surface); }
 .ledger-quick-actions .quick-round > span { font-size:.8rem; font-weight:700; color:var(--text); margin:0; padding-inline:.2rem; text-align:center; }
 .ledger-quick-actions .quick-round button { width:auto; height:44px; min-height:44px; padding:0 .5rem; font-size:.8rem; font-weight:400; }
 .ledger-category-filters { display:flex; flex-wrap:wrap; gap:.4rem; }
@@ -1455,10 +1450,10 @@ html[data-ledger-layout="expanded"] .ledger-workspace { --ledger-control-height:
   .money-choice-row .choice-toggle span { padding-inline:.55rem; font-size:.8rem; }
 }
 
-/* Round and bet actions scroll away on mobile; only category filters stay pinned. */
+/* Round and bet actions scroll away on mobile; categories and Add stay pinned. */
 html[data-ledger-layout="expanded"] .ledger-overview .is-selected { border-color:var(--line); box-shadow:none; }
-.ledger-quick-area { position:sticky; top:var(--app-header-height,0px); z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; padding:.4rem 0; margin-bottom:.4rem; background:var(--bg); border-bottom:1px solid var(--line); }
-.ledger-quick-actions { position:static; flex-wrap:nowrap; gap:.4rem; padding:0; margin:0; border:0; }
+.ledger-quick-area { position:sticky; top:var(--app-header-height,0px); z-index:20; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); align-items:center; gap:.4rem; padding:.4rem 0; margin-bottom:.4rem; background:var(--bg); border-bottom:1px solid var(--line); }
+.ledger-quick-actions { position:static; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.4rem; padding:0; margin:0; border:0; }
 .ledger-quick-actions .quick-round > span { line-height:1.3; }
 @media(max-width:760px) {
   .app-header .top-toolbar, html[data-ledger-layout="expanded"] .app-header .top-toolbar { width:auto; justify-content:flex-end; justify-self:end; }
@@ -1488,7 +1483,7 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
 #ledgerEntries #golfTableHead .entry-column-head.golf, #ledgerEntries #golfEntries .entry-row.golf { grid-template-columns:90px minmax(85px,1fr) 148px 94px 62px; }
 #golfEntries .golf-results { grid-template-columns:65px 77px; gap:6px; }
 @media(min-width:761px) {
-  .expanded-row .expanded-open { padding-inline:.25rem; }
+  .expanded-row .expanded-open { padding-inline:1rem; text-align:right; }
   .compact-table-head { position:sticky; top:calc(var(--app-header-height,0px) + var(--ledger-sticky-bar-height,0px)); z-index:15; overflow:hidden; background:var(--bg); border-bottom:1px solid var(--line); }
   .compact-table-head .entry-column-head { padding-inline:.5rem; margin-inline:1px; }
   .expanded-table th { position:sticky; top:calc(var(--app-header-height,0px) + var(--ledger-sticky-bar-height,0px)); z-index:15; background:var(--bg); box-shadow:0 1px var(--line); }
@@ -1541,17 +1536,20 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
   .ledger-quick-actions .quick-round { column-gap:1px; }
 }
 
-/* Add keeps its original slot, then joins the pinned controls when that slot leaves view. */
-.ledger-workspace .ledger-add-slot { display:flex; flex:0 0 48px; width:48px; height:var(--ledger-control-height); margin-left:0; }
-.ledger-add-slot .ledger-add { width:100%; }
-.ledger-pinned-controls { display:flex; flex:1 0 auto; align-items:center; gap:.35rem; min-width:0; }
-.ledger-add-dock { display:flex; flex:0 0 48px; width:48px; height:var(--ledger-control-height); margin-left:auto; }
-.ledger-add-dock .ledger-add { width:100%; }
-.ledger-pinned-controls .ledger-category-filters { min-width:0; flex-wrap:nowrap; gap:.25rem; }
+/* Both rows keep their own Add button; the controls fill the available width. */
+.ledger-filters .ledger-add { flex:0 0 48px; width:48px; padding-inline:.25rem; }
+.ledger-pinned-controls { display:flex; align-items:center; gap:.35rem; min-width:0; }
+.ledger-pinned-controls .ledger-category-filters { flex:1; min-width:0; flex-wrap:nowrap; gap:.25rem; }
+.ledger-pinned-controls .filter-chip { flex:1; min-width:44px; padding-inline:.25rem; }
+.ledger-pinned-controls .ledger-add { flex:0 0 clamp(48px,5vw,72px); padding-inline:.25rem; }
 @media(max-width:760px) {
   .compact-table-head { display:none; }
   .ledger-pinned-controls { position:sticky; top:var(--app-header-height,0px); z-index:20; gap:.3rem; padding:.35rem 0; background:var(--bg); border-bottom:1px solid var(--line); }
-  .ledger-pinned-controls .ledger-category-filters { position:static; flex:1; width:auto; padding:0; border:0; flex-wrap:nowrap; }
+  .ledger-pinned-controls .ledger-category-filters { position:static; width:auto; padding:0; border:0; }
+  .ledger-pinned-controls .filter-chip { min-width:0; }
+}
+@media(max-width:359px) {
+  .ledger-pinned-controls .ledger-category-filters { gap:.125rem; }
 }
 
 /* Masters: crisp neutral surfaces with saturated green, red, blue and yellow.
@@ -1608,23 +1606,6 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
   --shadow-small: 0 6px 22px rgba(0, 0, 0, .3);
 }
 html[data-skin="masters"] .app-header {
-  --bg: #006b36;
-  --surface: #087b43;
-  --surface-2: #00572c;
-  --text: #ffffff;
-  --muted: #e2ffe9;
-  --faint: #ceefda;
-  --line: #50a975;
-  --line-strong: #8bddaa;
-  --accent: #43ed87;
-  --accent-strong: #ffdf00;
-  --accent-soft: #00572c;
-  --focus: #ffdf00;
-  --danger: #ffb2ba;
-  --sync-success: #76ffac;
-  --sync-info: #b9d8ff;
-  --sync-warning: #ffdf00;
-  --sync-danger: #ffb2ba;
   background: var(--bg);
   border-bottom-color: var(--masters-yellow);
   box-shadow: 0 1px 0 var(--masters-yellow);
@@ -1650,16 +1631,6 @@ html[data-skin="masters"] .segmented button[aria-pressed="true"] {
   background: var(--accent-soft);
   box-shadow: inset 0 -2px 0 var(--accent-strong);
 }
-html[data-skin="masters"] .ledger-overview :is(.balance-card, .golf-overview) {
-  --text: #ffffff;
-  --muted: #ffffff;
-  --line: #ffffff80;
-  color: #ffffff;
-  background: var(--masters-red);
-}
-html[data-skin="masters"] .ledger-overview .balance-card[data-outcome="positive"] { background: var(--masters-green); }
-html[data-skin="masters"] .ledger-overview .balance-card[data-outcome="neutral"] { background: #00572c; }
-html[data-skin="masters"] .ledger-overview .golf-overview { background: var(--masters-blue); }
 html[data-skin="masters"] :is(#ledgerEntries .entry-row, .expanded-row)[data-outcome="positive"] {
   background: color-mix(in srgb, var(--masters-green) 9%, var(--surface));
 }
@@ -1715,3 +1686,8 @@ html[data-skin="masters"] .button.danger {
   color: #ffffff;
 }
 html[data-skin="masters"] .button.danger:hover { background: #a51226; }
+
+.app-header .ledger-overview :is(.balance-card, .golf-overview) {
+  background:var(--bg);
+  color:var(--text);
+}

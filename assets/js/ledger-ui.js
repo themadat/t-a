@@ -58,8 +58,8 @@
   function shell() {
     return `<section class="ledger-workspace" aria-label="Money and Golf">
       <div class="ledger-overview"><section class="balance-card"><button class="overview-select" type="button" id="moneyTab" data-ledger-view="money" aria-controls="ledgerPanel"><span class="eyebrow" id="booksHeading">In The Books</span><strong id="balanceAmount"></strong><span id="balanceWords" role="status"></span></button></section><section class="golf-overview"><button class="overview-select" type="button" id="golfTab" data-ledger-view="golf" aria-controls="ledgerPanel"><span class="eyebrow" id="courseHeading">On The Course</span><strong id="golfCount"></strong><span id="golfOverview"></span></button></section></div>
-      <section id="ledgerPanel"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search This List</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Search Entries…"><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter Year</label><select id="ledgerYear"><option value="">All Years</option></select><span id="ledgerAddSlot" class="ledger-add-slot"><button type="button" id="addEntry" class="button primary ledger-add" aria-haspopup="dialog"><span data-symbol="add" aria-hidden="true"></span><span>Add</span></button></span></div>
-      <div class="ledger-quick-area"><div id="ledgerQuickActions" class="ledger-quick-actions" aria-label="Quick Actions"><div class="quick-round" role="group" aria-label="Round Paid By, Twenty Dollars"><span>Round Paid<br>by ($20)</span><button type="button" class="button" data-round-payer="Tristen" aria-label="Tristen Bought A Golf Round: Adam owes Tristen $20">Tristen</button><button type="button" class="button" data-round-payer="Adam" aria-label="Adam Bought A Golf Round: Tristen owes Adam $20">Adam</button></div><div class="quick-dollar-bet quick-round" role="group" aria-label="Dollar Bet Winner"><span>Dollar<br>Bet</span><button type="button" class="button" data-dollar-winner="Tristen">Tristen</button><button type="button" class="button" data-dollar-winner="Adam">Adam</button></div></div><div id="ledgerPinnedControls" class="ledger-pinned-controls"><div id="ledgerQuickFilters" class="ledger-category-filters" role="group" aria-label="Quick Tags">${tagNames.map(category => `<button type="button" class="filter-chip" data-filter-category="${category}" aria-pressed="false">${category}</button>`).join('')}</div><div id="ledgerAddDock" class="ledger-add-dock" hidden></div></div></div>
+      <section id="ledgerPanel"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search This List</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Search Entries…"><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter Year</label><select id="ledgerYear"><option value="">All Years</option></select><button type="button" id="addSearchEntry" class="button primary ledger-add" data-add-entry aria-haspopup="dialog"><span data-symbol="add" aria-hidden="true"></span><span>Add</span></button></div>
+      <div class="ledger-quick-area"><div id="ledgerQuickActions" class="ledger-quick-actions" aria-label="Quick Actions"><div class="quick-round" role="group" aria-label="Round Paid By, Twenty Dollars"><span>Round Paid<br>by ($20)</span><button type="button" class="button" data-round-payer="Tristen" aria-label="Tristen Bought A Golf Round: Adam owes Tristen $20">Tristen</button><button type="button" class="button" data-round-payer="Adam" aria-label="Adam Bought A Golf Round: Tristen owes Adam $20">Adam</button></div><div class="quick-dollar-bet quick-round" role="group" aria-label="Dollar Bet Winner"><span>Dollar<br>Bet</span><button type="button" class="button" data-dollar-winner="Tristen">Tristen</button><button type="button" class="button" data-dollar-winner="Adam">Adam</button></div></div><div id="ledgerPinnedControls" class="ledger-pinned-controls"><div id="ledgerQuickFilters" class="ledger-category-filters" role="group" aria-label="Quick Tags">${tagNames.map(category => `<button type="button" class="filter-chip" data-filter-category="${category}" aria-pressed="false">${category}</button>`).join('')}</div><button type="button" id="addEntry" class="button primary ledger-add" data-add-entry aria-haspopup="dialog"><span data-symbol="add" aria-hidden="true"></span><span>Add</span></button></div></div>
       <div id="ledgerEntries" class="ledger-columns"><section id="moneyColumn" aria-label="Money"><div id="moneyTableHead" class="compact-table-head" hidden></div><div id="moneyEntries"></div></section><section id="golfColumn" aria-label="Golf"><div id="golfTableHead" class="compact-table-head" hidden></div><div id="golfEntries"></div></section><section id="combinedColumn" aria-label="Money and Golf" hidden><div id="combinedEntries"></div></section></div></section>
       <p class="ledger-footer" id="ledgerSyncStatus" role="status"></p>
     </section>`;
@@ -198,8 +198,8 @@
     if (!['compact','expanded'].includes(value)) return;
     storage.mutate(next => { next.preferences.ledgerLayouts[layoutPerson()] = value; }, { reason: 'ledger-layout', touch: false }); render();
   }
-  async function addEntry() {
-    const choice = await c.choose({ title: 'Add An Entry', message: 'Choose what to record.', trigger: $('#addEntry'), choices: [{ value: 'money', label: 'Money Entry', description: 'Record money owed or paid.' }, { value: 'golf', label: 'Golf Round', description: 'Record scores, winnings and round payments.' }], cancelLabel: 'Cancel' });
+  async function addEntry(event) {
+    const choice = await c.choose({ title: 'Add An Entry', message: 'Choose what to record.', trigger: event.currentTarget, choices: [{ value: 'money', label: 'Money Entry', description: 'Record money owed or paid.' }, { value: 'golf', label: 'Golf Round', description: 'Record scores, winnings and round payments.' }], cancelLabel: 'Cancel' });
     if (choice === 'money') openMoney(); else if (choice === 'golf') openGolf();
   }
   function moneyRow(row, balance) {
@@ -378,7 +378,7 @@
       if (!dialog) return;
       event.preventDefault(); dialog.querySelector('form').requestSubmit();
     });
-    $('#addEntry').addEventListener('click', addEntry);
+    document.querySelectorAll('[data-add-entry]').forEach(button => button.addEventListener('click', addEntry));
     document.addEventListener('keydown', event => {
       if (event.key !== '.' || event.metaKey || event.ctrlKey || event.altKey || document.querySelector('dialog[open]')) return;
       const target = event.target;
@@ -416,28 +416,9 @@
       else if (!event.target.closest('button, a, input, select, textarea, .inline-entry-details')) { const row = event.target.closest('[data-entry-id]'); if (row) toggleInline(row.dataset.entryType, row.dataset.entryId); }
     });
     const header = $('.app-header');
-    const slot = $('#ledgerAddSlot'), dock = $('#ledgerAddDock'), add = $('#addEntry'), pinned = $('#ledgerPinnedControls'), quickArea = $('.ledger-quick-area');
-    let addTransition;
-    // Reserve the destination before scrolling so docking never reflows the filters.
-    dock.hidden = false;
+    const pinned = $('#ledgerPinnedControls'), quickArea = $('.ledger-quick-area');
     updateStickyControls = () => {
       const headerHeight = header.getBoundingClientRect().height;
-      const docked = slot.getBoundingClientRect().top <= header.getBoundingClientRect().bottom + 1;
-      const target = docked ? dock : slot;
-      if (add.parentElement !== target) {
-        const before = add.getBoundingClientRect();
-        addTransition?.cancel();
-        const focused = document.activeElement === add; target.append(add);
-        if (focused) add.focus({ preventScroll: true });
-        const after = add.getBoundingClientRect();
-        if (document.documentElement.dataset.motion !== 'reduce' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && add.animate) {
-          addTransition = add.animate([
-            { transform: `translate(${before.left - after.left}px, ${before.top - after.top}px)` },
-            { transform: 'translate(0, 0)' }
-          ], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
-        }
-      }
-      document.documentElement.dataset.addDocked = String(docked);
       document.documentElement.style.setProperty('--app-header-height', headerHeight + 'px');
       document.documentElement.style.setProperty('--ledger-filters-height', pinned.getBoundingClientRect().height + 'px');
       document.documentElement.style.setProperty('--ledger-sticky-bar-height', (mobileSearch.matches ? pinned : quickArea).getBoundingClientRect().height + 'px');
@@ -449,7 +430,7 @@
     let stickyFrame = 0;
     const scheduleStickyUpdate = () => { if (!stickyFrame) stickyFrame = window.requestAnimationFrame(() => { stickyFrame = 0; updateStickyControls(); }); };
     const stickyObserver = new ResizeObserver(scheduleStickyUpdate);
-    [header, pinned, quickArea, slot].forEach(element => stickyObserver.observe(element));
+    [header, pinned, quickArea].forEach(element => stickyObserver.observe(element));
     window.addEventListener('scroll', scheduleStickyUpdate, { passive: true });
     window.addEventListener('resize', scheduleStickyUpdate);
     ['money', 'golf'].forEach(type => $('#' + type + 'Entries').addEventListener('scroll', scheduleStickyUpdate, { passive: true }));

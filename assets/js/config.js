@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.7";
+  const VERSION = "1.0.0.8";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -67,8 +67,8 @@
   "defaultSkin": "masters",
   "skins": {
     "masters": {
-      "light": { "accent": "#007a3d", "accentStrong": "#005c2e", "accent2": "#175cdb", "success": "#007a3d", "warning": "#805b00", "danger": "#c91e32", "chrome": "#006b36", "surface": "#ffffff" },
-      "dark": { "accent": "#007a3d", "accentStrong": "#43ed87", "accent2": "#ffdf00", "success": "#36e67b", "warning": "#ffdf00", "danger": "#ff5664", "chrome": "#006b36", "surface": "#191f28" }
+      "light": { "accent": "#007a3d", "accentStrong": "#005c2e", "accent2": "#175cdb", "success": "#007a3d", "warning": "#805b00", "danger": "#c91e32", "chrome": "#f4f7fc", "surface": "#ffffff" },
+      "dark": { "accent": "#007a3d", "accentStrong": "#43ed87", "accent2": "#ffdf00", "success": "#36e67b", "warning": "#ffdf00", "danger": "#ff5664", "chrome": "#101318", "surface": "#191f28" }
     }
   },
   "themeDefaults": {
@@ -79,7 +79,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-11-16T00:25:51.000Z", "title": "Vibrant Masters And Smoother Controls", "summary": "A crisp red, green, blue, and yellow Masters palette with tighter controls and a smooth sticky Add transition.", "features": [], "improvements": ["Clean neutral surfaces and saturated summaries and category tags in light and dark themes", "Tighter toolbar spacing and thinner controls retain 44-pixel touch targets", "Reserved Add space keeps category filters on one line while scrolling"], "fixes": ["Add moves smoothly between its search-row slot and pinned controls, respecting reduced motion", "Docking no longer changes filter spacing or wraps the last category"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": VERSION, "date": "2026-11-16T01:11:49.528Z", "title": "Steady Controls And Matching Summaries", "summary": "Add stays available in both rows, with full-width controls, matching summary cards, and balanced disclosure spacing.", "features": [], "improvements": ["Quick actions and category filters expand to fill the controls row", "Equal summary card sizes, matching typography, and backgrounds coordinated with the table", "Disclosure buttons use the same inset as the left side of desktop rows"], "fixes": ["Add buttons stay in their own rows while scrolling and restore focus to the button used"], "knownIssues": ["Physical-phone checks remain unverified"]},
+    {"version": "1.0.0.7", "date": "2026-11-16T00:25:51.000Z", "title": "Vibrant Masters And Smoother Controls", "summary": "A crisp red, green, blue, and yellow Masters palette with tighter controls and a smooth sticky Add transition.", "features": [], "improvements": ["Clean neutral surfaces and saturated summaries and category tags in light and dark themes", "Tighter toolbar spacing and thinner controls retain 44-pixel touch targets", "Reserved Add space keeps category filters on one line while scrolling"], "fixes": ["Add moves smoothly between its search-row slot and pinned controls, respecting reduced motion", "Docking no longer changes filter spacing or wraps the last category"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.6", "date": "2026-10-13T02:00:10.000Z", "title": "Clear Sync Recovery", "summary": "Sync failures explain the reason and offer recovery choices, including a fresh GitHub overwrite without a local backup.", "features": ["Sync failure pop-ups with retry, pull and overwrite, export, and Settings", "Show Latest Update Banners setting, off by default"], "improvements": ["Pull fetches the latest GitHub copy after confirmation and bypasses local-save, recovery, and tab-conflict blockers", "Repeated background errors show once until the connection recovers"], "fixes": ["Full recovery storage no longer blocks an explicitly confirmed GitHub overwrite", "Existing users without a banner preference default to off"], "knownIssues": ["GitHub access and valid remote data are still required; unavailable browser storage opens the copy with a persistence warning", "Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.5", "date": "2026-10-03T19:15:26.000Z", "title": "Brighter Masters App Logo", "summary": "The Masters app logo pairs a neon green T with a bright coral-red A.", "features": [], "improvements": ["More distinct T&A lettering against the dark green icon background"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.4", "date": "2026-10-03T19:04:37.000Z", "title": "Simple Masters Favicon", "summary": "Masters uses the supplied gold T&A favicon artwork.", "features": [], "improvements": ["Updated Masters browser favicon to favicon-masters-simple.svg"], "fixes": ["Corrected a duplicate SVG attribute so the artwork renders"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
