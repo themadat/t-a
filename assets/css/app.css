@@ -1536,8 +1536,7 @@ html[data-ledger-layout="expanded"] .money-primary-row #swapMoneyDirection { hei
   .ledger-quick-actions .quick-round { column-gap:1px; }
 }
 
-/* Both rows keep their own Add button; the controls fill the available width. */
-.ledger-filters .ledger-add { flex:0 0 48px; width:48px; padding-inline:.25rem; }
+/* The controls row keeps the single Add button and fills the available width. */
 .ledger-pinned-controls { display:flex; align-items:center; gap:.35rem; min-width:0; }
 .ledger-pinned-controls .ledger-category-filters { flex:1; min-width:0; flex-wrap:nowrap; gap:.25rem; }
 .ledger-pinned-controls .filter-chip { flex:1; min-width:44px; padding-inline:.25rem; }
@@ -1690,4 +1689,28 @@ html[data-skin="masters"] .button.danger:hover { background: #a51226; }
 .app-header .ledger-overview :is(.balance-card, .golf-overview) {
   background:var(--bg);
   color:var(--text);
+}
+
+/* Compact summaries use their measured content width before sharing spare space. */
+.app-header .title-cluster { justify-self:start; }
+.app-header { position:static; gap:.35rem .5rem; padding-block:.35rem; }
+.app-header .overview-select { padding:.35rem .5rem; gap:.1rem; grid-template-rows:auto auto auto; }
+.app-header .overview-select > .eyebrow { font-size:.6rem; line-height:1.3; }
+.app-header .overview-select > strong { font-size:.9rem; line-height:1.2; }
+.app-header .overview-select > span:last-child { font-size:.67rem; line-height:1.3; }
+.app-header > .ledger-overview { gap:.35rem; }
+html[data-header-layout="inline"] .app-header {
+  position:sticky; top:0;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  grid-template-areas:"title summaries toolbar";
+}
+html[data-header-layout="inline"] .overview-select > * { white-space:nowrap; }
+html[data-header-layout="stacked"] .app-header {
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"title toolbar" "summaries summaries";
+}
+.app-header .ledger-overview .balance-card[data-outcome="positive"] { background:#007a3d; }
+.app-header .ledger-overview .balance-card[data-outcome="negative"] { background:#c91e32; }
+.app-header .ledger-overview .balance-card:is([data-outcome="positive"], [data-outcome="negative"]) {
+  --text:#ffffff; --muted:#ffffff; color:var(--text);
 }

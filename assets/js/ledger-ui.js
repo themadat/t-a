@@ -58,7 +58,7 @@
   function shell() {
     return `<section class="ledger-workspace" aria-label="Money and Golf">
       <div class="ledger-overview"><section class="balance-card"><button class="overview-select" type="button" id="moneyTab" data-ledger-view="money" aria-controls="ledgerPanel"><span class="eyebrow" id="booksHeading">In The Books</span><strong id="balanceAmount"></strong><span id="balanceWords" role="status"></span></button></section><section class="golf-overview"><button class="overview-select" type="button" id="golfTab" data-ledger-view="golf" aria-controls="ledgerPanel"><span class="eyebrow" id="courseHeading">On The Course</span><strong id="golfCount"></strong><span id="golfOverview"></span></button></section></div>
-      <section id="ledgerPanel"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search This List</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Search Entries…"><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter Year</label><select id="ledgerYear"><option value="">All Years</option></select><button type="button" id="addSearchEntry" class="button primary ledger-add" data-add-entry aria-haspopup="dialog"><span data-symbol="add" aria-hidden="true"></span><span>Add</span></button></div>
+      <section id="ledgerPanel"><div class="ledger-filters"><div class="ledger-search-wrap" data-shortcut="."><label for="ledgerSearch" class="visually-hidden">Search This List</label><input id="ledgerSearch" type="search" aria-keyshortcuts="." placeholder="Search Entries…"><span id="ledgerCount" class="muted" aria-live="polite"></span><kbd aria-hidden="true">.</kbd></div><label class="visually-hidden" for="ledgerYear">Filter Year</label><select id="ledgerYear"><option value="">All Years</option></select></div>
       <div class="ledger-quick-area"><div id="ledgerQuickActions" class="ledger-quick-actions" aria-label="Quick Actions"><div class="quick-round" role="group" aria-label="Round Paid By, Twenty Dollars"><span>Round Paid<br>by ($20)</span><button type="button" class="button" data-round-payer="Tristen" aria-label="Tristen Bought A Golf Round: Adam owes Tristen $20">Tristen</button><button type="button" class="button" data-round-payer="Adam" aria-label="Adam Bought A Golf Round: Tristen owes Adam $20">Adam</button></div><div class="quick-dollar-bet quick-round" role="group" aria-label="Dollar Bet Winner"><span>Dollar<br>Bet</span><button type="button" class="button" data-dollar-winner="Tristen">Tristen</button><button type="button" class="button" data-dollar-winner="Adam">Adam</button></div></div><div id="ledgerPinnedControls" class="ledger-pinned-controls"><div id="ledgerQuickFilters" class="ledger-category-filters" role="group" aria-label="Quick Tags">${tagNames.map(category => `<button type="button" class="filter-chip" data-filter-category="${category}" aria-pressed="false">${category}</button>`).join('')}</div><button type="button" id="addEntry" class="button primary ledger-add" data-add-entry aria-haspopup="dialog"><span data-symbol="add" aria-hidden="true"></span><span>Add</span></button></div></div>
       <div id="ledgerEntries" class="ledger-columns"><section id="moneyColumn" aria-label="Money"><div id="moneyTableHead" class="compact-table-head" hidden></div><div id="moneyEntries"></div></section><section id="golfColumn" aria-label="Golf"><div id="golfTableHead" class="compact-table-head" hidden></div><div id="golfEntries"></div></section><section id="combinedColumn" aria-label="Money and Golf" hidden><div id="combinedEntries"></div></section></div></section>
       <p class="ledger-footer" id="ledgerSyncStatus" role="status"></p>
@@ -91,7 +91,7 @@
     $('#balanceWords').textContent = (person || 'Adam') + "'s Totals: " + signedMoney(categories.Wins) + ' in Wins • ' + signedMoney(categories.Bets) + ' in Bets';
     $('#balanceWords').title = 'Wins Includes Money Categorized Wins, Even Without A Linked Round. On The Course Includes Recorded Golf Winnings Only. Year-Only History Counts Toward Category Totals; The Money Balance Begins May 2025 With Exact Dates.';
     $('.balance-card').dataset.outcome = !person || !summaryTotal.balance ? 'neutral' : summaryTotal.balance * (person === 'Adam' ? 1 : -1) > 0 ? 'positive' : 'negative';
-    $('#golfCount').textContent = (golf.margin ? (golf.margin > 0 ? 'Adam' : 'Tristen') + ' is up ' + Math.abs(golf.margin) + ' Strokes' : 'Even in Strokes') + ' • ' + (golf.winnings ? (golf.winnings > 0 ? 'Adam' : 'Tristen') + ' is up ' + l.money(Math.abs(golf.winnings)) : 'Even in Golf Winnings');
+    $('#golfCount').textContent = (golf.margin ? (golf.margin > 0 ? 'Adam' : 'Tristen') + ' +' + Math.abs(golf.margin) + ' Strokes' : 'Even in Strokes') + ' • ' + (golf.winnings ? (golf.winnings > 0 ? 'Adam' : 'Tristen') + ' +' + l.money(Math.abs(golf.winnings)) : 'Even in Golf Winnings');
     $('#golfOverview').textContent = golf.count + ' Rounds: ' + (signedIn === 'Adam' ? golf.adamWins : golf.tristanWins) + ' for ' + signedIn + ' • ' + (other === 'Adam' ? golf.adamWins : golf.tristanWins) + ' for ' + other + ' • ' + golf.ties + ' Ties';
     $('#golfOverview').title = golf.unknownScores ? golf.unknownScores + ' Rounds Have Unknown Scores And Do Not Count Toward Stroke Totals, Wins, Or Ties.' : 'All Recorded Scores Are Included.';
     $('#ledgerPerson').textContent = person ? person + (simulatedPerson ? ' (Preview)' : '') : 'Unassigned';
@@ -417,8 +417,27 @@
     });
     const header = $('.app-header');
     const pinned = $('#ledgerPinnedControls'), quickArea = $('.ledger-quick-area');
+    const summaryMeasure = document.createElement('canvas').getContext('2d');
     updateStickyControls = () => {
-      const headerHeight = header.getBoundingClientRect().height;
+      // Fit the summaries between the actual identity and toolbar widths, including text scaling.
+      const headerStyle = getComputedStyle(header), gap = parseFloat(headerStyle.columnGap) || 0;
+      const available = header.clientWidth - parseFloat(headerStyle.paddingLeft) - parseFloat(headerStyle.paddingRight)
+        - $('.title-cluster').getBoundingClientRect().width - $('.top-toolbar').getBoundingClientRect().width - gap * 2;
+      const widths = Array.from(header.querySelectorAll('.overview-select'), button => {
+        const style = getComputedStyle(button);
+        return Math.ceil(Math.max(...Array.from(button.children, child => {
+          const textStyle = getComputedStyle(child); summaryMeasure.font = textStyle.font;
+          return summaryMeasure.measureText(child.textContent).width + (parseFloat(textStyle.letterSpacing) || 0) * child.textContent.length;
+        })) + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 2);
+      });
+      const summaryGap = parseFloat(getComputedStyle($('.ledger-overview')).columnGap) || 0;
+      const inline = available >= widths[0] + widths[1] + summaryGap;
+      document.documentElement.dataset.headerLayout = inline ? 'inline' : 'stacked';
+      const room = available - summaryGap;
+      const first = Math.max(widths[0], Math.min(room / 2, room - widths[1]));
+      $('.ledger-overview').style.gridTemplateColumns = inline ? first + 'px minmax(0,1fr)' : 'minmax(0,1fr)';
+      const headerRect = header.getBoundingClientRect();
+      const headerHeight = inline ? headerRect.height : Math.max(0, headerRect.bottom);
       document.documentElement.style.setProperty('--app-header-height', headerHeight + 'px');
       document.documentElement.style.setProperty('--ledger-filters-height', pinned.getBoundingClientRect().height + 'px');
       document.documentElement.style.setProperty('--ledger-sticky-bar-height', (mobileSearch.matches ? pinned : quickArea).getBoundingClientRect().height + 'px');
