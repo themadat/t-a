@@ -1693,6 +1693,8 @@ html[data-skin="masters"] .button.danger:hover { background: #a51226; }
 
 /* Compact summaries use their measured content width before sharing spare space. */
 .app-header .title-cluster { justify-self:start; }
+html[data-header-layout] .app-header .top-toolbar { width:max-content; }
+.app-header { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 .app-header { position:static; gap:.35rem .5rem; padding-block:.35rem; }
 .app-header .overview-select { padding:.35rem .5rem; gap:.1rem; grid-template-rows:auto auto auto; }
 .app-header .overview-select > .eyebrow { font-size:.6rem; line-height:1.3; }

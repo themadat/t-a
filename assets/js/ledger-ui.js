@@ -417,19 +417,38 @@
     });
     const header = $('.app-header');
     const pinned = $('#ledgerPinnedControls'), quickArea = $('.ledger-quick-area');
-    const summaryMeasure = document.createElement('canvas').getContext('2d');
+    let summarySizeKey = '', summaryWidths = [];
     updateStickyControls = () => {
       // Fit the summaries between the actual identity and toolbar widths, including text scaling.
       const headerStyle = getComputedStyle(header), gap = parseFloat(headerStyle.columnGap) || 0;
       const available = header.clientWidth - parseFloat(headerStyle.paddingLeft) - parseFloat(headerStyle.paddingRight)
         - $('.title-cluster').getBoundingClientRect().width - $('.top-toolbar').getBoundingClientRect().width - gap * 2;
-      const widths = Array.from(header.querySelectorAll('.overview-select'), button => {
+      const summaries = Array.from(header.querySelectorAll('.overview-select'));
+      const sizeKey = JSON.stringify(summaries.map(button => {
         const style = getComputedStyle(button);
-        return Math.ceil(Math.max(...Array.from(button.children, child => {
-          const textStyle = getComputedStyle(child); summaryMeasure.font = textStyle.font;
-          return summaryMeasure.measureText(child.textContent).width + (parseFloat(textStyle.letterSpacing) || 0) * child.textContent.length;
-        })) + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 2);
-      });
+        return [style.paddingLeft, style.paddingRight, ...Array.from(button.children, child => {
+          const textStyle = getComputedStyle(child);
+          return [child.textContent, textStyle.fontFamily, textStyle.fontSize, textStyle.fontWeight, textStyle.fontStyle, textStyle.letterSpacing, textStyle.textTransform];
+        })];
+      }));
+      if (sizeKey !== summarySizeKey) {
+        // Measure in the real header context, including text transforms and browser font metrics.
+        summaryWidths = summaries.map(button => {
+          const probe = button.cloneNode(true);
+          probe.removeAttribute('id');
+          probe.querySelectorAll('[id]').forEach(child => child.removeAttribute('id'));
+          probe.inert = true;
+          probe.setAttribute('aria-hidden', 'true');
+          probe.style.cssText = 'position:absolute;visibility:hidden;inline-size:max-content;min-inline-size:0;max-inline-size:none;';
+          Array.from(probe.children).forEach(child => { child.style.whiteSpace = 'nowrap'; });
+          button.parentElement.append(probe);
+          const width = Math.ceil(probe.getBoundingClientRect().width) + 2;
+          probe.remove();
+          return width;
+        });
+        summarySizeKey = sizeKey;
+      }
+      const widths = summaryWidths;
       const summaryGap = parseFloat(getComputedStyle($('.ledger-overview')).columnGap) || 0;
       const inline = available >= widths[0] + widths[1] + summaryGap;
       document.documentElement.dataset.headerLayout = inline ? 'inline' : 'stacked';
