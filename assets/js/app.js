@@ -83,7 +83,7 @@
     root.style.setProperty("--text-scale", String(appearance.textScale));
     root.style.setProperty("--accent", colors.accent);
     root.style.setProperty("--accent-strong", skin?.accentStrong || u.mixColor(colors.accent, dark ? "#ffffff" : "#000000", dark ? 0.18 : 0.22));
-    const surface = skin ? (dark ? "#182c23" : "#fffdf5") : (dark ? "#161c1b" : "#ffffff");
+    const surface = skin?.surface || (dark ? "#161c1b" : "#ffffff");
     root.style.setProperty("--accent-soft", u.mixColor(colors.accent, surface, dark ? 0.76 : 0.86));
     root.style.setProperty("--accent-2", colors.accent2);
     root.style.setProperty("--accent-2-soft", u.mixColor(colors.accent2, surface, dark ? 0.78 : 0.86));

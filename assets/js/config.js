@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.6";
+  const VERSION = "1.0.0.7";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -67,8 +67,8 @@
   "defaultSkin": "masters",
   "skins": {
     "masters": {
-      "light": { "accent": "#006747", "accentStrong": "#004f36", "accent2": "#704822", "success": "#006747", "warning": "#704822", "danger": "#a52b57", "chrome": "#004f36" },
-      "dark": { "accent": "#006747", "accentStrong": "#8acdb0", "accent2": "#FFDE6A", "success": "#56A88A", "warning": "#FFDE6A", "danger": "#ef93b5", "chrome": "#004f36" }
+      "light": { "accent": "#007a3d", "accentStrong": "#005c2e", "accent2": "#175cdb", "success": "#007a3d", "warning": "#805b00", "danger": "#c91e32", "chrome": "#006b36", "surface": "#ffffff" },
+      "dark": { "accent": "#007a3d", "accentStrong": "#43ed87", "accent2": "#ffdf00", "success": "#36e67b", "warning": "#ffdf00", "danger": "#ff5664", "chrome": "#006b36", "surface": "#191f28" }
     }
   },
   "themeDefaults": {
@@ -79,7 +79,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-10-13T02:00:10.000Z", "title": "Clear Sync Recovery", "summary": "Sync failures explain the reason and offer recovery choices, including a fresh GitHub overwrite without a local backup.", "features": ["Sync failure pop-ups with retry, pull and overwrite, export, and Settings", "Show Latest Update Banners setting, off by default"], "improvements": ["Pull fetches the latest GitHub copy after confirmation and bypasses local-save, recovery, and tab-conflict blockers", "Repeated background errors show once until the connection recovers"], "fixes": ["Full recovery storage no longer blocks an explicitly confirmed GitHub overwrite", "Existing users without a banner preference default to off"], "knownIssues": ["GitHub access and valid remote data are still required; unavailable browser storage opens the copy with a persistence warning", "Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": VERSION, "date": "2026-11-16T00:25:51.000Z", "title": "Vibrant Masters And Smoother Controls", "summary": "A crisp red, green, blue, and yellow Masters palette with tighter controls and a smooth sticky Add transition.", "features": [], "improvements": ["Clean neutral surfaces and saturated summaries and category tags in light and dark themes", "Tighter toolbar spacing and thinner controls retain 44-pixel touch targets", "Reserved Add space keeps category filters on one line while scrolling"], "fixes": ["Add moves smoothly between its search-row slot and pinned controls, respecting reduced motion", "Docking no longer changes filter spacing or wraps the last category"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
+    {"version": "1.0.0.6", "date": "2026-10-13T02:00:10.000Z", "title": "Clear Sync Recovery", "summary": "Sync failures explain the reason and offer recovery choices, including a fresh GitHub overwrite without a local backup.", "features": ["Sync failure pop-ups with retry, pull and overwrite, export, and Settings", "Show Latest Update Banners setting, off by default"], "improvements": ["Pull fetches the latest GitHub copy after confirmation and bypasses local-save, recovery, and tab-conflict blockers", "Repeated background errors show once until the connection recovers"], "fixes": ["Full recovery storage no longer blocks an explicitly confirmed GitHub overwrite", "Existing users without a banner preference default to off"], "knownIssues": ["GitHub access and valid remote data are still required; unavailable browser storage opens the copy with a persistence warning", "Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.5", "date": "2026-10-03T19:15:26.000Z", "title": "Brighter Masters App Logo", "summary": "The Masters app logo pairs a neon green T with a bright coral-red A.", "features": [], "improvements": ["More distinct T&A lettering against the dark green icon background"], "fixes": [], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.4", "date": "2026-10-03T19:04:37.000Z", "title": "Simple Masters Favicon", "summary": "Masters uses the supplied gold T&A favicon artwork.", "features": [], "improvements": ["Updated Masters browser favicon to favicon-masters-simple.svg"], "fixes": ["Corrected a duplicate SVG attribute so the artwork renders"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},
     {"version": "1.0.0.3", "date": "2026-10-03T18:35:42.000Z", "title": "Safari Favicon Without White Backing", "summary": "Transparent browser favicons retain rounded outlines and readable T&A letters without the dark tile that triggers Safari's white backing.", "features": [], "improvements": ["Dedicated transparent tab artwork for Basic and Masters uses bright outlines and lettering"], "fixes": ["Removed the dark filled favicon background responsible for Safari's white outline"], "knownIssues": ["Live two-account sync and physical-phone checks remain unverified"]},

@@ -417,14 +417,25 @@
     });
     const header = $('.app-header');
     const slot = $('#ledgerAddSlot'), dock = $('#ledgerAddDock'), add = $('#addEntry'), pinned = $('#ledgerPinnedControls'), quickArea = $('.ledger-quick-area');
+    let addTransition;
+    // Reserve the destination before scrolling so docking never reflows the filters.
+    dock.hidden = false;
     updateStickyControls = () => {
       const headerHeight = header.getBoundingClientRect().height;
       const docked = slot.getBoundingClientRect().top <= header.getBoundingClientRect().bottom + 1;
       const target = docked ? dock : slot;
-      dock.hidden = !docked;
       if (add.parentElement !== target) {
+        const before = add.getBoundingClientRect();
+        addTransition?.cancel();
         const focused = document.activeElement === add; target.append(add);
         if (focused) add.focus({ preventScroll: true });
+        const after = add.getBoundingClientRect();
+        if (document.documentElement.dataset.motion !== 'reduce' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && add.animate) {
+          addTransition = add.animate([
+            { transform: `translate(${before.left - after.left}px, ${before.top - after.top}px)` },
+            { transform: 'translate(0, 0)' }
+          ], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+        }
       }
       document.documentElement.dataset.addDocked = String(docked);
       document.documentElement.style.setProperty('--app-header-height', headerHeight + 'px');
