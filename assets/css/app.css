@@ -1701,8 +1701,10 @@ html[data-header-layout] .app-header .top-toolbar { width:max-content; }
 .app-header .overview-select > strong { font-size:.9rem; line-height:1.2; }
 .app-header .overview-select > span:last-child { font-size:.67rem; line-height:1.3; }
 .app-header > .ledger-overview { gap:.35rem; }
+.app-header-space { display:none; }
+html[data-header-layout="inline"] .app-header-space { display:block; height:var(--app-header-height,0px); }
 html[data-header-layout="inline"] .app-header {
-  position:sticky; top:0;
+  position:fixed; top:0; inset-inline:0;
   grid-template-columns:auto minmax(0,1fr) auto;
   grid-template-areas:"title summaries toolbar";
 }

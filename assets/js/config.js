@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   window.LocalApp = window.LocalApp || {};
-  const VERSION = "1.0.0.11";
+  const VERSION = "1.0.0.12";
   const CONFIG = {
   "identity": {
     "name": "T&A",
@@ -79,7 +79,8 @@
     "danger": "#a74747"
   },
   "releases": [
-    {"version": VERSION, "date": "2026-11-16T02:11:42.073Z", "title": "Reliable Single-Row Header Fit", "summary": "The header uses rendered summary widths to decide when everything fits on one row.", "features": [], "improvements": ["Actual browser text measurements include uppercase labels, letter spacing, and active text size", "Header text keeps its chosen size without automatic mobile enlargement", "Action buttons occupy their intrinsic width"], "fixes": ["Wide headers no longer rely on canvas estimates to choose the stacked layout"], "knownIssues": ["Physical-phone checks remain unverified"]},
+    {"version": VERSION, "date": "2026-11-16T02:20:00.933Z", "title": "Reliable Pinned Header", "summary": "Single-row headers remain pinned while scrolling in every layout and skin.", "features": [], "improvements": [], "fixes": ["Single-row headers use fixed positioning with matching reserved page space", "Content and pinned controls remain below the header; stacked headers still scroll normally"], "knownIssues": ["Physical-phone checks remain unverified"]},
+    {"version": "1.0.0.11", "date": "2026-11-16T02:11:42.073Z", "title": "Reliable Single-Row Header Fit", "summary": "The header uses rendered summary widths to decide when everything fits on one row.", "features": [], "improvements": ["Actual browser text measurements include uppercase labels, letter spacing, and active text size", "Header text keeps its chosen size without automatic mobile enlargement", "Action buttons occupy their intrinsic width"], "fixes": ["Wide headers no longer rely on canvas estimates to choose the stacked layout"], "knownIssues": ["Physical-phone checks remain unverified"]},
     {"version": "1.0.0.10", "date": "2026-11-16T01:52:33.475Z", "title": "Steady Settings Scrolling", "summary": "Settings keeps its scroll position when background data refreshes.", "features": [], "improvements": [], "fixes": ["Refreshing the current Settings section no longer scrolls it to the top or saves a redundant tab change", "Opening Settings or deliberately changing sections still starts at the top"], "knownIssues": ["Physical-phone checks remain unverified"]},
     {"version": "1.0.0.9", "date": "2026-11-16T01:38:43.573Z", "title": "Compact Adaptive Header", "summary": "One Add button, shorter summaries, and a header that fits its content.", "features": [], "improvements": ["Single Add button on the controls row", "Red/green balance summary based on the connected viewer", "Compact +number wording and smaller summary typography", "Summaries fit between identity and actions, sharing equal widths when space permits", "The single-row header stays sticky; stacked headers scroll away"], "fixes": [], "knownIssues": ["Physical-phone checks remain unverified"]},
     {"version": "1.0.0.8", "date": "2026-11-16T01:11:49.528Z", "title": "Steady Controls And Matching Summaries", "summary": "Add stays available in both rows, with full-width controls, matching summary cards, and balanced disclosure spacing.", "features": [], "improvements": ["Quick actions and category filters expand to fill the controls row", "Equal summary card sizes, matching typography, and backgrounds coordinated with the table", "Disclosure buttons use the same inset as the left side of desktop rows"], "fixes": ["Add buttons stay in their own rows while scrolling and restore focus to the button used"], "knownIssues": ["Physical-phone checks remain unverified"]},

@@ -416,6 +416,10 @@
       else if (!event.target.closest('button, a, input, select, textarea, .inline-entry-details')) { const row = event.target.closest('[data-entry-id]'); if (row) toggleInline(row.dataset.entryType, row.dataset.entryId); }
     });
     const header = $('.app-header');
+    const headerSpace = document.createElement('div');
+    headerSpace.className = 'app-header-space';
+    headerSpace.setAttribute('aria-hidden', 'true');
+    header.before(headerSpace);
     const pinned = $('#ledgerPinnedControls'), quickArea = $('.ledger-quick-area');
     let summarySizeKey = '', summaryWidths = [];
     updateStickyControls = () => {
