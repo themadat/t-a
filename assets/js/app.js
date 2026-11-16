@@ -331,9 +331,10 @@
     renderSupport();
   }
 
-  function switchSupportTab(tab) {
+  function switchSupportTab(tab, options) {
     if (tab === "developer" && !state().preferences.controls.developerMode) tab = "settings";
-    storage.mutate(function (next) { next.ui.supportTab = tab; }, { touch: false, reason: "support-tab" });
+    const changed = state().ui.supportTab !== tab;
+    if (changed) storage.mutate(function (next) { next.ui.supportTab = tab; }, { touch: false, reason: "support-tab" });
     $$('[data-support-tab]').forEach(function (button) {
       const selected = button.dataset.supportTab === tab;
       button.setAttribute("aria-selected", String(selected));
@@ -348,6 +349,7 @@
     else if (tab === "roadmap") renderSupportRoadmap();
     else if (tab === "developer") renderDeveloper();
     else renderSettings();
+    if (options?.preserveScroll && !changed) return;
     $(".support-panels")?.scrollTo({ top: 0, behavior: "auto" });
     $("#supportDialog")?.scrollTo({ top: 0, behavior: "auto" });
     $("#supportDialog .dialog-shell")?.scrollTo({ top: 0, behavior: "auto" });
@@ -542,7 +544,7 @@
 
   function renderSupport() {
     $("#developerTab").hidden = !state().preferences.controls.developerMode || !config.features.developerTools;
-    switchSupportTab(state().ui.supportTab);
+    switchSupportTab(state().ui.supportTab, { preserveScroll: true });
   }
 
   function clearRoadmapFilters() {
